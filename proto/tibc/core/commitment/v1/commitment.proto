@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ibc.core.commitment.v1;
+package tibc.core.commitment.v1;
 
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types";
 

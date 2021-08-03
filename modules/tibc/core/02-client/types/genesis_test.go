@@ -7,7 +7,7 @@ import (
 
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
@@ -30,7 +30,7 @@ var clientHeight = types.NewHeight(0, 10)
 
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
-	clientA, _, _, _, _, _ := suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.ORDERED)
+	clientA, _, _, _, _, _ := suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.ORDERED)
 	suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
 
 	genesis := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.IBCKeeper.ClientKeeper)

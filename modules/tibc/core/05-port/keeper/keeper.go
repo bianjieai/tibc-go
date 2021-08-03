@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )

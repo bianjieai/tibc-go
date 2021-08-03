@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var (

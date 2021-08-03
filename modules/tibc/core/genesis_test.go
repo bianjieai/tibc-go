@@ -8,17 +8,17 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp"
+
 	ibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	localhosttypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-localhost/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (
@@ -109,44 +109,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					true,
 					2,
 				),
-				ConnectionGenesis: connectiontypes.NewGenesisState(
-					[]connectiontypes.IdentifiedConnection{
-						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, clientID, connectiontypes.NewCounterparty(clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{ibctesting.ConnectionVersion}, 0)),
-					},
-					[]connectiontypes.ConnectionPaths{
-						connectiontypes.NewConnectionPaths(clientID, []string{connectionID}),
-					},
-					0,
-				),
-				ChannelGenesis: channeltypes.NewGenesisState(
-					[]channeltypes.IdentifiedChannel{
-						channeltypes.NewIdentifiedChannel(
-							port1, channel1, channeltypes.NewChannel(
-								channeltypes.INIT, channeltypes.ORDERED,
-								channeltypes.NewCounterparty(port2, channel2), []string{connectionID}, ibctesting.DefaultChannelVersion,
-							),
-						),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port2, channel2, 1, []byte("ack")),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port2, channel2, 1, []byte("")),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port1, channel1, 1, []byte("commit_hash")),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port1, channel1, 1),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port2, channel2, 1),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port2, channel2, 1),
-					},
-					0,
-				),
 			},
 			expPass: true,
 		},
@@ -176,7 +138,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					false,
 					2,
 				),
-				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 			},
 			expPass: false,
 		},
@@ -184,28 +145,13 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 			name: "invalid connection genesis",
 			genState: &types.GenesisState{
 				ClientGenesis: clienttypes.DefaultGenesisState(),
-				ConnectionGenesis: connectiontypes.NewGenesisState(
-					[]connectiontypes.IdentifiedConnection{
-						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, "(CLIENTIDONE)", connectiontypes.NewCounterparty(clientID, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{connectiontypes.NewVersion("1.1", nil)}, 0)),
-					},
-					[]connectiontypes.ConnectionPaths{
-						connectiontypes.NewConnectionPaths(clientID, []string{connectionID}),
-					},
-					0,
-				),
 			},
 			expPass: false,
 		},
 		{
 			name: "invalid channel genesis",
 			genState: &types.GenesisState{
-				ClientGenesis:     clienttypes.DefaultGenesisState(),
-				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
-				ChannelGenesis: channeltypes.GenesisState{
-					Acknowledgements: []channeltypes.PacketState{
-						channeltypes.NewPacketState("(portID)", channel1, 1, []byte("ack")),
-					},
-				},
+				ClientGenesis: clienttypes.DefaultGenesisState(),
 			},
 			expPass: false,
 		},
@@ -271,44 +217,6 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 					true,
 					0,
 				),
-				ConnectionGenesis: connectiontypes.NewGenesisState(
-					[]connectiontypes.IdentifiedConnection{
-						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, clientID, connectiontypes.NewCounterparty(clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{ibctesting.ConnectionVersion}, 0)),
-					},
-					[]connectiontypes.ConnectionPaths{
-						connectiontypes.NewConnectionPaths(clientID, []string{connectionID}),
-					},
-					0,
-				),
-				ChannelGenesis: channeltypes.NewGenesisState(
-					[]channeltypes.IdentifiedChannel{
-						channeltypes.NewIdentifiedChannel(
-							port1, channel1, channeltypes.NewChannel(
-								channeltypes.INIT, channeltypes.ORDERED,
-								channeltypes.NewCounterparty(port2, channel2), []string{connectionID}, ibctesting.DefaultChannelVersion,
-							),
-						),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port2, channel2, 1, []byte("ack")),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port2, channel2, 1, []byte("")),
-					},
-					[]channeltypes.PacketState{
-						channeltypes.NewPacketState(port1, channel1, 1, []byte("commit_hash")),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port1, channel1, 1),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port2, channel2, 1),
-					},
-					[]channeltypes.PacketSequence{
-						channeltypes.NewPacketSequence(port2, channel2, 1),
-					},
-					0,
-				),
 			},
 		},
 	}
@@ -331,7 +239,7 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			"success",
 			func() {
 				// creates clients
-				suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+				suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.UNORDERED)
 				// create extra clients
 				suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
 				suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)

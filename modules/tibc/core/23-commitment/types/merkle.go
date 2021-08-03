@@ -10,6 +10,7 @@ import (
 	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 

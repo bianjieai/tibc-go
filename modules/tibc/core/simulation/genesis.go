@@ -8,29 +8,26 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
+
 	clientsims "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/simulation"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectionsims "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/simulation"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channelsims "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/simulation"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packetsims "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/simulation"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
 // Simulation parameter constants
 const (
-	clientGenesis     = "client_genesis"
-	connectionGenesis = "connection_genesis"
-	channelGenesis    = "channel_genesis"
+	clientGenesis = "client_genesis"
+	packetGenesis = "packet_genesis"
 )
 
 // RandomizedGenState generates a random GenesisState for evidence
 func RandomizedGenState(simState *module.SimulationState) {
 	var (
-		clientGenesisState     clienttypes.GenesisState
-		connectionGenesisState connectiontypes.GenesisState
-		channelGenesisState    channeltypes.GenesisState
+		clientGenesisState clienttypes.GenesisState
+		packetGenesisState packettypes.GenesisState
 	)
 
 	simState.AppParams.GetOrGenerate(
@@ -39,19 +36,13 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, connectionGenesis, &connectionGenesisState, simState.Rand,
-		func(r *rand.Rand) { connectionGenesisState = connectionsims.GenConnectionGenesis(r, simState.Accounts) },
-	)
-
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, channelGenesis, &channelGenesisState, simState.Rand,
-		func(r *rand.Rand) { channelGenesisState = channelsims.GenChannelGenesis(r, simState.Accounts) },
+		simState.Cdc, packetGenesis, &packetGenesisState, simState.Rand,
+		func(r *rand.Rand) { packetGenesisState = packetsims.GenpacketGenesis(r, simState.Accounts) },
 	)
 
 	ibcGenesis := types.GenesisState{
-		ClientGenesis:     clientGenesisState,
-		ConnectionGenesis: connectionGenesisState,
-		ChannelGenesis:    channelGenesisState,
+		ClientGenesis: clientGenesisState,
+		PacketGenesis: packetGenesisState,
 	}
 
 	bz, err := json.MarshalIndent(&ibcGenesis, "", " ")

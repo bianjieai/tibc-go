@@ -8,7 +8,7 @@ import (
 
 const (
 	// ModuleName is the name of the IBC module
-	ModuleName = "ibc"
+	ModuleName = "tibc"
 
 	// StoreKey is the string store representation
 	StoreKey string = ModuleName
@@ -127,99 +127,99 @@ func ConnectionKey(connectionID string) []byte {
 // The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#store-paths
 
 // ChannelPath defines the path under which channels are stored
-func ChannelPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelEndPrefix, channelPath(portID, channelID))
+func ChannelPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyChannelEndPrefix, channelPath(sourceChain, destinationChain))
 }
 
 // ChannelKey returns the store key for a particular channel
-func ChannelKey(portID, channelID string) []byte {
-	return []byte(ChannelPath(portID, channelID))
+func ChannelKey(sourceChain, destinationChain string) []byte {
+	return []byte(ChannelPath(sourceChain, destinationChain))
 }
 
 // ChannelCapabilityPath defines the path under which capability keys associated
 // with a channel are stored
-func ChannelCapabilityPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
+func ChannelCapabilityPath(port string) string {
+	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, port)
 }
 
 // NextSequenceSendPath defines the next send sequence counter store path
-func NextSequenceSendPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqSendPrefix, channelPath(portID, channelID))
+func NextSequenceSendPath(sourceChain, destChain string) string {
+	return fmt.Sprintf("%s/%s", KeyNextSeqSendPrefix, channelPath(sourceChain, destChain))
 }
 
 // NextSequenceSendKey returns the store key for the send sequence of a particular
 // channel binded to a specific port.
-func NextSequenceSendKey(portID, channelID string) []byte {
-	return []byte(NextSequenceSendPath(portID, channelID))
+func NextSequenceSendKey(sourceChain, destChain string) []byte {
+	return []byte(NextSequenceSendPath(sourceChain, destChain))
 }
 
 // NextSequenceRecvPath defines the next receive sequence counter store path.
-func NextSequenceRecvPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqRecvPrefix, channelPath(portID, channelID))
+func NextSequenceRecvPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyNextSeqRecvPrefix, channelPath(sourceChain, destinationChain))
 }
 
 // NextSequenceRecvKey returns the store key for the receive sequence of a particular
 // channel binded to a specific port
-func NextSequenceRecvKey(portID, channelID string) []byte {
-	return []byte(NextSequenceRecvPath(portID, channelID))
+func NextSequenceRecvKey(sourceChain, destinationChain string) []byte {
+	return []byte(NextSequenceRecvPath(sourceChain, destinationChain))
 }
 
 // NextSequenceAckPath defines the next acknowledgement sequence counter store path
-func NextSequenceAckPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyNextSeqAckPrefix, channelPath(portID, channelID))
+func NextSequenceAckPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyNextSeqAckPrefix, channelPath(sourceChain, destinationChain))
 }
 
 // NextSequenceAckKey returns the store key for the acknowledgement sequence of
 // a particular channel binded to a specific port.
-func NextSequenceAckKey(portID, channelID string) []byte {
-	return []byte(NextSequenceAckPath(portID, channelID))
+func NextSequenceAckKey(sourceChain, destinationChain string) []byte {
+	return []byte(NextSequenceAckPath(sourceChain, destinationChain))
 }
 
 // PacketCommitmentPath defines the commitments to packet data fields store path
-func PacketCommitmentPath(portID, channelID string, sequence uint64) string {
-	return fmt.Sprintf("%s/%d", PacketCommitmentPrefixPath(portID, channelID), sequence)
+func PacketCommitmentPath(sourceChain, destinationChain string, sequence uint64) string {
+	return fmt.Sprintf("%s/%d", PacketCommitmentPrefixPath(sourceChain, destinationChain), sequence)
 }
 
 // PacketCommitmentKey returns the store key of under which a packet commitment
 // is stored
-func PacketCommitmentKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(PacketCommitmentPath(portID, channelID, sequence))
+func PacketCommitmentKey(sourceChain, destinationChain string, sequence uint64) []byte {
+	return []byte(PacketCommitmentPath(sourceChain, destinationChain, sequence))
 }
 
 // PacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
-func PacketCommitmentPrefixPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketCommitmentPrefix, channelPath(portID, channelID), KeySequencePrefix)
+func PacketCommitmentPrefixPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketCommitmentPrefix, channelPath(sourceChain, destinationChain), KeySequencePrefix)
 }
 
 // PacketAcknowledgementPath defines the packet acknowledgement store path
-func PacketAcknowledgementPath(portID, channelID string, sequence uint64) string {
-	return fmt.Sprintf("%s/%d", PacketAcknowledgementPrefixPath(portID, channelID), sequence)
+func PacketAcknowledgementPath(sourceChain, destinationChain string, sequence uint64) string {
+	return fmt.Sprintf("%s/%d", PacketAcknowledgementPrefixPath(sourceChain, destinationChain), sequence)
 }
 
 // PacketAcknowledgementKey returns the store key of under which a packet
 // acknowledgement is stored
-func PacketAcknowledgementKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(PacketAcknowledgementPath(portID, channelID, sequence))
+func PacketAcknowledgementKey(sourceChain, destinationChain string, sequence uint64) []byte {
+	return []byte(PacketAcknowledgementPath(sourceChain, destinationChain, sequence))
 }
 
 // PacketAcknowledgementPrefixPath defines the prefix for commitments to packet data fields store path.
-func PacketAcknowledgementPrefixPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, channelPath(portID, channelID), KeySequencePrefix)
+func PacketAcknowledgementPrefixPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, channelPath(sourceChain, destinationChain), KeySequencePrefix)
 }
 
 // PacketReceiptPath defines the packet receipt store path
-func PacketReceiptPath(portID, channelID string, sequence uint64) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, channelPath(portID, channelID), sequencePath(sequence))
+func PacketReceiptPath(sourceChain, destinationChain string, sequence uint64) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, channelPath(sourceChain, destinationChain), sequencePath(sequence))
 }
 
 // PacketReceiptKey returns the store key of under which a packet
 // receipt is stored
-func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(PacketReceiptPath(portID, channelID, sequence))
+func PacketReceiptKey(sourceChain, destinationChain string, sequence uint64) []byte {
+	return []byte(PacketReceiptPath(sourceChain, destinationChain, sequence))
 }
 
-func channelPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, portID, KeyChannelPrefix, channelID)
+func channelPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", KeyPortPrefix, sourceChain, KeyChannelPrefix, destinationChain)
 }
 
 func sequencePath(sequence uint64) string {

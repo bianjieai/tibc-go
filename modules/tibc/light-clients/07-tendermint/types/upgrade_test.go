@@ -1,11 +1,12 @@
 package types_test
 
 import (
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (suite *TendermintTestSuite) TestVerifyUpgrade() {

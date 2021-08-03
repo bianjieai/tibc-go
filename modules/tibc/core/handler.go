@@ -3,9 +3,9 @@ package ibc
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
 
@@ -32,63 +32,13 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := k.SubmitMisbehaviour(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		// IBC connection msgs
-		case *connectiontypes.MsgConnectionOpenInit:
-			res, err := k.ConnectionOpenInit(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *connectiontypes.MsgConnectionOpenTry:
-			res, err := k.ConnectionOpenTry(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *connectiontypes.MsgConnectionOpenAck:
-			res, err := k.ConnectionOpenAck(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *connectiontypes.MsgConnectionOpenConfirm:
-			res, err := k.ConnectionOpenConfirm(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		// IBC channel msgs
-		case *channeltypes.MsgChannelOpenInit:
-			res, err := k.ChannelOpenInit(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgChannelOpenTry:
-			res, err := k.ChannelOpenTry(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgChannelOpenAck:
-			res, err := k.ChannelOpenAck(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgChannelOpenConfirm:
-			res, err := k.ChannelOpenConfirm(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgChannelCloseInit:
-			res, err := k.ChannelCloseInit(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgChannelCloseConfirm:
-			res, err := k.ChannelCloseConfirm(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		// IBC packet msgs get routed to the appropriate module callback
-		case *channeltypes.MsgRecvPacket:
+		case *packettypes.MsgRecvPacket:
 			res, err := k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *channeltypes.MsgAcknowledgement:
+		case *packettypes.MsgAcknowledgement:
 			res, err := k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgTimeout:
-			res, err := k.Timeout(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *channeltypes.MsgTimeoutOnClose:
-			res, err := k.TimeoutOnClose(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

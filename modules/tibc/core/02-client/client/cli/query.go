@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/client/utils"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"

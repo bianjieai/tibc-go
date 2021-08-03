@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	clientsim "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/simulation"
-	connectionsim "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/simulation"
-	channelsim "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/simulation"
+	packetsim "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/simulation"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
@@ -19,11 +19,7 @@ func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
 			return res
 		}
 
-		if res, found := connectionsim.NewDecodeStore(k.Codec(), kvA, kvB); found {
-			return res
-		}
-
-		if res, found := channelsim.NewDecodeStore(k.Codec(), kvA, kvB); found {
+		if res, found := packetsim.NewDecodeStore(k.Codec(), kvA, kvB); found {
 			return res
 		}
 

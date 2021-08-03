@@ -89,25 +89,6 @@ type ClientState interface {
 		proof []byte,
 		consensusState ConsensusState,
 	) error
-	VerifyConnectionState(
-		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
-		height Height,
-		prefix Prefix,
-		proof []byte,
-		connectionID string,
-		connectionEnd ConnectionI,
-	) error
-	VerifyChannelState(
-		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
-		height Height,
-		prefix Prefix,
-		proof []byte,
-		portID,
-		channelID string,
-		channel ChannelI,
-	) error
 	VerifyPacketCommitment(
 		store sdk.KVStore,
 		cdc codec.BinaryMarshaler,

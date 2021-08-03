@@ -2,6 +2,7 @@ package types_test
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"

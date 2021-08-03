@@ -13,23 +13,23 @@ More information on how to implement these callbacks can be found in the [implem
 type IBCModule interface {
 	OnChanOpenInit(
 		ctx sdk.Context,
-		order channeltypes.Order,
+		order packettypes.Order,
 		connectionHops []string,
 		portId string,
 		channelId string,
 		channelCap *capability.Capability,
-		counterparty channeltypes.Counterparty,
+		counterparty packettypes.Counterparty,
 		version string,
 	) error
 
 	OnChanOpenTry(
 		ctx sdk.Context,
-		order channeltypes.Order,
+		order packettypes.Order,
 		connectionHops []string,
 		portId,
 		channelId string,
 		channelCap *capability.Capability,
-		counterparty channeltypes.Counterparty,
+		counterparty packettypes.Counterparty,
 		version,
 		counterpartyVersion string,
 	) error
@@ -63,18 +63,18 @@ type IBCModule interface {
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	OnRecvPacket(
 		ctx sdk.Context,
-		packet channeltypes.Packet,
+		packet packettypes.Packet,
 	) (*sdk.Result, []byte, error)
 
 	OnAcknowledgementPacket(
 		ctx sdk.Context,
-		packet channeltypes.Packet,
+		packet packettypes.Packet,
 		acknowledgement []byte,
 	) (*sdk.Result, error)
 
 	OnTimeoutPacket(
 		ctx sdk.Context,
-		packet channeltypes.Packet,
+		packet packettypes.Packet,
 	) (*sdk.Result, error)
 }
 ```

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 

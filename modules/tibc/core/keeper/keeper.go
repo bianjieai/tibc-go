@@ -4,14 +4,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	clientkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectionkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/keeper"
-	channelkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/keeper"
+	packetkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/keeper"
 	portkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/keeper"
 	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -23,11 +23,10 @@ type Keeper struct {
 
 	cdc codec.BinaryMarshaler
 
-	ClientKeeper     clientkeeper.Keeper
-	ConnectionKeeper connectionkeeper.Keeper
-	ChannelKeeper    channelkeeper.Keeper
-	PortKeeper       portkeeper.Keeper
-	Router           *porttypes.Router
+	ClientKeeper clientkeeper.Keeper
+	Packetkeeper packetkeeper.Keeper
+	PortKeeper   portkeeper.Keeper
+	Router       *porttypes.Router
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -36,16 +35,14 @@ func NewKeeper(
 	stakingKeeper clienttypes.StakingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, clientKeeper)
 	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, portKeeper, scopedKeeper)
 
 	return &Keeper{
-		cdc:              cdc,
-		ClientKeeper:     clientKeeper,
-		ConnectionKeeper: connectionKeeper,
-		ChannelKeeper:    channelKeeper,
-		PortKeeper:       portKeeper,
+		cdc:          cdc,
+		ClientKeeper: clientKeeper,
+		Packetkeeper: packetkeeper,
+		PortKeeper:   portKeeper,
 	}
 }
 

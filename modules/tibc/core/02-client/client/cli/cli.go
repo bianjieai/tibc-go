@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 

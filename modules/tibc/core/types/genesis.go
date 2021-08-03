@@ -2,9 +2,9 @@ package types
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
 var _ codectypes.UnpackInterfacesMessage = GenesisState{}
@@ -12,9 +12,8 @@ var _ codectypes.UnpackInterfacesMessage = GenesisState{}
 // DefaultGenesisState returns the ibc module's default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		ClientGenesis:     clienttypes.DefaultGenesisState(),
-		ConnectionGenesis: connectiontypes.DefaultGenesisState(),
-		ChannelGenesis:    channeltypes.DefaultGenesisState(),
+		ClientGenesis: clienttypes.DefaultGenesisState(),
+		PacketGenesis: packettypes.DefaultGenesisState(),
 	}
 }
 
@@ -30,9 +29,5 @@ func (gs *GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.ConnectionGenesis.Validate(); err != nil {
-		return err
-	}
-
-	return gs.ChannelGenesis.Validate()
+	return gs.PacketGenesis.Validate()
 }

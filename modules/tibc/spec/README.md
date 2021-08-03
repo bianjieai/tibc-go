@@ -91,7 +91,7 @@ x/ibc
 ├── core/
 │   ├── 02-client/
 │   ├── 03-connection/
-│   ├── 04-channel/
+│   ├── 04-packet/
 │   ├── 05-port/
 │   ├── 23-commitment/
 │   ├── 24-host/

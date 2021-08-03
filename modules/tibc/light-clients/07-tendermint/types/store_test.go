@@ -2,7 +2,7 @@ package types_test
 
 import (
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	solomachinetypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/06-solomachine/types"
@@ -54,7 +54,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			clientA, _, _, _, _, _ = suite.coordinator.Setup(suite.chainA, suite.chainB, channeltypes.UNORDERED)
+			clientA, _, _, _, _, _ = suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.UNORDERED)
 			clientState := suite.chainA.GetClientState(clientA)
 			height = clientState.GetLatestHeight()
 

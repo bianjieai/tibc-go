@@ -12,8 +12,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/bianjieai/tibc-go/simapp"
-	"github.com/bianjieai/tibc-go/simapp/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	config "github.com/cosmos/cosmos-sdk/client/config"
@@ -33,6 +31,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
+	"github.com/bianjieai/tibc-go/simapp"
+	"github.com/bianjieai/tibc-go/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

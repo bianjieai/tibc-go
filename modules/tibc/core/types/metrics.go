@@ -2,11 +2,10 @@ package types
 
 // Prometheus metric labels.
 const (
-	LabelSourcePort         = "source_port"
-	LabelSourceChannel      = "source_channel"
-	LabelDestinationPort    = "destination_port"
-	LabelDestinationChannel = "destination_channel"
-	LabelTimeoutType        = "timeout_type"
-	LabelDenom              = "denom"
-	LabelSource             = "source"
+	LabelPort             = "port"
+	LabelSourceChain      = "source_chain"
+	LabelDestinationChain = "destination_chain"
+	LabelRelayChain       = "destination_chain"
+	LabelDenom            = "denom"
+	LabelSource           = "source"
 )

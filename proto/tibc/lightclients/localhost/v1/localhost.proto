@@ -1,8 +1,8 @@
 syntax = "proto3";
-package ibc.lightclients.localhost.v1;
+package tibc.lightclients.localhost.v1;
 
 import "gogoproto/gogo.proto";
-import "ibc/core/client/v1/client.proto";
+import "tibc/core/client/v1/client.proto";
 
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-localhost/types";
 
@@ -13,5 +13,5 @@ message ClientState {
   // self chain ID
   string chain_id = 1 [(gogoproto.moretags) = "yaml:\"chain_id\""];
   // self latest block height
-  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
 }

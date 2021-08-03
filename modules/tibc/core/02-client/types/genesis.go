@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )

@@ -11,12 +11,13 @@ import (
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	simappparams "github.com/bianjieai/tibc-go/simapp/params"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	simappparams "github.com/bianjieai/tibc-go/simapp/params"
 )
 
 // AppStateFn returns the initial application state using a genesis or the simulation parameters.

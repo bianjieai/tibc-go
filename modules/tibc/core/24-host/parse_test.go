@@ -1,12 +1,10 @@
 package host_test
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
@@ -20,7 +18,6 @@ func TestParseIdentifier(t *testing.T) {
 	}{
 		{"valid 0", "connection-0", "connection-", 0, true},
 		{"valid 1", "connection-1", "connection-", 1, true},
-		{"valid large sequence", connectiontypes.FormatConnectionIdentifier(math.MaxUint64), "connection-", math.MaxUint64, true},
 		// one above uint64 max
 		{"invalid uint64", "connection-18446744073709551616", "connection-", 0, false},
 		// uint64 == 20 characters

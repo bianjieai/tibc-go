@@ -13,9 +13,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	ibctransfertypes "github.com/bianjieai/tibc-go/modules/tibc/applications/transfer/types"
-	ibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	"github.com/bianjieai/tibc-go/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,6 +28,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	ibctransfertypes "github.com/bianjieai/tibc-go/modules/tibc/applications/transfer/types"
+	ibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/simapp/helpers"
 )
 
 // Get flags every time the simulator is run

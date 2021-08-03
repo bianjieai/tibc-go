@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -235,85 +235,6 @@ func (cs ClientState) VerifyClientConsensusState(
 	return nil
 }
 
-// VerifyConnectionState verifies a proof of the connection state of the
-// specified connection end stored on the target machine.
-func (cs ClientState) VerifyConnectionState(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	connectionID string,
-	connectionEnd exported.ConnectionI,
-) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	connectionPath := commitmenttypes.NewMerklePath(host.ConnectionPath(connectionID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, connectionPath)
-	if err != nil {
-		return err
-	}
-
-	connection, ok := connectionEnd.(connectiontypes.ConnectionEnd)
-	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid connection type %T", connectionEnd)
-	}
-
-	bz, err := cdc.MarshalBinaryBare(&connection)
-	if err != nil {
-		return err
-	}
-
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, bz); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// VerifyChannelState verifies a proof of the channel state of the specified
-// channel end, under the specified port, stored on the target machine.
-func (cs ClientState) VerifyChannelState(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	channel exported.ChannelI,
-) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	channelPath := commitmenttypes.NewMerklePath(host.ChannelPath(portID, channelID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, channelPath)
-	if err != nil {
-		return err
-	}
-
-	channelEnd, ok := channel.(channeltypes.Channel)
-	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid channel type %T", channel)
-	}
-
-	bz, err := cdc.MarshalBinaryBare(&channelEnd)
-	if err != nil {
-		return err
-	}
-
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, bz); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
@@ -383,7 +304,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, channeltypes.CommitAcknowledgement(acknowledgement)); err != nil {
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, packettypes.CommitAcknowledgement(acknowledgement)); err != nil {
 		return err
 	}
 

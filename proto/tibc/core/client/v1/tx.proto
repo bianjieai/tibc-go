@@ -1,11 +1,10 @@
 syntax = "proto3";
-package ibc.core.client.v1;
+package tibc.core.client.v1;
 
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
-import "ibc/core/client/v1/client.proto";
 
 // Msg defines the ibc/client Msg service.
 service Msg {

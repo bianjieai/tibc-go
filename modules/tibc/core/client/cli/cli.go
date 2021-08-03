@@ -4,11 +4,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
-	connection "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection"
-	channel "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel"
+	packet "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	solomachine "github.com/bianjieai/tibc-go/modules/tibc/light-clients/06-solomachine"
 	tendermint "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint"
 )
 
@@ -23,10 +22,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	ibcTxCmd.AddCommand(
-		solomachine.GetTxCmd(),
 		tendermint.GetTxCmd(),
-		connection.GetTxCmd(),
-		channel.GetTxCmd(),
 	)
 
 	return ibcTxCmd
@@ -45,8 +41,7 @@ func GetQueryCmd() *cobra.Command {
 
 	ibcQueryCmd.AddCommand(
 		ibcclient.GetQueryCmd(),
-		connection.GetQueryCmd(),
-		channel.GetQueryCmd(),
+		packet.GetQueryCmd(),
 	)
 
 	return ibcQueryCmd

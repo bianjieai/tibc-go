@@ -10,7 +10,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -47,7 +48,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 // fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
 // for both chains. The channels created are connected to the ibc-transfer application.
 func (coord *Coordinator) Setup(
-	chainA, chainB *TestChain, order channeltypes.Order,
+	chainA, chainB *TestChain, order packettypes.Order,
 ) (string, string, *TestConnection, *TestConnection, TestChannel, TestChannel) {
 	clientA, clientB, connA, connB := coord.SetupClientConnections(chainA, chainB, exported.Tendermint)
 
@@ -170,7 +171,7 @@ func (coord *Coordinator) CreateConnection(
 func (coord *Coordinator) CreateMockChannels(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) (TestChannel, TestChannel) {
 	return coord.CreateChannel(chainA, chainB, connA, connB, MockPort, MockPort, order)
 }
@@ -181,7 +182,7 @@ func (coord *Coordinator) CreateMockChannels(
 func (coord *Coordinator) CreateTransferChannels(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) (TestChannel, TestChannel) {
 	return coord.CreateChannel(chainA, chainB, connA, connB, TransferPort, TransferPort, order)
 }
@@ -193,7 +194,7 @@ func (coord *Coordinator) CreateChannel(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
 	sourcePortID, counterpartyPortID string,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) (TestChannel, TestChannel) {
 
 	channelA, channelB, err := coord.ChanOpenInit(chainA, chainB, connA, connB, sourcePortID, counterpartyPortID, order)
@@ -235,7 +236,7 @@ func (coord *Coordinator) SendPacket(
 func (coord *Coordinator) RecvPacket(
 	source, counterparty *TestChain,
 	sourceClient string,
-	packet channeltypes.Packet,
+	packet packettypes.Packet,
 ) error {
 	// get proof of packet commitment on source
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -245,7 +246,7 @@ func (coord *Coordinator) RecvPacket(
 	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress())
+	recvMsg := packettypes.NewMsgRecvPacket(packet, proof, proofHeight, counterparty.SenderAccount.GetAddress())
 
 	// receive on counterparty and update source client
 	return coord.SendMsgs(counterparty, source, sourceClient, []sdk.Msg{recvMsg})
@@ -278,7 +279,7 @@ func (coord *Coordinator) WriteAcknowledgement(
 func (coord *Coordinator) AcknowledgePacket(
 	source, counterparty *TestChain,
 	counterpartyClient string,
-	packet channeltypes.Packet, ack []byte,
+	packet packettypes.Packet, ack []byte,
 ) error {
 	// get proof of acknowledgement on counterparty
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -288,7 +289,7 @@ func (coord *Coordinator) AcknowledgePacket(
 	coord.IncrementTime()
 	coord.CommitBlock(source, counterparty)
 
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, source.SenderAccount.GetAddress())
+	ackMsg := packettypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, source.SenderAccount.GetAddress())
 	return coord.SendMsgs(source, counterparty, counterpartyClient, []sdk.Msg{ackMsg})
 }
 
@@ -297,7 +298,7 @@ func (coord *Coordinator) AcknowledgePacket(
 func (coord *Coordinator) RelayPacket(
 	source, counterparty *TestChain,
 	sourceClient, counterpartyClient string,
-	packet channeltypes.Packet, ack []byte,
+	packet packettypes.Packet, ack []byte,
 ) error {
 	// Increment time and commit block so that 5 second delay period passes between send and receive
 	coord.IncrementTime()
@@ -524,7 +525,7 @@ func (coord *Coordinator) ChanOpenInit(
 	source, counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
 	sourcePortID, counterpartyPortID string,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) (TestChannel, TestChannel, error) {
 	sourceChannel := source.AddTestChannel(connection, sourcePortID)
 	counterpartyChannel := counterparty.AddTestChannel(counterpartyConnection, counterpartyPortID)
@@ -557,7 +558,7 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(
 	source, counterparty *TestChain,
 	connection, counterpartyConnection *TestConnection,
 	sourcePortID, counterpartyPortID string,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) (TestChannel, TestChannel, error) {
 	sourceChannel := source.AddTestChannel(connection, sourcePortID)
 	counterpartyChannel := counterparty.AddTestChannel(counterpartyConnection, counterpartyPortID)
@@ -605,7 +606,7 @@ func (coord *Coordinator) ChanOpenTry(
 	source, counterparty *TestChain,
 	sourceChannel, counterpartyChannel TestChannel,
 	connection *TestConnection,
-	order channeltypes.Order,
+	order packettypes.Order,
 ) error {
 
 	// initialize channel on source
@@ -687,7 +688,7 @@ func (coord *Coordinator) SetChannelClosed(
 ) error {
 	channel := source.GetChannel(testChannel)
 
-	channel.State = channeltypes.CLOSED
+	channel.State = packettypes.CLOSED
 	source.App.IBCKeeper.ChannelKeeper.SetChannel(source.GetContext(), testChannel.PortID, testChannel.ID, channel)
 
 	coord.CommitBlock(source)

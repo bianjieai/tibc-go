@@ -2,6 +2,7 @@ package types
 
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 

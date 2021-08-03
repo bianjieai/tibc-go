@@ -1,8 +1,9 @@
 package simapp
 
 import (
-	simappparams "github.com/bianjieai/tibc-go/simapp/params"
 	"github.com/cosmos/cosmos-sdk/std"
+
+	simappparams "github.com/bianjieai/tibc-go/simapp/params"
 )
 
 // MakeTestEncodingConfig creates an EncodingConfig for testing.

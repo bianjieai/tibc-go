@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/bianjieai/tibc-go/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	connectiontypes "github.com/bianjieai/tibc-go/modules/tibc/core/03-connection/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
@@ -28,12 +28,8 @@ func TestDecodeStore(t *testing.T) {
 	clientState := &ibctmtypes.ClientState{
 		FrozenHeight: clienttypes.NewHeight(0, 10),
 	}
-	connection := connectiontypes.ConnectionEnd{
-		ClientId: "clientidone",
-		Versions: []*connectiontypes.Version{connectiontypes.NewVersion("1", nil)},
-	}
-	channel := channeltypes.Channel{
-		State:   channeltypes.OPEN,
+	channel := packettypes.Channel{
+		State:   packettypes.OPEN,
 		Version: "1.0",
 	}
 

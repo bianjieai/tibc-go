@@ -1,7 +1,7 @@
 package ibctesting
 
 import (
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
 // TestConnection is a testing helper struct to keep track of the connectionID, source clientID,
@@ -25,7 +25,7 @@ func (conn *TestConnection) FirstOrNextTestChannel(portID string) TestChannel {
 	}
 	return TestChannel{
 		PortID:               portID,
-		ID:                   channeltypes.FormatChannelIdentifier(0),
+		ID:                   packettypes.FormatChannelIdentifier(0),
 		ClientID:             conn.ClientID,
 		CounterpartyClientID: conn.CounterpartyClientID,
 		Version:              conn.NextChannelVersion,

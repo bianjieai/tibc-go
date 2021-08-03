@@ -17,9 +17,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-channel/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
 const (
@@ -126,63 +125,17 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // ____________________________________________________________________________
 
-// OnChanOpenInit implements the IBCModule interface.
-func (am AppModule) OnChanOpenInit(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _ string,
-) error {
-	// Claim channel capability passed back by IBC module
-	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// OnChanOpenTry implements the IBCModule interface.
-func (am AppModule) OnChanOpenTry(
-	ctx sdk.Context, _ channeltypes.Order, _ []string, portID string,
-	channelID string, chanCap *capabilitytypes.Capability, _ channeltypes.Counterparty, _, _ string,
-) error {
-	// Claim channel capability passed back by IBC module
-	if err := am.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// OnChanOpenAck implements the IBCModule interface.
-func (am AppModule) OnChanOpenAck(sdk.Context, string, string, string) error {
-	return nil
-}
-
-// OnChanOpenConfirm implements the IBCModule interface.
-func (am AppModule) OnChanOpenConfirm(sdk.Context, string, string) error {
-	return nil
-}
-
-// OnChanCloseInit implements the IBCModule interface.
-func (am AppModule) OnChanCloseInit(sdk.Context, string, string) error {
-	return nil
-}
-
-// OnChanCloseConfirm implements the IBCModule interface.
-func (am AppModule) OnChanCloseConfirm(sdk.Context, string, string) error {
-	return nil
-}
-
 // OnRecvPacket implements the IBCModule interface.
-func (am AppModule) OnRecvPacket(sdk.Context, channeltypes.Packet) (*sdk.Result, []byte, error) {
+func (am AppModule) OnRecvPacket(sdk.Context, packettypes.Packet) (*sdk.Result, []byte, error) {
 	return nil, MockAcknowledgement, nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (am AppModule) OnAcknowledgementPacket(sdk.Context, channeltypes.Packet, []byte) (*sdk.Result, error) {
+func (am AppModule) OnAcknowledgementPacket(sdk.Context, packettypes.Packet, []byte) (*sdk.Result, error) {
 	return nil, nil
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (am AppModule) OnTimeoutPacket(sdk.Context, channeltypes.Packet) (*sdk.Result, error) {
+func (am AppModule) OnTimeoutPacket(sdk.Context, packettypes.Packet) (*sdk.Result, error) {
 	return nil, nil
 }
