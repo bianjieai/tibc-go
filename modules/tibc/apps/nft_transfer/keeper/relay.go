@@ -120,3 +120,44 @@ func (k Keeper)OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data type
 	}
 	return nil
 }
+
+
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData, ack channeltypes.Acknowledgement) error {
+	switch ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Error:
+		return k.refundPacketToken(ctx, packet, data)
+	default:
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
+	}
+}
+
+func (k Keeper) refundPacketToken(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData) error {
+	// decode the sender address
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+
+	// decode the recevier address
+	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	if err != nil {
+		return err
+	}
+
+	if data.AwayFromOrigin{
+		// unlock
+		if err := k.nftKeeper.TransferOwner(ctx, data.Class, data.Id, "", data.Uri, "",
+			k.GetNftTransferModuleAddr(types.ModuleName), receiver); err != nil{
+			return err
+		}
+
+	} else {
+		// mintNFT
+		if err := k.nftKeeper.MintNFT(ctx, data.Class, data.Id, "", data.Uri, "", sender); err != nil{
+			return err
+		}
+	}
+	return nil
+}
