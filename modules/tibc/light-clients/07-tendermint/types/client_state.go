@@ -57,15 +57,26 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
-// IsFrozen returns true if the frozen height has been set.
-func (cs ClientState) IsFrozen() bool {
-	return !cs.FrozenHeight.IsZero()
+// ChainName returns latest block height.
+func (cs ClientState) ChainName() string {
+	//TODO
+	return ""
 }
 
-// GetFrozenHeight returns the height at which client is frozen
-// NOTE: FrozenHeight is zero if client is unfrozen
-func (cs ClientState) GetFrozenHeight() exported.Height {
-	return cs.FrozenHeight
+// DelayTime returns latest block height.
+func (cs ClientState) DelayTime() uint64 {
+	return 0
+}
+
+// DelayBlock returns latest block height.
+func (cs ClientState) DelayBlock() uint64 {
+	return 0
+}
+
+// Prefix returns latest block height.
+func (cs ClientState) Prefix() exported.Prefix {
+	//TODO
+	return nil
 }
 
 // IsExpired returns whether or not the client has passed the trusting period since the last
@@ -126,20 +137,6 @@ func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 	return cs.ProofSpecs
 }
 
-// ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
-	// copy over all chain-specified fields
-	// and leave custom fields empty
-	return &ClientState{
-		ChainId:         cs.ChainId,
-		UnbondingPeriod: cs.UnbondingPeriod,
-		LatestHeight:    cs.LatestHeight,
-		ProofSpecs:      cs.ProofSpecs,
-		UpgradePath:     cs.UpgradePath,
-	}
-}
-
 // Initialize will check that initial consensus state is a Tendermint consensus state
 // and will store ProcessedTime for initial consensus state as ctx.BlockTime()
 func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clientStore sdk.KVStore, consState exported.ConsensusState) error {
@@ -152,116 +149,30 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 	return nil
 }
 
-// VerifyClientState verifies a proof of the client state of the running chain
-// stored on the target machine
-func (cs ClientState) VerifyClientState(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	prefix exported.Prefix,
-	counterpartyClientIdentifier string,
-	proof []byte,
-	clientState exported.ClientState,
-) error {
-	merkleProof, provingConsensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullClientStatePath(counterpartyClientIdentifier))
-	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
-	if err != nil {
-		return err
-	}
-
-	if clientState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidClient, "client state cannot be empty")
-	}
-
-	_, ok := clientState.(*ClientState)
-	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "invalid client type %T, expected %T", clientState, &ClientState{})
-	}
-
-	bz, err := cdc.MarshalInterface(clientState)
-	if err != nil {
-		return err
-	}
-
-	return merkleProof.VerifyMembership(cs.ProofSpecs, provingConsensusState.GetRoot(), path, bz)
-}
-
-// VerifyClientConsensusState verifies a proof of the consensus state of the
-// Tendermint client stored on the target machine.
-func (cs ClientState) VerifyClientConsensusState(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	counterpartyClientIdentifier string,
-	consensusHeight exported.Height,
-	prefix exported.Prefix,
-	proof []byte,
-	consensusState exported.ConsensusState,
-) error {
-	merkleProof, provingConsensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	clientPrefixedPath := commitmenttypes.NewMerklePath(host.FullConsensusStatePath(counterpartyClientIdentifier, consensusHeight))
-	path, err := commitmenttypes.ApplyPrefix(prefix, clientPrefixedPath)
-	if err != nil {
-		return err
-	}
-
-	if consensusState == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "consensus state cannot be empty")
-	}
-
-	_, ok := consensusState.(*ConsensusState)
-	if !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid consensus type %T, expected %T", consensusState, &ConsensusState{})
-	}
-
-	bz, err := cdc.MarshalInterface(consensusState)
-	if err != nil {
-		return err
-	}
-
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, provingConsensusState.GetRoot(), path, bz); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	height exported.Height,
-	currentTimestamp uint64,
-	delayPeriod uint64,
-	prefix exported.Prefix,
 	proof []byte,
-	portID,
-	channelID string,
+	sourceChain,
+	destChain string,
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.Prefix(), proof)
 	if err != nil {
 		return err
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentTimestamp, delayPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(store, height, cs.DelayTime(), cs.DelayBlock()); err != nil {
 		return err
 	}
 
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
+	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(sourceChain, destChain, sequence))
+	path, err := commitmenttypes.ApplyPrefix(cs.Prefix(), commitmentPath)
 	if err != nil {
 		return err
 	}
@@ -279,109 +190,29 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	height exported.Height,
-	currentTimestamp uint64,
-	delayPeriod uint64,
-	prefix exported.Prefix,
 	proof []byte,
-	portID,
-	channelID string,
+	sourceChain,
+	destChain string,
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.Prefix(), proof)
 	if err != nil {
 		return err
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentTimestamp, delayPeriod); err != nil {
+	if err := verifyDelayPeriodPassed(store, height, cs.DelayTime(), cs.DelayBlock()); err != nil {
 		return err
 	}
 
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
+	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(sourceChain, destChain, sequence))
+	path, err := commitmenttypes.ApplyPrefix(cs.Prefix(), ackPath)
 	if err != nil {
 		return err
 	}
 
 	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, packettypes.CommitAcknowledgement(acknowledgement)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// VerifyPacketReceiptAbsence verifies a proof of the absence of an
-// incoming packet receipt at the specified port, specified channel, and
-// specified sequence.
-func (cs ClientState) VerifyPacketReceiptAbsence(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	currentTimestamp uint64,
-	delayPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	sequence uint64,
-) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentTimestamp, delayPeriod); err != nil {
-		return err
-	}
-
-	receiptPath := commitmenttypes.NewMerklePath(host.PacketReceiptPath(portID, channelID, sequence))
-	path, err := commitmenttypes.ApplyPrefix(prefix, receiptPath)
-	if err != nil {
-		return err
-	}
-
-	if err := merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), path); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// VerifyNextSequenceRecv verifies a proof of the next sequence number to be
-// received of the specified channel at the specified port.
-func (cs ClientState) VerifyNextSequenceRecv(
-	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
-	currentTimestamp uint64,
-	delayPeriod uint64,
-	prefix exported.Prefix,
-	proof []byte,
-	portID,
-	channelID string,
-	nextSequenceRecv uint64,
-) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, prefix, proof)
-	if err != nil {
-		return err
-	}
-
-	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, currentTimestamp, delayPeriod); err != nil {
-		return err
-	}
-
-	nextSequenceRecvPath := commitmenttypes.NewMerklePath(host.NextSequenceRecvPath(portID, channelID))
-	path, err := commitmenttypes.ApplyPrefix(prefix, nextSequenceRecvPath)
-	if err != nil {
-		return err
-	}
-
-	bz := sdk.Uint64ToBigEndian(nextSequenceRecv)
-
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, bz); err != nil {
 		return err
 	}
 
@@ -421,10 +252,6 @@ func produceVerificationArgs(
 			sdkerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
 		)
-	}
-
-	if cs.IsFrozen() && !cs.FrozenHeight.GT(height) {
-		return commitmenttypes.MerkleProof{}, nil, clienttypes.ErrClientFrozen
 	}
 
 	if prefix == nil {

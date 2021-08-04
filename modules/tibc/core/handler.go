@@ -15,21 +15,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		// IBC client msg interface types
-		case *clienttypes.MsgCreateClient:
-			res, err := k.CreateClient(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
 		case *clienttypes.MsgUpdateClient:
 			res, err := k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *clienttypes.MsgUpgradeClient:
-			res, err := k.UpgradeClient(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
-
-		case *clienttypes.MsgSubmitMisbehaviour:
-			res, err := k.SubmitMisbehaviour(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		// IBC packet msgs get routed to the appropriate module callback

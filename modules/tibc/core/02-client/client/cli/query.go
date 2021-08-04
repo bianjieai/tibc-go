@@ -95,7 +95,7 @@ func GetCmdQueryClientState() *cobra.Command {
 // client state.
 func GetCmdQueryConsensusStates() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "consensus-states [client-id]",
+		Use:     "consensus-states [chain-name]",
 		Short:   "Query all the consensus states of a client.",
 		Long:    "Query all the consensus states from a given client state.",
 		Example: fmt.Sprintf("%s query %s %s consensus-states [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
@@ -105,7 +105,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			clientID := args[0]
+			chainName := args[0]
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -115,7 +115,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 			}
 
 			req := &types.QueryConsensusStatesRequest{
-				ClientId:   clientID,
+				ChainName:  chainName,
 				Pagination: pageReq,
 			}
 
@@ -230,31 +230,6 @@ func GetCmdNodeConsensusState() *cobra.Command {
 
 			clientCtx = clientCtx.WithHeight(height)
 			return clientCtx.PrintProto(state)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdParams returns the command handler for ibc client parameter querying.
-func GetCmdParams() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "params",
-		Short:   "Query the current ibc client parameters",
-		Long:    "Query the current ibc client parameters",
-		Args:    cobra.NoArgs,
-		Example: fmt.Sprintf("%s query %s %s params", version.AppName, host.ModuleName, types.SubModuleName),
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(clientCtx)
-
-			res, _ := queryClient.ClientParams(context.Background(), &types.QueryClientParamsRequest{})
-			return clientCtx.PrintProto(res.Params)
 		},
 	}
 

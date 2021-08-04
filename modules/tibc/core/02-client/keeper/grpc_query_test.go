@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 		{"client not found",
 			func() {
 				req = &types.QueryClientStateRequest{
-					ClientId: testClientID,
+					ChainName: testClientName,
 				}
 			},
 			false,
@@ -45,14 +45,14 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 			"success",
 			func() {
 				clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-				suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+				suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
 
 				var err error
 				expClientState, err = types.PackClientState(clientState)
 				suite.Require().NoError(err)
 
 				req = &types.QueryClientStateRequest{
-					ClientId: testClientID,
+					ChainName: testClientName,
 				}
 			},
 			true,
@@ -145,8 +145,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			tc.malleate()
 
 			// always add localhost which is created by default in init genesis
-			localhostClientState := suite.chainA.GetClientState(exported.Localhost)
-			identifiedLocalhost := types.NewIdentifiedClientState(exported.Localhost, localhostClientState)
+			localhostClientState := suite.chainA.GetClientState(testClientName)
+			identifiedLocalhost := types.NewIdentifiedClientState(testClientName, localhostClientState)
 			expClientStates = append(expClientStates, identifiedLocalhost)
 
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			"invalid height",
 			func() {
 				req = &types.QueryConsensusStateRequest{
-					ClientId:       testClientID,
+					ChainName:      testClientName,
 					RevisionNumber: 0,
 					RevisionHeight: 0,
 					LatestHeight:   false,
@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 			"consensus state not found",
 			func() {
 				req = &types.QueryConsensusStateRequest{
-					ClientId:     testClientID,
+					ChainName:    testClientName,
 					LatestHeight: true,
 				}
 			},
@@ -211,15 +211,15 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 				cs := ibctmtypes.NewConsensusState(
 					suite.consensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte("hash1")), nil,
 				)
-				suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-				suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, cs)
+				suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
+				suite.keeper.SetClientConsensusState(suite.ctx, testClientName, testClientHeight, cs)
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
 				suite.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
-					ClientId:     testClientID,
+					ChainName:    testClientName,
 					LatestHeight: true,
 				}
 			},
@@ -231,14 +231,14 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 				cs := ibctmtypes.NewConsensusState(
 					suite.consensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte("hash1")), nil,
 				)
-				suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, cs)
+				suite.keeper.SetClientConsensusState(suite.ctx, testClientName, testClientHeight, cs)
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
 				suite.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
-					ClientId:       testClientID,
+					ChainName:      testClientName,
 					RevisionNumber: 0,
 					RevisionHeight: height,
 				}
@@ -292,7 +292,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			"empty pagination",
 			func() {
 				req = &types.QueryConsensusStatesRequest{
-					ClientId: testClientID,
+					ChainName: testClientName,
 				}
 			},
 			true,
@@ -301,7 +301,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			"success, no results",
 			func() {
 				req = &types.QueryConsensusStatesRequest{
-					ClientId: testClientID,
+					ChainName: testClientName,
 					Pagination: &query.PageRequest{
 						Limit:      3,
 						CountTotal: true,
@@ -325,9 +325,9 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				)
 
 				// Use CreateClient to ensure that processedTime metadata gets stored.
-				clientId, err := suite.keeper.CreateClient(suite.ctx, clientState, cs)
+				err := suite.keeper.CreateClient(suite.ctx, testClientName, clientState, cs)
 				suite.Require().NoError(err)
-				suite.keeper.SetClientConsensusState(suite.ctx, clientId, testClientHeight.Increment(), cs2)
+				suite.keeper.SetClientConsensusState(suite.ctx, testClientName, testClientHeight.Increment(), cs2)
 
 				// order is swapped because the res is sorted by client id
 				expConsensusStates = []types.ConsensusStateWithHeight{
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 					types.NewConsensusStateWithHeight(testClientHeight.Increment().(types.Height), cs2),
 				}
 				req = &types.QueryConsensusStatesRequest{
-					ClientId: clientId,
+					ChainName: testClientName,
 					Pagination: &query.PageRequest{
 						Limit:      3,
 						CountTotal: true,
@@ -372,11 +372,4 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestQueryParams() {
-	ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-	expParams := types.DefaultParams()
-	res, _ := suite.queryClient.ClientParams(ctx, &types.QueryClientParamsRequest{})
-	suite.Require().Equal(&expParams, res.Params)
 }

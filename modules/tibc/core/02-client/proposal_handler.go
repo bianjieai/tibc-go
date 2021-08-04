@@ -9,13 +9,16 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
-// NewClientUpdateProposalHandler defines the client update proposal handler
-func NewClientUpdateProposalHandler(k keeper.Keeper) govtypes.Handler {
+// NewClientProposalHandler defines the client manager proposal handler
+func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
-		case *types.ClientUpdateProposal:
-			return k.ClientUpdateProposal(ctx, c)
-
+		case *types.CreateClientProposal:
+			return k.HandleCreateClientProposal(ctx, c)
+		case *types.UpgradeClientProposal:
+			return k.HandleUpgradeClientProposal(ctx, c)
+		case *types.RegisterRelayerProposal:
+			return k.HandleRegisterRelayerProposal(ctx, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized ibc proposal content type: %T", c)
 		}

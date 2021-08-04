@@ -29,7 +29,7 @@ type ClientsConsensusStates []ClientConsensusStates
 func (ccs ClientsConsensusStates) Len() int { return len(ccs) }
 
 // Less implements sort.Interface
-func (ccs ClientsConsensusStates) Less(i, j int) bool { return ccs[i].ClientId < ccs[j].ClientId }
+func (ccs ClientsConsensusStates) Less(i, j int) bool { return ccs[i].ChainName < ccs[j].ChainName }
 
 // Swap implements sort.Interface
 func (ccs ClientsConsensusStates) Swap(i, j int) { ccs[i], ccs[j] = ccs[j], ccs[i] }
@@ -53,7 +53,7 @@ func (ccs ClientsConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpack
 // NewClientConsensusStates creates a new ClientConsensusStates instance.
 func NewClientConsensusStates(clientID string, consensusStates []ConsensusStateWithHeight) ClientConsensusStates {
 	return ClientConsensusStates{
-		ClientId:        clientID,
+		ChainName:       clientID,
 		ConsensusStates: consensusStates,
 	}
 }
@@ -70,15 +70,12 @@ func (ccs ClientConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
-	clients []IdentifiedClientState, clientsConsensus ClientsConsensusStates, clientsMetadata []IdentifiedGenesisMetadata,
-	params Params, createLocalhost bool, nextClientSequence uint64,
+	clients []IdentifiedClientState, clientsConsensus ClientsConsensusStates, clientsMetadata []IdentifiedGenesisMetadata, nextClientSequence uint64,
 ) GenesisState {
 	return GenesisState{
 		Clients:            clients,
 		ClientsConsensus:   clientsConsensus,
 		ClientsMetadata:    clientsMetadata,
-		Params:             params,
-		CreateLocalhost:    createLocalhost,
 		NextClientSequence: nextClientSequence,
 	}
 }
@@ -88,8 +85,6 @@ func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Clients:            []IdentifiedClientState{},
 		ClientsConsensus:   ClientsConsensusStates{},
-		Params:             DefaultParams(),
-		CreateLocalhost:    false,
 		NextClientSequence: 0,
 	}
 }
@@ -112,30 +107,23 @@ func (gs GenesisState) Validate() error {
 	// the next sequence used in creating client identifers.
 	var maxSequence uint64 = 0
 
-	if err := gs.Params.Validate(); err != nil {
-		return err
-	}
-
 	validClients := make(map[string]string)
 
 	for i, client := range gs.Clients {
-		if err := host.ClientIdentifierValidator(client.ClientId); err != nil {
-			return fmt.Errorf("invalid client consensus state identifier %s index %d: %w", client.ClientId, i, err)
+		if err := host.ClientIdentifierValidator(client.ChainName); err != nil {
+			return fmt.Errorf("invalid client consensus state identifier %s index %d: %w", client.ChainName, i, err)
 		}
 
 		clientState, ok := client.ClientState.GetCachedValue().(exported.ClientState)
 		if !ok {
-			return fmt.Errorf("invalid client state with ID %s", client.ClientId)
+			return fmt.Errorf("invalid client state with ID %s", client.ChainName)
 		}
 
-		if !gs.Params.IsAllowedClient(clientState.ClientType()) {
-			return fmt.Errorf("client type %s not allowed by genesis params", clientState.ClientType())
-		}
 		if err := clientState.Validate(); err != nil {
 			return fmt.Errorf("invalid client %v index %d: %w", client, i, err)
 		}
 
-		clientType, sequence, err := ParseClientIdentifier(client.ClientId)
+		clientType, sequence, err := ParseClientIdentifier(client.ChainName)
 		if err != nil {
 			return err
 		}
@@ -153,14 +141,14 @@ func (gs GenesisState) Validate() error {
 		}
 
 		// add client id to validClients map
-		validClients[client.ClientId] = clientState.ClientType()
+		validClients[client.ChainName] = clientState.ClientType()
 	}
 
 	for _, cc := range gs.ClientsConsensus {
 		// check that consensus state is for a client in the genesis clients list
-		clientType, ok := validClients[cc.ClientId]
+		clientType, ok := validClients[cc.ChainName]
 		if !ok {
-			return fmt.Errorf("consensus state in genesis has a client id %s that does not map to a genesis client", cc.ClientId)
+			return fmt.Errorf("consensus state in genesis has a client id %s that does not map to a genesis client", cc.ChainName)
 		}
 
 		for i, consensusState := range cc.ConsensusStates {
@@ -170,11 +158,11 @@ func (gs GenesisState) Validate() error {
 
 			cs, ok := consensusState.ConsensusState.GetCachedValue().(exported.ConsensusState)
 			if !ok {
-				return fmt.Errorf("invalid consensus state with client ID %s at height %s", cc.ClientId, consensusState.Height)
+				return fmt.Errorf("invalid consensus state with client ID %s at height %s", cc.ChainName, consensusState.Height)
 			}
 
 			if err := cs.ValidateBasic(); err != nil {
-				return fmt.Errorf("invalid client consensus state %v clientID %s index %d: %w", cs, cc.ClientId, i, err)
+				return fmt.Errorf("invalid client consensus state %v clientID %s index %d: %w", cs, cc.ChainName, i, err)
 			}
 
 			// ensure consensus state type matches client state type
@@ -187,22 +175,18 @@ func (gs GenesisState) Validate() error {
 
 	for _, clientMetadata := range gs.ClientsMetadata {
 		// check that metadata is for a client in the genesis clients list
-		_, ok := validClients[clientMetadata.ClientId]
+		_, ok := validClients[clientMetadata.ChainName]
 		if !ok {
-			return fmt.Errorf("metadata in genesis has a client id %s that does not map to a genesis client", clientMetadata.ClientId)
+			return fmt.Errorf("metadata in genesis has a client id %s that does not map to a genesis client", clientMetadata.ChainName)
 		}
 
-		for i, gm := range clientMetadata.ClientMetadata {
+		for i, gm := range clientMetadata.Metadata {
 			if err := gm.Validate(); err != nil {
-				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ClientId, i, err)
+				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ChainName, i, err)
 			}
 
 		}
 
-	}
-
-	if gs.CreateLocalhost && !gs.Params.IsAllowedClient(exported.Localhost) {
-		return fmt.Errorf("localhost client is not registered on the allowlist")
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
@@ -243,9 +227,9 @@ func (gm GenesisMetadata) Validate() error {
 
 // NewIdentifiedGenesisMetadata takes in a client ID and list of genesis metadata for that client
 // and constructs a new IdentifiedGenesisMetadata.
-func NewIdentifiedGenesisMetadata(clientID string, gms []GenesisMetadata) IdentifiedGenesisMetadata {
+func NewIdentifiedGenesisMetadata(chainName string, gms []GenesisMetadata) IdentifiedGenesisMetadata {
 	return IdentifiedGenesisMetadata{
-		ClientId:       clientID,
-		ClientMetadata: gms,
+		ChainName: chainName,
+		Metadata:  gms,
 	}
 }

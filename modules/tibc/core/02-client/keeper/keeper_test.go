@@ -22,7 +22,6 @@ import (
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	localhosttypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-localhost/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
@@ -31,9 +30,9 @@ const (
 	testChainID          = "gaiahub-0"
 	testChainIDRevision1 = "gaiahub-1"
 
-	testClientID  = "tendermint-0"
-	testClientID2 = "tendermint-1"
-	testClientID3 = "tendermint-2"
+	testClientName = "tendermint-0"
+	testClientID2  = "tendermint-1"
+	testClientID3  = "tendermint-2"
 
 	height = 5
 
@@ -83,7 +82,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
+	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientName, Time: now2})
 	suite.keeper = &app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
 
@@ -117,11 +116,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	// add localhost client
-	revision := types.ParseChainID(suite.chainA.ChainID)
-	localHostClient := localhosttypes.NewClientState(
-		suite.chainA.ChainID, types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
-	)
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), exported.Localhost, localHostClient)
+	// revision := types.ParseChainID(suite.chainA.ChainID)
+	// localHostClient := localhosttypes.NewClientState(
+	// 	suite.chainA.ChainID, types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
+	// )
+	// suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), testClientName, localHostClient)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
@@ -134,17 +133,17 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestSetClientState() {
 	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+	suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
 
-	retrievedState, found := suite.keeper.GetClientState(suite.ctx, testClientID)
+	retrievedState, found := suite.keeper.GetClientState(suite.ctx, testClientName)
 	suite.Require().True(found, "GetClientState failed")
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
+	suite.keeper.SetClientConsensusState(suite.ctx, testClientName, testClientHeight, suite.consensusState)
 
-	retrievedConsState, found := suite.keeper.GetClientConsensusState(suite.ctx, testClientID, testClientHeight)
+	retrievedConsState, found := suite.keeper.GetClientConsensusState(suite.ctx, testClientName, testClientHeight)
 	suite.Require().True(found, "GetConsensusState failed")
 
 	tmConsState, ok := retrievedConsState.(*ibctmtypes.ConsensusState)
@@ -169,11 +168,6 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 			"success with nil UpgradePath",
 			ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), nil, false, false),
 			true,
-		},
-		{
-			"invalid client type",
-			localhosttypes.NewClientState(suite.chainA.ChainID, testClientHeight),
-			false,
 		},
 		{
 			"frozen client",
@@ -234,7 +228,7 @@ func (suite *KeeperTestSuite) TestValidateSelfClient() {
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
-		testClientID2, testClientID3, testClientID,
+		testClientID2, testClientID3, testClientName,
 	}
 	expClients := []exported.ClientState{
 		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
@@ -250,9 +244,9 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	}
 
 	// add localhost client
-	localHostClient, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), exported.Localhost)
+	localHostClient, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), testClientName)
 	suite.Require().True(found)
-	expGenClients = append(expGenClients, types.NewIdentifiedClientState(exported.Localhost, localHostClient))
+	expGenClients = append(expGenClients, types.NewIdentifiedClientState(testClientName, localHostClient))
 
 	genClients := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
 
@@ -280,7 +274,6 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 
 	genClients := []types.IdentifiedClientState{
 		types.NewIdentifiedClientState("clientA", &ibctmtypes.ClientState{}), types.NewIdentifiedClientState("clientB", &ibctmtypes.ClientState{}),
-		types.NewIdentifiedClientState("clientC", &ibctmtypes.ClientState{}), types.NewIdentifiedClientState("clientD", &localhosttypes.ClientState{}),
 	}
 
 	suite.chainA.App.IBCKeeper.ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
@@ -320,22 +313,22 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 	// initial setup
 	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
 
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
+	suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
+	suite.keeper.SetClientConsensusState(suite.ctx, testClientName, testClientHeight, suite.consensusState)
 
 	nextState := ibctmtypes.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("next")), suite.valSetHash)
 
 	testClientHeightPlus5 := types.NewHeight(0, height+5)
 
-	header := suite.chainA.CreateTMClientHeader(testClientID, int64(testClientHeightPlus5.RevisionHeight), testClientHeight, suite.header.Header.Time.Add(time.Minute),
+	header := suite.chainA.CreateTMClientHeader(testClientName, int64(testClientHeightPlus5.RevisionHeight), testClientHeight, suite.header.Header.Time.Add(time.Minute),
 		suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
 
 	// mock update functionality
 	clientState.LatestHeight = header.GetHeight().(types.Height)
-	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, header.GetHeight(), nextState)
-	suite.keeper.SetClientState(suite.ctx, testClientID, clientState)
+	suite.keeper.SetClientConsensusState(suite.ctx, testClientName, header.GetHeight(), nextState)
+	suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
 
-	latest, ok := suite.keeper.GetLatestClientConsensusState(suite.ctx, testClientID)
+	latest, ok := suite.keeper.GetLatestClientConsensusState(suite.ctx, testClientName)
 	suite.Require().True(ok)
 	suite.Require().Equal(nextState, latest, "Latest client not returned correctly")
 }

@@ -27,11 +27,6 @@ func (q Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsens
 	return q.ClientKeeper.ConsensusStates(c, req)
 }
 
-// ClientParams implements the IBC QueryServer interface
-func (q Keeper) ClientParams(c context.Context, req *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error) {
-	return q.ClientKeeper.ClientParams(c, req)
-}
-
 // PacketCommitment implements the IBC QueryServer interface
 func (q Keeper) PacketCommitment(c context.Context, req *packettypes.QueryPacketCommitmentRequest) (*packettypes.QueryPacketCommitmentResponse, error) {
 	return q.Packetkeeper.PacketCommitment(c, req)

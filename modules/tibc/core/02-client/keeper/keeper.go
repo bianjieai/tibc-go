@@ -33,11 +33,6 @@ type Keeper struct {
 
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
@@ -163,7 +158,7 @@ func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.Identif
 		if err != nil {
 			return nil, err
 		}
-		gms := cs.ExportMetadata(k.ClientStore(ctx, ic.ClientId))
+		gms := cs.ExportMetadata(k.ClientStore(ctx, ic.ChainName))
 		if len(gms) == 0 {
 			continue
 		}
@@ -177,7 +172,7 @@ func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.Identif
 			clientMetadata[i] = cmd
 		}
 		genMetadata = append(genMetadata, types.NewIdentifiedGenesisMetadata(
-			ic.ClientId,
+			ic.ChainName,
 			clientMetadata,
 		))
 	}
@@ -188,9 +183,9 @@ func (k Keeper) GetAllClientMetadata(ctx sdk.Context, genClients []types.Identif
 func (k Keeper) SetAllClientMetadata(ctx sdk.Context, genMetadata []types.IdentifiedGenesisMetadata) {
 	for _, igm := range genMetadata {
 		// create client store
-		store := k.ClientStore(ctx, igm.ClientId)
+		store := k.ClientStore(ctx, igm.ChainName)
 		// set all metadata kv pairs in client store
-		for _, md := range igm.ClientMetadata {
+		for _, md := range igm.Metadata {
 			store.Set(md.GetKey(), md.GetValue())
 		}
 	}
@@ -209,7 +204,7 @@ func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusSta
 		}
 
 		clientConsState := types.ClientConsensusStates{
-			ClientId:        clientID,
+			ChainName:       clientID,
 			ConsensusStates: []types.ConsensusStateWithHeight{cs},
 		}
 
@@ -273,9 +268,9 @@ func (k Keeper) ValidateSelfClient(ctx sdk.Context, clientState exported.ClientS
 			&ibctmtypes.ClientState{}, tmClient)
 	}
 
-	if clientState.IsFrozen() {
-		return types.ErrClientFrozen
-	}
+	// if clientState.IsFrozen() {
+	// 	return types.ErrClientFrozen
+	// }
 
 	if ctx.ChainID() != tmClient.ChainId {
 		return sdkerrors.Wrapf(types.ErrInvalidClient, "invalid chain-id. expected: %s, got: %s",

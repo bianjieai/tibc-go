@@ -25,7 +25,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryConsensusState(),
 		GetCmdQueryHeader(),
 		GetCmdNodeConsensusState(),
-		GetCmdParams(),
 	)
 
 	return queryCmd

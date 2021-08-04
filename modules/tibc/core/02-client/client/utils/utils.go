@@ -20,15 +20,15 @@ import (
 // QueryClientState returns a client state. If prove is true, it performs an ABCI store query
 // in order to retrieve the merkle proof. Otherwise, it uses the gRPC query client.
 func QueryClientState(
-	clientCtx client.Context, clientID string, prove bool,
+	clientCtx client.Context, chainName string, prove bool,
 ) (*types.QueryClientStateResponse, error) {
 	if prove {
-		return QueryClientStateABCI(clientCtx, clientID)
+		return QueryClientStateABCI(clientCtx, chainName)
 	}
 
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryClientStateRequest{
-		ClientId: clientID,
+		ChainName: chainName,
 	}
 
 	return queryClient.ClientState(context.Background(), req)
@@ -36,9 +36,9 @@ func QueryClientState(
 
 // QueryClientStateABCI queries the store to get the light client state and a merkle proof.
 func QueryClientStateABCI(
-	clientCtx client.Context, clientID string,
+	clientCtx client.Context, chainName string,
 ) (*types.QueryClientStateResponse, error) {
-	key := host.FullClientStateKey(clientID)
+	key := host.FullClientStateKey(chainName)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
 	if err != nil {
@@ -47,7 +47,7 @@ func QueryClientStateABCI(
 
 	// check if client exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrClientNotFound, clientID)
+		return nil, sdkerrors.Wrap(types.ErrClientNotFound, chainName)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -69,15 +69,15 @@ func QueryClientStateABCI(
 // QueryConsensusState returns a consensus state. If prove is true, it performs an ABCI store
 // query in order to retrieve the merkle proof. Otherwise, it uses the gRPC query client.
 func QueryConsensusState(
-	clientCtx client.Context, clientID string, height exported.Height, prove, latestHeight bool,
+	clientCtx client.Context, chainName string, height exported.Height, prove, latestHeight bool,
 ) (*types.QueryConsensusStateResponse, error) {
 	if prove {
-		return QueryConsensusStateABCI(clientCtx, clientID, height)
+		return QueryConsensusStateABCI(clientCtx, chainName, height)
 	}
 
 	queryClient := types.NewQueryClient(clientCtx)
 	req := &types.QueryConsensusStateRequest{
-		ClientId:       clientID,
+		ChainName:      chainName,
 		RevisionNumber: height.GetRevisionNumber(),
 		RevisionHeight: height.GetRevisionHeight(),
 		LatestHeight:   latestHeight,

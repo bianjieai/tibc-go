@@ -27,16 +27,16 @@ func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ChainName); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	clientState, found := q.GetClientState(ctx, req.ClientId)
+	clientState, found := q.GetClientState(ctx, req.ChainName)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ClientId).Error(),
+			sdkerrors.Wrap(types.ErrClientNotFound, req.ChainName).Error(),
 		)
 	}
 
@@ -102,7 +102,7 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ChainName); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -115,19 +115,19 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 
 	height := types.NewHeight(req.RevisionNumber, req.RevisionHeight)
 	if req.LatestHeight {
-		consensusState, found = q.GetLatestClientConsensusState(ctx, req.ClientId)
+		consensusState, found = q.GetLatestClientConsensusState(ctx, req.ChainName)
 	} else {
 		if req.RevisionHeight == 0 {
 			return nil, status.Error(codes.InvalidArgument, "consensus state height cannot be 0")
 		}
 
-		consensusState, found = q.GetClientConsensusState(ctx, req.ClientId, height)
+		consensusState, found = q.GetClientConsensusState(ctx, req.ChainName, height)
 	}
 
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ClientId, height).Error(),
+			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ChainName, height).Error(),
 		)
 	}
 
@@ -149,14 +149,14 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ChainName); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
 
 	consensusStates := []types.ConsensusStateWithHeight{}
-	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ChainName, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key
@@ -185,15 +185,5 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 	return &types.QueryConsensusStatesResponse{
 		ConsensusStates: consensusStates,
 		Pagination:      pageRes,
-	}, nil
-}
-
-// ClientParams implements the Query/ClientParams gRPC method
-func (q Keeper) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-	params := q.GetParams(ctx)
-
-	return &types.QueryClientParamsResponse{
-		Params: &params,
 	}, nil
 }
