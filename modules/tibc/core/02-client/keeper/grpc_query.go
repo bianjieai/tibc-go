@@ -74,12 +74,12 @@ func (q Keeper) ClientStates(c context.Context, req *types.QueryClientStatesRequ
 			return err
 		}
 
-		clientID := keySplit[1]
-		if err := host.ClientIdentifierValidator(clientID); err != nil {
+		chainName := keySplit[1]
+		if err := host.ClientIdentifierValidator(chainName); err != nil {
 			return err
 		}
 
-		identifiedClient := types.NewIdentifiedClientState(clientID, clientState)
+		identifiedClient := types.NewIdentifiedClientState(chainName, clientState)
 		clientStates = append(clientStates, identifiedClient)
 		return nil
 	})

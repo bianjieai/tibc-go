@@ -73,19 +73,17 @@ func NewGenesisState(
 	clients []IdentifiedClientState, clientsConsensus ClientsConsensusStates, clientsMetadata []IdentifiedGenesisMetadata, nextClientSequence uint64,
 ) GenesisState {
 	return GenesisState{
-		Clients:            clients,
-		ClientsConsensus:   clientsConsensus,
-		ClientsMetadata:    clientsMetadata,
-		NextClientSequence: nextClientSequence,
+		Clients:          clients,
+		ClientsConsensus: clientsConsensus,
+		ClientsMetadata:  clientsMetadata,
 	}
 }
 
 // DefaultGenesisState returns the ibc client submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Clients:            []IdentifiedClientState{},
-		ClientsConsensus:   ClientsConsensusStates{},
-		NextClientSequence: 0,
+		Clients:          []IdentifiedClientState{},
+		ClientsConsensus: ClientsConsensusStates{},
 	}
 }
 
@@ -188,11 +186,6 @@ func (gs GenesisState) Validate() error {
 		}
 
 	}
-
-	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
-		return fmt.Errorf("next client identifier sequence %d must be greater than the maximum sequence used in the provided client identifiers %d", gs.NextClientSequence, maxSequence)
-	}
-
 	return nil
 }
 

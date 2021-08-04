@@ -70,7 +70,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, chainName),
+				telemetry.NewLabel(types.LabelChainName, chainName),
 				telemetry.NewLabel(types.LabelUpdateType, "msg"),
 			},
 		)
@@ -122,7 +122,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, chainName string, upgradedClientS
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, upgradedClientState.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, chainName),
+				telemetry.NewLabel(types.LabelChainName, chainName),
 			},
 		)
 	}()

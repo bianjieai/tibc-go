@@ -21,8 +21,6 @@ message GenesisState {
   // metadata from each client
   repeated IdentifiedGenesisMetadata clients_metadata = 3
       [ (gogoproto.nullable) = false ];
-  // the sequence for the next generated client identifier
-  uint64 next_client_sequence = 4;
 }
 
 // GenesisMetadata defines the genesis type for metadata that clients may return

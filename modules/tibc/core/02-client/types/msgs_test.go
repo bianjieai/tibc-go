@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
@@ -121,14 +120,6 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 			"invalid signer",
 			func() {
 				msg.Signer = ""
-			},
-			false,
-		},
-		{
-			"unsupported - localhost",
-			func() {
-				msg, err = types.NewMsgUpdateClient(exported.Localhost, suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress())
-				suite.Require().NoError(err)
 			},
 			false,
 		},

@@ -38,9 +38,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 			k.SetClientConsensusState(ctx, cs.ChainName, consState.Height, consensusState)
 		}
 	}
-
-	k.SetNextClientSequence(ctx, gs.NextClientSequence)
-
 	// NOTE: localhost creation is specifically disallowed for the time being.
 	// Issue: https://github.com/cosmos/cosmos-sdk/issues/7871
 }
@@ -55,9 +52,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		panic(err)
 	}
 	return types.GenesisState{
-		Clients:            genClients,
-		ClientsMetadata:    clientsMetadata,
-		ClientsConsensus:   k.GetAllConsensusStates(ctx),
-		NextClientSequence: k.GetNextClientSequence(ctx),
+		Clients:          genClients,
+		ClientsMetadata:  clientsMetadata,
+		ClientsConsensus: k.GetAllConsensusStates(ctx),
 	}
 }
