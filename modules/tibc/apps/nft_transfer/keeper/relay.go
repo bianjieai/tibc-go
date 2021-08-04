@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 )
 

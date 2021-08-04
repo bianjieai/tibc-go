@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -53,11 +54,12 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, r *int
 	panic("implement me")
 }
 
-func (a AppModuleBasic) GetTxCmd() *interface{} {
-	panic("implement me")
+// GetTxCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
 }
 
-func (a AppModuleBasic) GetQueryCmd() *interface{} {
+func (AppModuleBasic) GetQueryCmd() *interface{} {
 	panic("implement me")
 }
 
