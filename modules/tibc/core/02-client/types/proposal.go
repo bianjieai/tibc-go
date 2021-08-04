@@ -1,6 +1,8 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -126,5 +128,11 @@ func (rrp *RegisterRelayerProposal) ValidateBasic() error {
 		return govtypes.ErrInvalidLengthGov
 	}
 
+	for _, relayer := range rrp.Relayers {
+		_, err := sdk.AccAddressFromBech32(relayer)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		}
+	}
 	return nil
 }

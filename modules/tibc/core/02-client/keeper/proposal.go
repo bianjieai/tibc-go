@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -37,6 +39,31 @@ func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeCli
 	if err != nil {
 		return err
 	}
+
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-name", p.ChainName, "height", clientState.GetLatestHeight().String())
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "client", "update"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelChainName, p.ChainName),
+				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
+			},
+		)
+	}()
+
+	// emitting events in the keeper for proposal updates to clients
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUpdateClientProposal,
+			sdk.NewAttribute(types.AttributeKeyChainName, p.ChainName),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+		),
+	)
+
 	return k.UpgradeClient(ctx, p.ChainName, clientState, consensusState)
 }
 

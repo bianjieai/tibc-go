@@ -186,6 +186,10 @@ func (gs GenesisState) Validate() error {
 		}
 
 	}
+
+	if err := host.ClientIdentifierValidator(gs.ChainName); err != nil {
+		return err
+	}
 	return nil
 }
 
