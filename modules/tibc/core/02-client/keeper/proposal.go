@@ -70,6 +70,10 @@ func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeCli
 // RegisterRelayerProposal will try to update the client with the new header if and only if
 // the proposal passes. The localhost client is not allowed to be modified with a proposal.
 func (k Keeper) HandleRegisterRelayerProposal(ctx sdk.Context, p *types.RegisterRelayerProposal) error {
-	//TODO
-	return nil
+	_, has := k.GetClientState(ctx, p.ChainName)
+	if has {
+		return sdkerrors.Wrapf(types.ErrClientExists, "chain-name: %s", p.ChainName)
+	}
+
+	return k.SetRelayers(ctx, p.ChainName, p.Relayers)
 }

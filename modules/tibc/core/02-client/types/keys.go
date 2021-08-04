@@ -24,6 +24,10 @@ const (
 	// KeyClientName is the key used to store the chain name in
 	// the keeper.
 	KeyClientName = "chainName"
+
+	// KeyRelayers is the key used to store the relayers address in
+	// the keeper.
+	KeyRelayers = "relayers"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.
@@ -63,4 +67,8 @@ func ParseClientIdentifier(clientID string) (string, uint64, error) {
 	}
 
 	return clientType, sequence, nil
+}
+
+func RelayerKey(relayer string) []byte {
+	return []byte(fmt.Sprintf("%s/%s", KeyRelayers, relayer))
 }
