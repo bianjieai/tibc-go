@@ -9,8 +9,8 @@ import (
 	clientkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packetkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/keeper"
-	portkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/keeper"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
+	routingkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/keeper"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
@@ -23,10 +23,10 @@ type Keeper struct {
 
 	cdc codec.BinaryMarshaler
 
-	ClientKeeper clientkeeper.Keeper
-	Packetkeeper packetkeeper.Keeper
-	PortKeeper   portkeeper.Keeper
-	Router       *porttypes.Router
+	ClientKeeper  clientkeeper.Keeper
+	Packetkeeper  packetkeeper.Keeper
+	RoutingKeeper routingkeeper.Keeper
+	Router        *routingtypes.Router
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -35,14 +35,14 @@ func NewKeeper(
 	stakingKeeper clienttypes.StakingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
-	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, portKeeper, scopedKeeper)
+	routingKeeper := routingkeeper.NewKeeper()
+	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, routingKeeper, scopedKeeper)
 
 	return &Keeper{
-		cdc:          cdc,
-		ClientKeeper: clientKeeper,
-		Packetkeeper: packetkeeper,
-		PortKeeper:   portKeeper,
+		cdc:           cdc,
+		ClientKeeper:  clientKeeper,
+		Packetkeeper:  packetkeeper,
+		RoutingKeeper: routingKeeper,
 	}
 }
 
@@ -53,7 +53,7 @@ func (k Keeper) Codec() codec.BinaryMarshaler {
 
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
-func (k *Keeper) SetRouter(rtr *porttypes.Router) {
+func (k *Keeper) SetRouter(rtr *routingtypes.Router) {
 	if k.Router != nil && k.Router.Sealed() {
 		panic("cannot reset a sealed router")
 	}

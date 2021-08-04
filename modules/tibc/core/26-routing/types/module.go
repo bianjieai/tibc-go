@@ -6,9 +6,9 @@ import (
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
-// IBCModule defines an interface that implements all the callbacks
-// that modules must define as specified in ICS-26
-type IBCModule interface {
+// TIBCModule defines an interface that implements all the callbacks
+// that modules must define as specified in TICS-26
+type TIBCModule interface {
 	// OnRecvPacket must return the acknowledgement bytes
 	// In the case of an asynchronous acknowledgement, nil should be returned.
 	OnRecvPacket(
@@ -20,10 +20,5 @@ type IBCModule interface {
 		ctx sdk.Context,
 		packet packettypes.Packet,
 		acknowledgement []byte,
-	) (*sdk.Result, error)
-
-	OnTimeoutPacket(
-		ctx sdk.Context,
-		packet packettypes.Packet,
 	) (*sdk.Result, error)
 }
