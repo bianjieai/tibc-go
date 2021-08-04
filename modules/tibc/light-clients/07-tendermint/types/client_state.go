@@ -57,12 +57,6 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
-// ChainName returns latest block height.
-func (cs ClientState) ChainName() string {
-	//TODO
-	return ""
-}
-
 // DelayTime returns latest block height.
 func (cs ClientState) DelayTime() uint64 {
 	return 0

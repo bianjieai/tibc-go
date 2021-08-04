@@ -27,7 +27,6 @@ type ClientState interface {
 
 	ClientType() string
 	GetLatestHeight() Height
-	ChainName() string
 	Validate() error
 	DelayTime() uint64
 	DelayBlock() uint64
@@ -57,6 +56,7 @@ type ClientState interface {
 		sequence uint64,
 		commitmentBytes []byte,
 	) error
+
 	VerifyPacketAcknowledgement(
 		store sdk.KVStore,
 		cdc codec.BinaryMarshaler,

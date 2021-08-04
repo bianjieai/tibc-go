@@ -78,6 +78,19 @@ func (k Keeper) SetClientConsensusState(ctx sdk.Context, chainName string, heigh
 	store.Set(host.ConsensusStateKey(height), k.MustMarshalConsensusState(consensusState))
 }
 
+// SetChainName sets a chain name to the ibc module
+func (k Keeper) SetChainName(ctx sdk.Context, chainName string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set([]byte(types.KeyClientName), []byte(chainName))
+}
+
+// GetChainName return the chain name of the current chain
+func (k Keeper) GetChainName(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get([]byte(types.KeyClientName))
+	return string(bz)
+}
+
 // IterateConsensusStates provides an iterator over all stored consensus states.
 // objects. For each State object, cb will be called. If the cb returns true,
 // the iterator will close and stop.
