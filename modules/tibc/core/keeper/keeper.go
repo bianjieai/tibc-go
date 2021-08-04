@@ -26,7 +26,6 @@ type Keeper struct {
 	ClientKeeper  clientkeeper.Keeper
 	Packetkeeper  packetkeeper.Keeper
 	RoutingKeeper routingkeeper.Keeper
-	Router        *routingtypes.Router
 }
 
 // NewKeeper creates a new ibc Keeper
@@ -51,12 +50,8 @@ func (k Keeper) Codec() codec.BinaryMarshaler {
 	return k.cdc
 }
 
-// SetRouter sets the Router in IBC Keeper and seals it. The method panics if
+// SetRouter sets the Router in TIBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *routingtypes.Router) {
-	if k.Router != nil && k.Router.Sealed() {
-		panic("cannot reset a sealed router")
-	}
-	k.Router = rtr
-	k.Router.Seal()
+	k.RoutingKeeper.SetRouter(rtr)
 }

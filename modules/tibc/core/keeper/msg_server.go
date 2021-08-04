@@ -140,7 +140,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
 	if !ok {
 		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
@@ -192,7 +192,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
 	if !ok {
 		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
