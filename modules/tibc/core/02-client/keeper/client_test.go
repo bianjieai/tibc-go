@@ -117,14 +117,14 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		}, false},
 		{"consensus state not found", func() error {
 			clientState = ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
-			suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
+			suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 			updateHeader = createFutureUpdateFn(suite)
 
 			return nil
 		}, false},
 		{"frozen client before update", func() error {
 			clientState = &ibctmtypes.ClientState{FrozenHeight: types.NewHeight(0, 1), LatestHeight: testClientHeight}
-			suite.keeper.SetClientState(suite.ctx, testClientName, clientState)
+			suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 			updateHeader = createFutureUpdateFn(suite)
 
 			return nil
@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 		i := i
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
 			suite.SetupTest()
-			chainName = testClientName // must be explicitly changed
+			chainName = testChainName // must be explicitly changed
 
 			err := tc.malleate()
 			suite.Require().NoError(err)

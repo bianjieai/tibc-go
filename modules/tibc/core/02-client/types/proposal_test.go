@@ -11,11 +11,11 @@ import (
 )
 
 func (suite *TypesTestSuite) TestNewCreateClientProposal() {
-	p, err := types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, clientID, &ibctmtypes.ClientState{}, &ibctmtypes.ConsensusState{})
+	p, err := types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, chainName, &ibctmtypes.ClientState{}, &ibctmtypes.ConsensusState{})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(p)
 
-	p, err = types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, clientID, nil, nil)
+	p, err = types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, chainName, nil, nil)
 	suite.Require().Error(err)
 	suite.Require().Nil(p)
 }
