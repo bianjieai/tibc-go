@@ -5,8 +5,16 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+)
+
+var (
+	CreateClientProposalHandler    = govclient.NewProposalHandler(cli.NewCmdCreateClientProposal, nil)
+	UpgradeClientProposalHandler   = govclient.NewProposalHandler(cli.NewCmdUpgradeClientProposal, nil)
+	RegisterRelayerProposalHandler = govclient.NewProposalHandler(cli.NewCmdRegisterRelayerProposal, nil)
 )
 
 // NewClientProposalHandler defines the client manager proposal handler

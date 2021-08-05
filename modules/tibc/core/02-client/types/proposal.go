@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	// ProposalTypeClientUpdate defines the type for a ClientUpdateProposal
-	ProposalTypeClientUpdate = "CreateClient"
+	ProposalTypeClientCreate    = "CreateClient"
+	ProposalTypeClientUpgrade   = "UpgradeClient"
+	ProposalTypeRelayerRegister = "RegisterRelayer"
 )
 
 var (
@@ -51,7 +52,7 @@ func (cup *CreateClientProposal) GetDescription() string { return cup.Descriptio
 func (cup *CreateClientProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (cup *CreateClientProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (cup *CreateClientProposal) ProposalType() string { return ProposalTypeClientCreate }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *CreateClientProposal) ValidateBasic() error {
@@ -71,6 +72,27 @@ func (cup *CreateClientProposal) ValidateBasic() error {
 	return clientState.Validate()
 }
 
+// NewCreateClientProposal creates a new client proposal.
+func NewUpgradeClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*UpgradeClientProposal, error) {
+	clientStateAny, err := PackClientState(clientState)
+	if err != nil {
+		return nil, err
+	}
+
+	consensusStateAny, err := PackConsensusState(consensusState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpgradeClientProposal{
+		Title:          title,
+		Description:    description,
+		ChainName:      chainName,
+		ClientState:    clientStateAny,
+		ConsensusState: consensusStateAny,
+	}, nil
+}
+
 // GetTitle returns the title of a client update proposal.
 func (cup *UpgradeClientProposal) GetTitle() string { return cup.Title }
 
@@ -81,7 +103,7 @@ func (cup *UpgradeClientProposal) GetDescription() string { return cup.Descripti
 func (cup *UpgradeClientProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (cup *UpgradeClientProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (cup *UpgradeClientProposal) ProposalType() string { return ProposalTypeClientUpgrade }
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *UpgradeClientProposal) ValidateBasic() error {
@@ -101,6 +123,16 @@ func (cup *UpgradeClientProposal) ValidateBasic() error {
 	return clientState.Validate()
 }
 
+// NewRegisterRelayerProposal creates a new client proposal.
+func NewRegisterRelayerProposal(title, description, chainName string, relayers []string) *RegisterRelayerProposal {
+	return &RegisterRelayerProposal{
+		Title:       title,
+		Description: description,
+		ChainName:   chainName,
+		Relayers:    relayers,
+	}
+}
+
 // GetTitle returns the title of a client update proposal.
 func (rrp *RegisterRelayerProposal) GetTitle() string { return rrp.Title }
 
@@ -111,7 +143,7 @@ func (rrp *RegisterRelayerProposal) GetDescription() string { return rrp.Descrip
 func (rrp *RegisterRelayerProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a client update proposal.
-func (rrp *RegisterRelayerProposal) ProposalType() string { return ProposalTypeClientUpdate }
+func (rrp *RegisterRelayerProposal) ProposalType() string { return ProposalTypeRelayerRegister }
 
 // ValidateBasic runs basic stateless validity checks
 func (rrp *RegisterRelayerProposal) ValidateBasic() error {

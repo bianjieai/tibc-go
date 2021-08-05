@@ -108,6 +108,7 @@ var (
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
+			ibcclient.CreateClientProposalHandler, ibcclient.UpgradeClientProposalHandler, ibcclient.RegisterRelayerProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
