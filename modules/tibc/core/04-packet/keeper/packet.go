@@ -6,11 +6,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
@@ -19,15 +17,10 @@ import (
 // chain.
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 ) error {
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
-	}
-
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(packet.GetPort())) {
-		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s)", packet.GetPort())
 	}
 
 	// clientState, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
@@ -89,7 +82,6 @@ func (k Keeper) SendPacket(
 // sent on the corresponding channel end on the counterparty chain.
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	proof []byte,
 	proofHeight exported.Height,
@@ -162,7 +154,6 @@ func (k Keeper) RecvPacket(
 // previously by RecvPacket.
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement []byte,
 ) error {
@@ -215,7 +206,6 @@ func (k Keeper) WriteAcknowledgement(
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
 	packet exported.PacketI,
 	acknowledgement []byte,
 	proof []byte,
