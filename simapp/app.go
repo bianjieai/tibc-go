@@ -79,8 +79,8 @@ import (
 
 	ibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
 	ibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	ibckeeper "github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 	ibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 	simappparams "github.com/bianjieai/tibc-go/simapp/params"
@@ -289,7 +289,7 @@ func NewSimApp(
 	mockModule := ibcmock.NewAppModule(scopedIBCMockKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
+	ibcRouter := routingtypes.NewRouter()
 	ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 

@@ -13,8 +13,8 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // Keeper defines the IBC channel keeper
@@ -22,25 +22,25 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	storeKey     sdk.StoreKey
-	cdc          codec.BinaryMarshaler
-	clientKeeper types.ClientKeeper
-	portKeeper   types.PortKeeper
-	scopedKeeper capabilitykeeper.ScopedKeeper
+	storeKey      sdk.StoreKey
+	cdc           codec.BinaryMarshaler
+	clientKeeper  types.ClientKeeper
+	routingKeeper types.RoutingKeeper
+	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC channel Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey,
 	clientKeeper types.ClientKeeper,
-	portKeeper types.PortKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
+	routingKeeper types.RoutingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
-		storeKey:     key,
-		cdc:          cdc,
-		clientKeeper: clientKeeper,
-		portKeeper:   portKeeper,
-		scopedKeeper: scopedKeeper,
+		storeKey:      key,
+		cdc:           cdc,
+		clientKeeper:  clientKeeper,
+		routingKeeper: routingKeeper,
+		scopedKeeper:  scopedKeeper,
 	}
 }
 
@@ -324,7 +324,7 @@ func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string)
 		return "", nil, err
 	}
 
-	return porttypes.GetModuleOwner(modules), cap, nil
+	return routingtypes.GetModuleOwner(modules), cap, nil
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement

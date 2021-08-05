@@ -2,7 +2,7 @@ package types
 
 const (
 	// SubModuleName defines the IBC port name
-	SubModuleName = "port"
+	SubModuleName = "routing"
 
 	// StoreKey is the store key string for IBC ports
 	StoreKey = SubModuleName
