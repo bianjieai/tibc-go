@@ -21,9 +21,13 @@ const (
 	// QuerierRoute is the querier route for IBC client
 	QuerierRoute string = SubModuleName
 
-	// KeyNextClientSequence is the key used to store the next client sequence in
+	// KeyClientName is the key used to store the chain name in
 	// the keeper.
-	KeyNextClientSequence = "nextClientSequence"
+	KeyClientName = "chainName"
+
+	// KeyRelayers is the key used to store the relayers address in
+	// the keeper.
+	KeyRelayers = "relayers"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.

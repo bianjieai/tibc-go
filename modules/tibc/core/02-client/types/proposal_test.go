@@ -10,80 +10,21 @@ import (
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
-func (suite *TypesTestSuite) TestNewUpdateClientProposal() {
-	p, err := types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, clientID, &ibctmtypes.Header{})
+func (suite *TypesTestSuite) TestNewCreateClientProposal() {
+	p, err := types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, chainName, &ibctmtypes.ClientState{}, &ibctmtypes.ConsensusState{})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(p)
 
-	p, err = types.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, clientID, nil)
+	p, err = types.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, chainName, nil, nil)
 	suite.Require().Error(err)
 	suite.Require().Nil(p)
 }
 
-func (suite *TypesTestSuite) TestValidateBasic() {
-	// use solo machine header for testing
-	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, clientID, "", 2)
-	smHeader := solomachine.CreateHeader()
-	header, err := types.PackHeader(smHeader)
-	suite.Require().NoError(err)
-
-	// use a different pointer so we don't modify 'header'
-	smInvalidHeader := solomachine.CreateHeader()
-
-	// a sequence of 0 will fail basic validation
-	smInvalidHeader.Sequence = 0
-
-	invalidHeader, err := types.PackHeader(smInvalidHeader)
-	suite.Require().NoError(err)
-
-	testCases := []struct {
-		name     string
-		proposal govtypes.Content
-		expPass  bool
-	}{
-		{
-			"success",
-			&types.ClientUpdateProposal{ibctesting.Title, ibctesting.Description, clientID, header},
-			true,
-		},
-		{
-			"fails validate abstract - empty title",
-			&types.ClientUpdateProposal{"", ibctesting.Description, clientID, header},
-			false,
-		},
-		{
-			"fails to unpack header",
-			&types.ClientUpdateProposal{ibctesting.Title, ibctesting.Description, clientID, nil},
-			false,
-		},
-		{
-			"fails header validate basic",
-			&types.ClientUpdateProposal{ibctesting.Title, ibctesting.Description, clientID, invalidHeader},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-
-		err := tc.proposal.ValidateBasic()
-
-		if tc.expPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-		}
-	}
-}
-
 // tests a client update proposal can be marshaled and unmarshaled, and the
 // client state can be unpacked
-func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
-	_, err := types.PackHeader(&ibctmtypes.Header{})
-	suite.Require().NoError(err)
-
+func (suite *TypesTestSuite) TestMarshalCreateClientProposalProposal() {
 	// create proposal
-	header := suite.chainA.CurrentTMClientHeader()
-	proposal, err := types.NewClientUpdateProposal("update IBC client", "description", "client-id", header)
+	proposal, err := types.NewCreateClientProposal("update IBC client", "description", "client-id", nil, nil)
 	suite.Require().NoError(err)
 
 	// create codec
@@ -98,11 +39,7 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	suite.Require().NoError(err)
 
 	// unmarshal proposal
-	newProposal := &types.ClientUpdateProposal{}
+	newProposal := &types.CreateClientProposal{}
 	err = cdc.UnmarshalJSON(bz, newProposal)
-	suite.Require().NoError(err)
-
-	// unpack client state
-	_, err = types.UnpackHeader(newProposal.Header)
 	suite.Require().NoError(err)
 }

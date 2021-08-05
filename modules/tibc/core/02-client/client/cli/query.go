@@ -95,7 +95,7 @@ func GetCmdQueryClientState() *cobra.Command {
 // client state.
 func GetCmdQueryConsensusStates() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "consensus-states [client-id]",
+		Use:     "consensus-states [chain-name]",
 		Short:   "Query all the consensus states of a client.",
 		Long:    "Query all the consensus states from a given client state.",
 		Example: fmt.Sprintf("%s query %s %s consensus-states [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
@@ -105,7 +105,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			clientID := args[0]
+			chainName := args[0]
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -115,7 +115,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 			}
 
 			req := &types.QueryConsensusStatesRequest{
-				ClientId:   clientID,
+				ChainName:  chainName,
 				Pagination: pageReq,
 			}
 
@@ -238,27 +238,35 @@ func GetCmdNodeConsensusState() *cobra.Command {
 	return cmd
 }
 
-// GetCmdParams returns the command handler for ibc client parameter querying.
-func GetCmdParams() *cobra.Command {
+// GetCmdQueryRelayers defines the command to query all the relayers from a given
+// client.
+func GetCmdQueryRelayers() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "params",
-		Short:   "Query the current ibc client parameters",
-		Long:    "Query the current ibc client parameters",
-		Args:    cobra.NoArgs,
-		Example: fmt.Sprintf("%s query %s %s params", version.AppName, host.ModuleName, types.SubModuleName),
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		Use:     "relayers [chain-name]",
+		Short:   "Query all the registered relayers of a client.",
+		Long:    "Query all the registered relayers of a client.",
+		Example: fmt.Sprintf("%s query %s %s relayers [chain-name]", version.AppName, host.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryClient(clientCtx)
+			chainName := args[0]
 
-			res, _ := queryClient.ClientParams(context.Background(), &types.QueryClientParamsRequest{})
-			return clientCtx.PrintProto(res.Params)
+			queryClient := types.NewQueryClient(clientCtx)
+			req := &types.QueryRelayersRequest{
+				ChainName: chainName,
+			}
+
+			res, err := queryClient.Relayers(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
-
 	flags.AddQueryFlagsToCmd(cmd)
-
 	return cmd
 }

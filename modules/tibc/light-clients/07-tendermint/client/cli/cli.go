@@ -16,10 +16,7 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		NewCreateClientCmd(),
 		NewUpdateClientCmd(),
-		NewSubmitMisbehaviourCmd(),
 	)
-
 	return txCmd
 }

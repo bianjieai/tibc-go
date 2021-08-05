@@ -2,50 +2,37 @@ package keeper
 
 import (
 	"github.com/armon/go-metrics"
-
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// ClientUpdateProposal will try to update the client with the new header if and only if
-// the proposal passes. The localhost client is not allowed to be modified with a proposal.
-func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdateProposal) error {
-	if p.ClientId == exported.Localhost {
-		return sdkerrors.Wrap(types.ErrInvalidUpdateClientProposal, "cannot update localhost client with proposal")
+// HandleCreateClientProposal will try to create the client with the new ClientState and ConsensusState if and only if the proposal passes.
+func (k Keeper) HandleCreateClientProposal(ctx sdk.Context, p *types.CreateClientProposal) error {
+	_, has := k.GetClientState(ctx, p.ChainName)
+	if has {
+		return sdkerrors.Wrapf(types.ErrClientExists, "chain-name: %s", p.ChainName)
 	}
 
-	clientState, found := k.GetClientState(ctx, p.ClientId)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", p.ClientId)
-	}
-
-	header, err := types.UnpackHeader(p.Header)
+	clientState, err := types.UnpackClientState(p.ClientState)
 	if err != nil {
 		return err
 	}
 
-	clientState, consensusState, err := clientState.CheckProposedHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, p.ClientId), header)
+	consensusState, err := types.UnpackConsensusState(p.ConsensusState)
 	if err != nil {
 		return err
 	}
-
-	k.SetClientState(ctx, p.ClientId, clientState)
-	k.SetClientConsensusState(ctx, p.ClientId, header.GetHeight(), consensusState)
-
-	k.Logger(ctx).Info("client updated after governance proposal passed", "client-id", p.ClientId, "height", clientState.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "update"},
+			[]string{"ibc", "client", "create"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-				telemetry.NewLabel(types.LabelClientID, p.ClientId),
-				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
+				telemetry.NewLabel(types.LabelChainName, p.ChainName),
 			},
 		)
 	}()
@@ -53,12 +40,37 @@ func (k Keeper) ClientUpdateProposal(ctx sdk.Context, p *types.ClientUpdatePropo
 	// emitting events in the keeper for proposal updates to clients
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeUpdateClientProposal,
-			sdk.NewAttribute(types.AttributeKeyClientID, p.ClientId),
+			types.EventTypeCreateClientProposal,
+			sdk.NewAttribute(types.AttributeKeyChainName, p.ChainName),
 			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, header.GetHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
 		),
 	)
+	return k.CreateClient(ctx, p.ChainName, clientState, consensusState)
+}
 
+// HandleUpgradeClientProposal will try to update the client with the new ClientState and ConsensusState if and only if the proposal passes.
+func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeClientProposal) error {
+	clientState, err := types.UnpackClientState(p.ClientState)
+	if err != nil {
+		return err
+	}
+
+	consensusState, err := types.UnpackConsensusState(p.ConsensusState)
+	if err != nil {
+		return err
+	}
+
+	k.Logger(ctx).Info("client updated after governance proposal passed", "client-name", p.ChainName, "height", clientState.GetLatestHeight().String())
+	return k.UpgradeClient(ctx, p.ChainName, clientState, consensusState)
+}
+
+// HandleRegisterRelayerProposal will try to save the registered relayer address under the specified client
+func (k Keeper) HandleRegisterRelayerProposal(ctx sdk.Context, p *types.RegisterRelayerProposal) error {
+	_, has := k.GetClientState(ctx, p.ChainName)
+	if !has {
+		return sdkerrors.Wrapf(types.ErrClientNotFound, "chain-name: %s", p.ChainName)
+	}
+	k.RegisterRelayers(ctx, p.ChainName, p.Relayers)
 	return nil
 }
