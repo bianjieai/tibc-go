@@ -51,9 +51,9 @@ func (ccs ClientsConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpack
 }
 
 // NewClientConsensusStates creates a new ClientConsensusStates instance.
-func NewClientConsensusStates(clientID string, consensusStates []ConsensusStateWithHeight) ClientConsensusStates {
+func NewClientConsensusStates(chainName string, consensusStates []ConsensusStateWithHeight) ClientConsensusStates {
 	return ClientConsensusStates{
-		ChainName:       clientID,
+		ChainName:       chainName,
 		ConsensusStates: consensusStates,
 	}
 }
