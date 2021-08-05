@@ -35,7 +35,7 @@ func NewKeeper(
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
 	routingKeeper := routingkeeper.NewKeeper()
-	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, routingKeeper, scopedKeeper)
+	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, routingKeeper)
 
 	return &Keeper{
 		cdc:           cdc,
