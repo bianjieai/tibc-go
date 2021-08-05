@@ -128,18 +128,11 @@ func (rrp *RegisterRelayerProposal) ValidateBasic() error {
 		return govtypes.ErrInvalidLengthGov
 	}
 
-	seenRelayer := make(map[string]bool)
 	for _, relayer := range rrp.Relayers {
-		if seenRelayer[relayer] {
-			return sdkerrors.Wrapf(ErrRelayerExists, "duplicate relayer %s", relayer)
-		}
-
 		_, err := sdk.AccAddressFromBech32(relayer)
 		if err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
-
-		seenRelayer[relayer] = true
 	}
 	return nil
 }

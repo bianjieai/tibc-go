@@ -39,6 +39,13 @@ service Query {
     option (google.api.http).get =
         "/ibc/core/client/v1beta1/consensus_states/{chain_name}";
   }
+
+  // Relayers queries all the relayers associated with a given
+  // client.
+  rpc Relayers(QueryRelayersRequest) returns (QueryRelayersResponse) {
+    option (google.api.http).get =
+        "/ibc/core/client/v1beta1/relayers/{chain_name}";
+  }
 }
 
 // QueryClientStateRequest is the request type for the Query/ClientState RPC
@@ -122,4 +129,18 @@ message QueryConsensusStatesResponse {
       [ (gogoproto.nullable) = false ];
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryRelayersRequest is the request type for the Query/Relayers
+// RPC method.
+message QueryRelayersRequest {
+  // client identifier
+  string chain_name = 1;
+}
+
+// QueryConsensusStatesResponse is the response type for the
+// Query/Relayers RPC method
+message QueryRelayersResponse {
+  // relayers address associated with the client
+  repeated string relayers = 1;
 }

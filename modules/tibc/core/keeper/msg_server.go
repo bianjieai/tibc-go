@@ -27,6 +27,11 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 		return nil, err
 	}
 
+	// Verify that the account has permission to update the client
+	if !k.ClientKeeper.AuthRelayer(ctx, msg.ChainName, msg.Signer) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "relayer: %s", msg.Signer)
+	}
+
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ChainName, header); err != nil {
 		return nil, err
 	}

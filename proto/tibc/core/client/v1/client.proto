@@ -15,6 +15,16 @@ message IdentifiedClientState {
   google.protobuf.Any client_state = 2;
 }
 
+// IdentifiedRelayer defines a list of authorized relayers for the specified
+// client.
+message IdentifiedRelayers {
+  // client identifier
+  string chain_name = 1;
+
+  // authorized relayer list
+  repeated string relayers = 2;
+}
+
 // ConsensusStateWithHeight defines a consensus state with an additional height
 // field.
 message ConsensusStateWithHeight {

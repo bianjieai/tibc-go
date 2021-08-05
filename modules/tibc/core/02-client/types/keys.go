@@ -68,7 +68,3 @@ func ParseClientIdentifier(clientID string) (string, uint64, error) {
 
 	return clientType, sequence, nil
 }
-
-func RelayerKey(relayer string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyRelayers, relayer))
-}

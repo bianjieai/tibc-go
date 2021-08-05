@@ -28,7 +28,7 @@ func (k Keeper) HandleCreateClientProposal(ctx sdk.Context, p *types.CreateClien
 	return k.CreateClient(ctx, p.ChainName, clientState, consensusState)
 }
 
-// CreateClientProposal will try to update the client with the new ClientState and ConsensusState if and only if the proposal passes.
+// HandleUpgradeClientProposal will try to update the client with the new ClientState and ConsensusState if and only if the proposal passes.
 func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeClientProposal) error {
 	clientState, err := types.UnpackClientState(p.ClientState)
 	if err != nil {
@@ -67,13 +67,12 @@ func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeCli
 	return k.UpgradeClient(ctx, p.ChainName, clientState, consensusState)
 }
 
-// RegisterRelayerProposal will try to update the client with the new header if and only if
-// the proposal passes. The localhost client is not allowed to be modified with a proposal.
+// HandleRegisterRelayerProposal will try to save the registered relayer address under the specified client
 func (k Keeper) HandleRegisterRelayerProposal(ctx sdk.Context, p *types.RegisterRelayerProposal) error {
 	_, has := k.GetClientState(ctx, p.ChainName)
-	if has {
-		return sdkerrors.Wrapf(types.ErrClientExists, "chain-name: %s", p.ChainName)
+	if !has {
+		return sdkerrors.Wrapf(types.ErrClientNotFound, "chain-name: %s", p.ChainName)
 	}
-
-	return k.SetRelayers(ctx, p.ChainName, p.Relayers)
+	k.RegisterRelayers(ctx, p.ChainName, p.Relayers)
+	return nil
 }

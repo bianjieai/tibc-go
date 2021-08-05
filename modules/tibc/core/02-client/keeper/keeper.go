@@ -250,3 +250,9 @@ func (k Keeper) ClientStore(ctx sdk.Context, chainName string) sdk.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, chainName))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
+
+// RelayerStore returns isolated prefix store for each client so they can read/write in separate
+// namespace without being able to read/write other relayer's data
+func (k Keeper) RelayerStore(ctx sdk.Context) sdk.KVStore {
+	return prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.KeyRelayers))
+}
