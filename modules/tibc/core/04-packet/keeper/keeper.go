@@ -9,12 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // Keeper defines the IBC channel keeper
@@ -26,21 +23,19 @@ type Keeper struct {
 	cdc           codec.BinaryMarshaler
 	clientKeeper  types.ClientKeeper
 	routingKeeper types.RoutingKeeper
-	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new IBC channel Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey,
 	clientKeeper types.ClientKeeper,
-	routingKeeper types.RoutingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
+	routingKeeper types.RoutingKeeper,
 ) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		clientKeeper:  clientKeeper,
 		routingKeeper: routingKeeper,
-		scopedKeeper:  scopedKeeper,
 	}
 }
 
@@ -315,16 +310,6 @@ func (k Keeper) GetAllPacketAcks(ctx sdk.Context) (acks []types.PacketState) {
 		return false
 	})
 	return acks
-}
-
-// LookupModuleByChannel will return the IBCModule along with the capability associated with a given channel defined by its portID and channelID
-func (k Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
-	modules, cap, err := k.scopedKeeper.LookupModules(ctx, host.ChannelCapabilityPath(portID))
-	if err != nil {
-		return "", nil, err
-	}
-
-	return routingtypes.GetModuleOwner(modules), cap, nil
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
