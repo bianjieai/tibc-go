@@ -7,8 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/bianjieai/tibc-go/simapp"
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	"github.com/bianjieai/tibc-go/simapp"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/simulation"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
