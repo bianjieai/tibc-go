@@ -14,8 +14,10 @@ type Keeper struct {
 	storeKey   sdk.StoreKey
 	paramSpace paramtypes.Subspace
 
-	ak		   types.AccountKeeper
-	nftKeeper     types.NftKeeper
+	ak	types.AccountKeeper
+	nk  types.NftKeeper
+	pk  types.PacketKeeper
+	ck  types.ClientKeeper
 }
 
 

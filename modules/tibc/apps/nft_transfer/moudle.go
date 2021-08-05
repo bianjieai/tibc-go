@@ -6,7 +6,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
 	 nftTransferTypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
+	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -19,7 +19,7 @@ import (
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.IBCModule   = AppModule{}
+	_ porttypes.TIBCModule   = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
@@ -147,12 +147,11 @@ func (a AppModule) EndBlock(context sdk.Context, block abci.RequestEndBlock) []a
 
 func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Result, []byte, error) {
 
-	// create ack
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+	var (
+		ack sdk.Result // create ack
+		data nftTransferTypes.NonFungibleTokenPacketData
+	)
 
-	var data nftTransferTypes.NonFungibleTokenPacketData
-
-	// unmarshal packet.data
 	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
 	}
@@ -171,9 +170,10 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Resu
 			nftTransferTypes.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, nftTransferTypes.ModuleName),
 			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
-			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyClass, data.Class),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyId, data.Class),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyUri, data.Uri),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
 		),
 	)
 
@@ -182,7 +182,7 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Resu
 }
 
 func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet types.Packet, acknowledgement []byte) (*sdk.Result, error) {
-	var ack channeltypes.Acknowledgement
+	var ack sdk.Result
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
@@ -224,9 +224,5 @@ func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet types.Packet,
 	}
 
 	return nil
-}
-
-func (a AppModule) OnTimeoutPacket(ctx sdk.Context, packet types.Packet) (*sdk.Result, error) {
-	panic("implement me")
 }
 
