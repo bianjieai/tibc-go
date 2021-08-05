@@ -7,7 +7,6 @@ import (
 
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
@@ -16,11 +15,11 @@ import (
 )
 
 const (
-	chainID         = "chainID"
-	tmChainName0    = "07-tendermint-0"
-	tmChainName1    = "07-tendermint-1"
-	invalidClientID = "myclient-0"
-	chainName       = tmChainName0
+	chainID          = "chainID"
+	tmChainName0     = "07-tendermint-0"
+	tmChainName1     = "07-tendermint-1"
+	invalidChainName = "myclient/0"
+	chainName        = tmChainName0
 
 	height = 10
 )
@@ -29,8 +28,9 @@ var clientHeight = types.NewHeight(0, 10)
 
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
-	clientA, _, _, _, _, _ := suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.ORDERED)
-	suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
+	clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
+	err := suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
+	suite.Require().NoError(err)
 
 	genesis := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.IBCKeeper.ClientKeeper)
 
@@ -101,16 +101,16 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			expPass: true,
 		},
 		{
-			name: "invalid clientid",
+			name: "invalid chain-name",
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						invalidClientID, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
+						invalidChainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
 					),
 				},
 				[]types.ClientConsensusStates{
 					types.NewClientConsensusStates(
-						invalidClientID,
+						invalidChainName,
 						[]types.ConsensusStateWithHeight{
 							types.NewConsensusStateWithHeight(
 								header.GetHeight().(types.Height),
@@ -447,7 +447,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				[]types.IdentifiedClientState{},
 				[]types.ClientConsensusStates{
 					types.NewClientConsensusStates(
-						exported.Localhost+"-1",
+						exported.Tendermint,
 						[]types.ConsensusStateWithHeight{
 							types.NewConsensusStateWithHeight(
 								header.GetHeight().(types.Height),

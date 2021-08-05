@@ -51,9 +51,9 @@ func (ccs ClientsConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpack
 }
 
 // NewClientConsensusStates creates a new ClientConsensusStates instance.
-func NewClientConsensusStates(clientID string, consensusStates []ConsensusStateWithHeight) ClientConsensusStates {
+func NewClientConsensusStates(chainName string, consensusStates []ConsensusStateWithHeight) ClientConsensusStates {
 	return ClientConsensusStates{
-		ChainName:       clientID,
+		ChainName:       chainName,
 		ConsensusStates: consensusStates,
 	}
 }
@@ -101,10 +101,6 @@ func (gs GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating client identifers.
-	var maxSequence uint64 = 0
-
 	validClients := make(map[string]string)
 
 	for i, client := range gs.Clients {
@@ -120,24 +116,6 @@ func (gs GenesisState) Validate() error {
 		if err := clientState.Validate(); err != nil {
 			return fmt.Errorf("invalid client %v index %d: %w", client, i, err)
 		}
-
-		clientType, sequence, err := ParseClientIdentifier(client.ChainName)
-		if err != nil {
-			return err
-		}
-
-		if clientType != clientState.ClientType() {
-			return fmt.Errorf("client state type %s does not equal client type in client identifier %s", clientState.ClientType(), clientType)
-		}
-
-		if err := ValidateClientType(clientType); err != nil {
-			return err
-		}
-
-		if sequence > maxSequence {
-			maxSequence = sequence
-		}
-
 		// add client id to validClients map
 		validClients[client.ChainName] = clientState.ClientType()
 	}
