@@ -50,20 +50,14 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket) (*packettypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Lookup module by channel capability
-	module, cap, err := k.Packetkeeper.LookupModuleByChannel(ctx, msg.Packet.SourceChain, msg.Packet.DestinationChain)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
-	}
-
 	// Retrieve callbacks from router
-	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(msg.Packet.Port)
 	if !ok {
-		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
+		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
 	}
 
 	// Perform TAO verification
-	if err := k.Packetkeeper.RecvPacket(ctx, cap, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
+	if err := k.Packetkeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
@@ -77,7 +71,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := k.Packetkeeper.WriteAcknowledgement(ctx, cap, msg.Packet, ack); err != nil {
+		if err := k.Packetkeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
 			return nil, err
 		}
 	}
@@ -102,25 +96,19 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAcknowledgement) (*packettypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Lookup module by channel capability
-	module, cap, err := k.Packetkeeper.LookupModuleByChannel(ctx, msg.Packet.SourceChain, msg.Packet.DestinationChain)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "could not retrieve module from port-id")
-	}
-
 	// Retrieve callbacks from router
-	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(msg.Packet.Port)
 	if !ok {
-		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
+		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
 	}
 
 	// Perform TAO verification
-	if err := k.Packetkeeper.AcknowledgePacket(ctx, cap, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
+	if err := k.Packetkeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
 
 	// Perform application logic callback
-	_, err = cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement)
+	_, err := cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "acknowledge packet callback failed")
 	}
