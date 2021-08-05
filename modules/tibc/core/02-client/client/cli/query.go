@@ -237,3 +237,36 @@ func GetCmdNodeConsensusState() *cobra.Command {
 
 	return cmd
 }
+
+// GetCmdQueryRelayers defines the command to query all the relayers from a given
+// client.
+func GetCmdQueryRelayers() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "relayers [chain-name]",
+		Short:   "Query all the registered relayers of a client.",
+		Long:    "Query all the registered relayers of a client.",
+		Example: fmt.Sprintf("%s query %s %s relayers [chain-name]", version.AppName, host.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			chainName := args[0]
+
+			queryClient := types.NewQueryClient(clientCtx)
+			req := &types.QueryRelayersRequest{
+				ChainName: chainName,
+			}
+
+			res, err := queryClient.Relayers(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}

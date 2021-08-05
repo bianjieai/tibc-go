@@ -25,6 +25,27 @@ func (k Keeper) HandleCreateClientProposal(ctx sdk.Context, p *types.CreateClien
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "client", "create"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(types.LabelChainName, p.ChainName),
+			},
+		)
+	}()
+
+	// emitting events in the keeper for proposal updates to clients
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCreateClientProposal,
+			sdk.NewAttribute(types.AttributeKeyChainName, p.ChainName),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+		),
+	)
 	return k.CreateClient(ctx, p.ChainName, clientState, consensusState)
 }
 
@@ -41,29 +62,6 @@ func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeCli
 	}
 
 	k.Logger(ctx).Info("client updated after governance proposal passed", "client-name", p.ChainName, "height", clientState.GetLatestHeight().String())
-
-	defer func() {
-		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "update"},
-			1,
-			[]metrics.Label{
-				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
-				telemetry.NewLabel(types.LabelChainName, p.ChainName),
-				telemetry.NewLabel(types.LabelUpdateType, "proposal"),
-			},
-		)
-	}()
-
-	// emitting events in the keeper for proposal updates to clients
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUpdateClientProposal,
-			sdk.NewAttribute(types.AttributeKeyChainName, p.ChainName),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-	)
-
 	return k.UpgradeClient(ctx, p.ChainName, clientState, consensusState)
 }
 

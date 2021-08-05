@@ -130,7 +130,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, chainName string, upgradedClientS
 	// emitting events in the keeper emits for client upgrades
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeUpgradeClient,
+			types.EventTypeUpgradeClientProposal,
 			sdk.NewAttribute(types.AttributeKeyChainName, chainName),
 			sdk.NewAttribute(types.AttributeKeyClientType, upgradedClientState.ClientType()),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, upgradedClientState.GetLatestHeight().String()),
