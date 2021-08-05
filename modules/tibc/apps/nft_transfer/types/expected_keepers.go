@@ -3,7 +3,6 @@ package types
 import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/irisnet/irismod/modules/nft/types"
 )
 
@@ -26,7 +25,7 @@ type AccountKeeper interface {
 type PacketKeeper interface {
 	// todo getSequence
 
-	SendPacket(ctx sdk.Context, channelCap *capabilitytypes.Capability, packet exported.PacketI) error
+	SendPacket(ctx sdk.Context, packet exported.PacketI) error
 }
 
 // ClientKeeper defines the expected client keeper

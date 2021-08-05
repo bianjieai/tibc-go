@@ -12,4 +12,5 @@ const (
 	AttributeKeyUri          = "uri"
 	AttributeKeyReceiver     = "receiver"
 	AttributeKeyAckSuccess   = "success"
+	AttributeKeyAckError     = "error"
 )

@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
-	 nftTransferTypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	nftTransferTypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -26,6 +28,23 @@ var (
 // AppModuleBasic is the TIBC nft Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
+func (a AppModuleBasic) RegisterRESTRoutes(context client.Context, m *interface{}) {
+	panic("implement me")
+}
+
+func (a AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
+	panic("implement me")
+}
+
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	panic("implement me")
+}
+
+// GetQueryCmd returns no root query command for the ibc module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
 func (a AppModuleBasic) Name() string {
 	panic("implement me")
 }
@@ -43,23 +62,6 @@ func (a AppModuleBasic) DefaultGenesis(marshaler codec.JSONMarshaler) json.RawMe
 }
 
 func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
-	panic("implement me")
-}
-
-func (a AppModuleBasic) RegisterRESTRoutes(context client.Context, m *interface{}) {
-	panic("implement me")
-}
-
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
-	panic("implement me")
-}
-
-// GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
-func (AppModuleBasic) GetQueryCmd() *interface{} {
 	panic("implement me")
 }
 
@@ -98,11 +100,7 @@ func (a AppModule) RegisterGRPCGatewayRoutes(context client.Context, r *interfac
 }
 
 func (a AppModule) GetTxCmd() *interface{} {
-	panic("implement me")
-}
-
-func (a AppModule) GetQueryCmd() *interface{} {
-	panic("implement me")
+	return cli.NewTxCmd()
 }
 
 func (a AppModule) InitGenesis(context sdk.Context, marshaler codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
@@ -147,22 +145,16 @@ func (a AppModule) EndBlock(context sdk.Context, block abci.RequestEndBlock) []a
 
 func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Result, []byte, error) {
 
-	var (
-		ack sdk.Result // create ack
-		data nftTransferTypes.NonFungibleTokenPacketData
-	)
-
+	var data nftTransferTypes.NonFungibleTokenPacketData
 	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 nft-transfer packet data: %s", err.Error())
 	}
 
-	// only attempt the application logic if the packet data
-	// was successfully decoded
-	if ack.Success() {
-		err := a.keeper.OnRecvPacket(ctx, packet, data)
-		if err != nil {
-			ack = channeltypes.NewErrorAcknowledgement(err.Error())
-		}
+	acknowledgement := packettypes.NewResultAcknowledgement([]byte{byte(1)})
+
+	err := a.keeper.OnRecvPacket(ctx, packet, data)
+	if err != nil {
+		acknowledgement = packettypes.NewErrorAcknowledgement(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -173,56 +165,62 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Resu
 			sdk.NewAttribute(nftTransferTypes.AttributeKeyClass, data.Class),
 			sdk.NewAttribute(nftTransferTypes.AttributeKeyId, data.Class),
 			sdk.NewAttribute(nftTransferTypes.AttributeKeyUri, data.Uri),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", err == nil)),
 		),
 	)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	return &sdk.Result{
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, acknowledgement.GetBytes(), nil
 }
 
 func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet types.Packet, acknowledgement []byte) (*sdk.Result, error) {
-	var ack sdk.Result
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	var ack packettypes.Acknowledgement
+	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data types.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	var data nftTransferTypes.NonFungibleTokenPacketData
+	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
 	if err := a.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
-		return err
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			nftTransferTypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(sdk.AttributeKeyModule, nftTransferTypes.ModuleName),
 			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(types.AttributeKeyDenom, data.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%d", data.Amount)),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyClass, data.Class),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyId, data.Class),
+			sdk.NewAttribute(nftTransferTypes.AttributeKeyUri, data.Uri),
+			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", ack)),
 		),
 	)
 
 	switch resp := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
+	case *packettypes.Acknowledgement_Result:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+				nftTransferTypes.EventTypePacket,
+				sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
-	case *channeltypes.Acknowledgement_Error:
+	case *packettypes.Acknowledgement_Error:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+				nftTransferTypes.EventTypePacket,
+				sdk.NewAttribute(nftTransferTypes.AttributeKeyAckError, resp.Error),
 			),
 		)
 	}
 
-	return nil
+	return &sdk.Result{
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, nil
 }
 

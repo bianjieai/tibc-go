@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,27 +38,37 @@ func (k Keeper) SendNftTransfer(
 			return err
 		}
 	} else {
+		// transfer the nft to the module account and burn them
+		if err := k.nk.TransferOwner(ctx, class, id, "", uri, "",
+			sender, k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
+			return err
+		}
+
 		// burn nft
 		if err := k.nk.BurnNFT(ctx, class, id,
 			k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
-			return err
+			panic(fmt.Sprintf("cannot burn nft after a successful send to a module account: %v", err))
 		}
 	}
 
 	// constructs packet
-	packetData  := types.NewNonFungibleTokenPacketData(class, id, uri, sender.String(), receiver, awayFromOrigin)
-	packet := packetType.NewPacket(packetData.GetBytes(), sequence, k.ck.GetChainName(ctx), destChain, "nftTransfer")
+	packetData  := types.NewNonFungibleTokenPacketData(
+		class,
+		id,
+		uri,
+		sender.String(),
+		receiver,
+		awayFromOrigin,
+	)
+	packet := packetType.NewPacket(packetData.GetBytes(), sequence, "", destChain, "nftTransfer")
 
 	// send packet
-	// channelCap is hard to write, and needs to be dynamically obtained later
-	// todo
-	if err := k.pk.SendPacket(ctx, nil, packet); err != nil {
+	if err := k.pk.SendPacket(ctx, packet); err != nil {
 		return err
 	}
 
 	return nil
 }
-
 
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData) error{
 	// validate packet data upon receiving
@@ -79,7 +90,8 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 
 	if data.AwayFromOrigin{
 		if strings.HasPrefix(data.Class, Prefix){
-			// has prefix  tibc/nft/a/b/class
+			// has prefix
+			// tibc/nft/A/class -> tibc/nft/A/B/class
 			classSplit := strings.Split(data.Class, "/")
 			classSplit = append(classSplit[:len(classSplit) - 2], packet.SourceChain)
 			newClass := strings.Join(classSplit, "/")
@@ -87,13 +99,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 				return err
 			}
 		} else {
-			// not has prefix  tibc/nft/a/class
+			// not has prefix
+			// class -> tibc/nft/A/classs
 			newClass := Prefix + "/" + packet.SourceChain + data.Class
 			if err := k.nk.MintNFT(ctx, newClass, data.Id, "", data.Uri, "", sender); err != nil{
 				return err
 			}
 			// lock todo
-			// send packet  need judge relay chain empty todo
+			// send packet  todo
 		}
 	} else {
 		if strings.HasPrefix(data.Class, Prefix){
@@ -128,9 +141,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 }
 
 
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData, ack sdk.Result) error {
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData, ack packetType.Acknowledgement) error {
 	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
+	case *packetType.Acknowledgement_Error:
 		return k.refundPacketToken(ctx, packet, data)
 	default:
 		// the acknowledgement succeeded on the receiving chain so nothing
