@@ -21,7 +21,7 @@ var (
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
-func NewIdentifiedClientState(clientID string, clientState exported.ClientState) IdentifiedClientState {
+func NewIdentifiedClientState(chainName string, clientState exported.ClientState) IdentifiedClientState {
 	msg, ok := clientState.(proto.Message)
 	if !ok {
 		panic(fmt.Errorf("cannot proto marshal %T", clientState))
@@ -33,7 +33,7 @@ func NewIdentifiedClientState(clientID string, clientState exported.ClientState)
 	}
 
 	return IdentifiedClientState{
-		ClientId:    clientID,
+		ChainName:   chainName,
 		ClientState: anyClientState,
 	}
 }
@@ -52,7 +52,7 @@ type IdentifiedClientStates []IdentifiedClientState
 func (ics IdentifiedClientStates) Len() int { return len(ics) }
 
 // Less implements sort.Interface
-func (ics IdentifiedClientStates) Less(i, j int) bool { return ics[i].ClientId < ics[j].ClientId }
+func (ics IdentifiedClientStates) Less(i, j int) bool { return ics[i].ChainName < ics[j].ChainName }
 
 // Swap implements sort.Interface
 func (ics IdentifiedClientStates) Swap(i, j int) { ics[i], ics[j] = ics[j], ics[i] }

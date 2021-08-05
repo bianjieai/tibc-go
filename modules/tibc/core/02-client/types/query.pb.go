@@ -35,7 +35,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // method
 type QueryClientStateRequest struct {
 	// client state unique identifier
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ChainName string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *QueryClientStateRequest) Reset()         { *m = QueryClientStateRequest{} }
@@ -71,9 +71,9 @@ func (m *QueryClientStateRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryClientStateRequest proto.InternalMessageInfo
 
-func (m *QueryClientStateRequest) GetClientId() string {
+func (m *QueryClientStateRequest) GetChainName() string {
 	if m != nil {
-		return m.ClientId
+		return m.ChainName
 	}
 	return ""
 }
@@ -252,7 +252,7 @@ func (m *QueryClientStatesResponse) GetPagination() *query.PageResponse {
 // from which the proof was retrieved.
 type QueryConsensusStateRequest struct {
 	// client identifier
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ChainName string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	// consensus state revision number
 	RevisionNumber uint64 `protobuf:"varint,2,opt,name=revision_number,json=revisionNumber,proto3" json:"revision_number,omitempty"`
 	// consensus state revision height
@@ -295,9 +295,9 @@ func (m *QueryConsensusStateRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryConsensusStateRequest proto.InternalMessageInfo
 
-func (m *QueryConsensusStateRequest) GetClientId() string {
+func (m *QueryConsensusStateRequest) GetChainName() string {
 	if m != nil {
-		return m.ClientId
+		return m.ChainName
 	}
 	return ""
 }
@@ -392,7 +392,7 @@ func (m *QueryConsensusStateResponse) GetProofHeight() Height {
 // RPC method.
 type QueryConsensusStatesRequest struct {
 	// client identifier
-	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ChainName string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 	// pagination request
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -430,9 +430,9 @@ func (m *QueryConsensusStatesRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryConsensusStatesRequest proto.InternalMessageInfo
 
-func (m *QueryConsensusStatesRequest) GetClientId() string {
+func (m *QueryConsensusStatesRequest) GetChainName() string {
 	if m != nil {
-		return m.ClientId
+		return m.ChainName
 	}
 	return ""
 }
@@ -500,22 +500,25 @@ func (m *QueryConsensusStatesResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryClientParamsRequest is the request type for the Query/ClientParams RPC method.
-type QueryClientParamsRequest struct {
+// QueryRelayersRequest is the request type for the Query/Relayers
+// RPC method.
+type QueryRelayersRequest struct {
+	// client identifier
+	ChainName string `protobuf:"bytes,1,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
-func (m *QueryClientParamsRequest) Reset()         { *m = QueryClientParamsRequest{} }
-func (m *QueryClientParamsRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryClientParamsRequest) ProtoMessage()    {}
-func (*QueryClientParamsRequest) Descriptor() ([]byte, []int) {
+func (m *QueryRelayersRequest) Reset()         { *m = QueryRelayersRequest{} }
+func (m *QueryRelayersRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryRelayersRequest) ProtoMessage()    {}
+func (*QueryRelayersRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_62c85a887dc5e161, []int{8}
 }
-func (m *QueryClientParamsRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryRelayersRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryClientParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRelayersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryClientParamsRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRelayersRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -525,36 +528,44 @@ func (m *QueryClientParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryClientParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryClientParamsRequest.Merge(m, src)
+func (m *QueryRelayersRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRelayersRequest.Merge(m, src)
 }
-func (m *QueryClientParamsRequest) XXX_Size() int {
+func (m *QueryRelayersRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryClientParamsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryClientParamsRequest.DiscardUnknown(m)
+func (m *QueryRelayersRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRelayersRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryClientParamsRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryRelayersRequest proto.InternalMessageInfo
 
-// QueryClientParamsResponse is the response type for the Query/ClientParams RPC method.
-type QueryClientParamsResponse struct {
-	// params defines the parameters of the module.
-	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+func (m *QueryRelayersRequest) GetChainName() string {
+	if m != nil {
+		return m.ChainName
+	}
+	return ""
 }
 
-func (m *QueryClientParamsResponse) Reset()         { *m = QueryClientParamsResponse{} }
-func (m *QueryClientParamsResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryClientParamsResponse) ProtoMessage()    {}
-func (*QueryClientParamsResponse) Descriptor() ([]byte, []int) {
+// QueryConsensusStatesResponse is the response type for the
+// Query/Relayers RPC method
+type QueryRelayersResponse struct {
+	// relayers address associated with the client
+	Relayers []string `protobuf:"bytes,1,rep,name=relayers,proto3" json:"relayers,omitempty"`
+}
+
+func (m *QueryRelayersResponse) Reset()         { *m = QueryRelayersResponse{} }
+func (m *QueryRelayersResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryRelayersResponse) ProtoMessage()    {}
+func (*QueryRelayersResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_62c85a887dc5e161, []int{9}
 }
-func (m *QueryClientParamsResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryRelayersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryClientParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRelayersResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryClientParamsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRelayersResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -564,21 +575,21 @@ func (m *QueryClientParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *QueryClientParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryClientParamsResponse.Merge(m, src)
+func (m *QueryRelayersResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRelayersResponse.Merge(m, src)
 }
-func (m *QueryClientParamsResponse) XXX_Size() int {
+func (m *QueryRelayersResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryClientParamsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryClientParamsResponse.DiscardUnknown(m)
+func (m *QueryRelayersResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRelayersResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryClientParamsResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryRelayersResponse proto.InternalMessageInfo
 
-func (m *QueryClientParamsResponse) GetParams() *Params {
+func (m *QueryRelayersResponse) GetRelayers() []string {
 	if m != nil {
-		return m.Params
+		return m.Relayers
 	}
 	return nil
 }
@@ -592,67 +603,67 @@ func init() {
 	proto.RegisterType((*QueryConsensusStateResponse)(nil), "tibc.core.client.v1.QueryConsensusStateResponse")
 	proto.RegisterType((*QueryConsensusStatesRequest)(nil), "tibc.core.client.v1.QueryConsensusStatesRequest")
 	proto.RegisterType((*QueryConsensusStatesResponse)(nil), "tibc.core.client.v1.QueryConsensusStatesResponse")
-	proto.RegisterType((*QueryClientParamsRequest)(nil), "tibc.core.client.v1.QueryClientParamsRequest")
-	proto.RegisterType((*QueryClientParamsResponse)(nil), "tibc.core.client.v1.QueryClientParamsResponse")
+	proto.RegisterType((*QueryRelayersRequest)(nil), "tibc.core.client.v1.QueryRelayersRequest")
+	proto.RegisterType((*QueryRelayersResponse)(nil), "tibc.core.client.v1.QueryRelayersResponse")
 }
 
 func init() { proto.RegisterFile("tibc/core/client/v1/query.proto", fileDescriptor_62c85a887dc5e161) }
 
 var fileDescriptor_62c85a887dc5e161 = []byte{
-	// 834 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4d, 0x4f, 0x1b, 0x47,
-	0x18, 0xf6, 0xf0, 0x55, 0x18, 0x1b, 0x5c, 0x4d, 0x51, 0x6b, 0x16, 0x64, 0xac, 0xad, 0x04, 0x16,
-	0xaa, 0x67, 0xb0, 0x69, 0x8b, 0x54, 0x89, 0x4a, 0xa5, 0x15, 0x2d, 0x97, 0x8a, 0x6e, 0x0f, 0xad,
-	0x7a, 0x28, 0xda, 0x5d, 0x0f, 0xeb, 0x69, 0xed, 0x1d, 0xe3, 0x59, 0x5b, 0x42, 0x88, 0x0b, 0x52,
-	0xef, 0xad, 0x7a, 0xce, 0x35, 0x87, 0x5c, 0x92, 0x4b, 0xa4, 0xfc, 0x83, 0x70, 0x44, 0x8a, 0x22,
-	0xe5, 0x94, 0x44, 0x10, 0xe5, 0x77, 0x44, 0x3b, 0x33, 0x0b, 0xbb, 0x66, 0x09, 0x1b, 0x94, 0xdc,
-	0xd6, 0xef, 0xe7, 0xf3, 0xbc, 0x5f, 0x63, 0xb8, 0x18, 0x30, 0xc7, 0x25, 0x2e, 0xef, 0x51, 0xe2,
-	0xb6, 0x19, 0xf5, 0x03, 0x32, 0xa8, 0x93, 0xfd, 0x3e, 0xed, 0x1d, 0xe0, 0x6e, 0x8f, 0x07, 0x1c,
-	0x7d, 0x12, 0x1a, 0xe0, 0xd0, 0x00, 0x2b, 0x03, 0x3c, 0xa8, 0x1b, 0x2b, 0x2e, 0x17, 0x1d, 0x2e,
-	0x88, 0x63, 0x0b, 0xaa, 0xac, 0xc9, 0xa0, 0xee, 0xd0, 0xc0, 0xae, 0x93, 0xae, 0xed, 0x31, 0xdf,
-	0x0e, 0x18, 0xf7, 0x55, 0x00, 0xa3, 0x92, 0x96, 0x41, 0x87, 0x52, 0x16, 0x73, 0x1e, 0xe7, 0x5e,
-	0x9b, 0x12, 0xf9, 0xcb, 0xe9, 0xef, 0x11, 0xdb, 0xd7, 0xd9, 0x8d, 0x05, 0xad, 0xb2, 0xbb, 0x8c,
-	0xd8, 0xbe, 0xcf, 0x03, 0x19, 0x59, 0x68, 0xed, 0xac, 0xc7, 0x3d, 0x2e, 0x3f, 0x49, 0xf8, 0xa5,
-	0xa4, 0xe6, 0xd7, 0xf0, 0xb3, 0x5f, 0x42, 0x48, 0xdf, 0xcb, 0x1c, 0xbf, 0x06, 0x76, 0x40, 0x2d,
-	0xba, 0xdf, 0xa7, 0x22, 0x40, 0xf3, 0x70, 0x4a, 0x65, 0xde, 0x65, 0xcd, 0x12, 0xa8, 0x80, 0xea,
-	0x94, 0x35, 0xa9, 0x04, 0xdb, 0x4d, 0xf3, 0x3e, 0x80, 0xa5, 0xab, 0x8e, 0xa2, 0xcb, 0x7d, 0x41,
-	0xd1, 0x3a, 0x2c, 0x68, 0x4f, 0x11, 0xca, 0xa5, 0x73, 0xbe, 0x31, 0x8b, 0x15, 0x3e, 0x1c, 0x41,
-	0xc7, 0xdf, 0xf9, 0x07, 0x56, 0xde, 0xbd, 0x0c, 0x80, 0x66, 0xe1, 0x78, 0xb7, 0xc7, 0xf9, 0x5e,
-	0x69, 0xa4, 0x02, 0xaa, 0x05, 0x4b, 0xfd, 0x40, 0x3f, 0xc0, 0x82, 0xfc, 0xd8, 0x6d, 0x51, 0xe6,
-	0xb5, 0x82, 0xd2, 0xa8, 0x0c, 0x37, 0x8f, 0x53, 0x8a, 0x8d, 0x7f, 0x92, 0x26, 0x9b, 0x63, 0x27,
-	0xcf, 0x17, 0x73, 0x56, 0x5e, 0xba, 0x29, 0x91, 0xe9, 0x5c, 0x05, 0x2c, 0x22, 0xaa, 0x5b, 0x10,
-	0x5e, 0xb6, 0x42, 0xc3, 0x5d, 0xc2, 0xaa, 0x6f, 0x38, 0xec, 0x1b, 0x56, 0x5d, 0xd6, 0x7d, 0xc3,
-	0x3b, 0xb6, 0x17, 0x95, 0xc9, 0x8a, 0x79, 0x9a, 0x4f, 0x01, 0x9c, 0x4b, 0x49, 0xa2, 0xcb, 0xc2,
-	0xe1, 0x74, 0xbc, 0x2c, 0xa2, 0x04, 0x2a, 0xa3, 0xd5, 0x7c, 0x63, 0x25, 0x95, 0xc8, 0x76, 0x93,
-	0xfa, 0x01, 0xdb, 0x63, 0xb4, 0x19, 0x8b, 0xb5, 0x59, 0x0e, 0x79, 0xdd, 0x7b, 0xb1, 0xf8, 0x69,
-	0xaa, 0x5a, 0x58, 0x85, 0x58, 0x35, 0x05, 0xfa, 0x31, 0x41, 0x6b, 0x44, 0xd2, 0x5a, 0xbe, 0x91,
-	0x96, 0x42, 0x9b, 0xe0, 0xf5, 0x00, 0x40, 0x43, 0xf1, 0x0a, 0x55, 0xbe, 0xe8, 0x8b, 0xcc, 0x93,
-	0x82, 0x96, 0x61, 0xb1, 0x47, 0x07, 0x4c, 0x30, 0xee, 0xef, 0xfa, 0xfd, 0x8e, 0x43, 0x7b, 0x12,
-	0xc9, 0x98, 0x35, 0x13, 0x89, 0x7f, 0x96, 0xd2, 0x84, 0x61, 0xac, 0xd3, 0x31, 0x43, 0xd5, 0x49,
-	0xf4, 0x39, 0x9c, 0x6e, 0x87, 0xfc, 0x82, 0xc8, 0x6c, 0xac, 0x02, 0xaa, 0x93, 0x56, 0x41, 0x09,
-	0x75, 0xbb, 0x1f, 0x01, 0x38, 0x9f, 0x0a, 0x59, 0x37, 0x63, 0x03, 0x16, 0xdd, 0x48, 0x93, 0x61,
-	0x4c, 0x67, 0xdc, 0x44, 0x98, 0x0f, 0x3a, 0xa9, 0xc7, 0xe9, 0xd0, 0x45, 0xa6, 0x72, 0x6f, 0xa5,
-	0xf4, 0xfc, 0x36, 0xa3, 0xfc, 0x18, 0xc0, 0x85, 0x74, 0x10, 0xba, 0x80, 0x7f, 0xc2, 0x8f, 0x87,
-	0x0a, 0x18, 0x0d, 0x74, 0x2d, 0x95, 0x6f, 0x32, 0xce, 0x6f, 0x2c, 0x68, 0x25, 0x2a, 0x50, 0x4c,
-	0x16, 0xf8, 0x3d, 0x0e, 0xaf, 0x91, 0x58, 0xfc, 0x1d, 0xbb, 0x67, 0x77, 0xa2, 0x52, 0x9a, 0x3b,
-	0x89, 0x7d, 0x8d, 0x74, 0x9a, 0xe1, 0x1a, 0x9c, 0xe8, 0x4a, 0x89, 0x9e, 0x8c, 0xf4, 0x3e, 0x6a,
-	0x27, 0x6d, 0xda, 0xf8, 0xe7, 0x23, 0x38, 0x2e, 0x43, 0xa2, 0xbb, 0x00, 0xe6, 0x63, 0xcb, 0x89,
-	0xbe, 0x48, 0x75, 0xbf, 0xe6, 0xfa, 0x1a, 0xb5, 0x8c, 0xd6, 0x0a, 0xab, 0xf9, 0xcd, 0xf1, 0x93,
-	0x57, 0xff, 0x8f, 0x7c, 0x89, 0x1a, 0xe4, 0xea, 0x03, 0xa2, 0xde, 0x9a, 0xc4, 0xe9, 0x21, 0x87,
-	0x17, 0x13, 0x74, 0x84, 0xee, 0x00, 0x58, 0x88, 0x5f, 0x11, 0x94, 0x2d, 0x77, 0x54, 0x44, 0x03,
-	0x67, 0x35, 0xd7, 0x58, 0xb1, 0xc4, 0x5a, 0x45, 0x4b, 0xd9, 0xb0, 0xa2, 0xd7, 0x00, 0xce, 0x24,
-	0xa7, 0x07, 0x91, 0xb7, 0xa4, 0x4c, 0x3b, 0x51, 0xc6, 0x6a, 0x76, 0x07, 0x8d, 0x72, 0x5f, 0xa2,
-	0xfc, 0x1b, 0xb1, 0xeb, 0x51, 0x0e, 0x8d, 0x7f, 0xbc, 0xa8, 0x24, 0xba, 0x59, 0xe4, 0x70, 0xe8,
-	0xfa, 0x1d, 0x11, 0x75, 0x1c, 0x62, 0x0a, 0x25, 0x38, 0x42, 0x0f, 0x01, 0x2c, 0x0e, 0xad, 0x1b,
-	0xca, 0x0c, 0xfc, 0xa2, 0x1d, 0xf5, 0x77, 0xf0, 0xd0, 0x5c, 0x37, 0x24, 0xd7, 0x75, 0xf4, 0xd5,
-	0xad, 0xb8, 0xa2, 0xff, 0x2e, 0x06, 0x48, 0x2d, 0xc3, 0xcd, 0x03, 0x94, 0xd8, 0xc2, 0x9b, 0x07,
-	0x28, 0xb9, 0x98, 0xa6, 0x29, 0xe1, 0x2e, 0x20, 0x43, 0xc1, 0x4d, 0x22, 0x55, 0x7b, 0xb8, 0xf9,
-	0xfb, 0xc9, 0x59, 0x19, 0x9c, 0x9e, 0x95, 0xc1, 0xcb, 0xb3, 0x32, 0xf8, 0xf7, 0xbc, 0x9c, 0x3b,
-	0x3d, 0x2f, 0xe7, 0x9e, 0x9d, 0x97, 0x73, 0x7f, 0x7c, 0xeb, 0xb1, 0xa0, 0xd5, 0x77, 0xb0, 0xcb,
-	0x3b, 0xc4, 0x61, 0xb6, 0xff, 0x17, 0xa3, 0x36, 0x23, 0x21, 0x82, 0x9a, 0xc7, 0x49, 0x87, 0x37,
-	0xfb, 0x6d, 0x2a, 0xc8, 0xe5, 0x1f, 0xb1, 0xd5, 0x46, 0x4d, 0xa7, 0x08, 0x0e, 0xba, 0x54, 0x38,
-	0x13, 0xf2, 0x61, 0x58, 0x7b, 0x13, 0x00, 0x00, 0xff, 0xff, 0x62, 0x44, 0xc6, 0x02, 0x0e, 0x0a,
-	0x00, 0x00,
+	// 842 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4f, 0x6b, 0x03, 0x45,
+	0x14, 0xcf, 0xf4, 0x8f, 0xb6, 0x93, 0xb4, 0x91, 0x31, 0x6a, 0xba, 0xad, 0x69, 0x88, 0xd0, 0xc6,
+	0x62, 0x66, 0x9a, 0x94, 0xd6, 0x82, 0x58, 0xb0, 0x4a, 0xd5, 0x4b, 0xd1, 0xf5, 0xa0, 0x78, 0x30,
+	0xec, 0x6e, 0xa7, 0x9b, 0x29, 0xc9, 0x4e, 0xba, 0xb3, 0x09, 0x84, 0xd2, 0x8b, 0xf8, 0x01, 0x0a,
+	0x9e, 0x3c, 0x78, 0x16, 0xbc, 0x08, 0x1e, 0xc4, 0x6f, 0x60, 0x8f, 0x05, 0x11, 0x3c, 0xa9, 0xb4,
+	0x82, 0x5f, 0x43, 0x76, 0x66, 0xb6, 0xd9, 0x4d, 0x37, 0xba, 0x2d, 0x7a, 0xdb, 0x7d, 0xf3, 0xfe,
+	0xfc, 0x7e, 0xbf, 0xf7, 0xe6, 0xed, 0xc2, 0xf5, 0x80, 0xd9, 0x0e, 0x71, 0xb8, 0x4f, 0x89, 0xd3,
+	0x65, 0xd4, 0x0b, 0xc8, 0xb0, 0x49, 0xce, 0x07, 0xd4, 0x1f, 0xe1, 0xbe, 0xcf, 0x03, 0x8e, 0x9e,
+	0x0f, 0x1d, 0x70, 0xe8, 0x80, 0x95, 0x03, 0x1e, 0x36, 0x8d, 0x2d, 0x87, 0x8b, 0x1e, 0x17, 0xc4,
+	0xb6, 0x04, 0x55, 0xde, 0x64, 0xd8, 0xb4, 0x69, 0x60, 0x35, 0x49, 0xdf, 0x72, 0x99, 0x67, 0x05,
+	0x8c, 0x7b, 0x2a, 0x81, 0x51, 0x4d, 0xab, 0xa0, 0x53, 0x29, 0x8f, 0x15, 0x97, 0x73, 0xb7, 0x4b,
+	0x89, 0x7c, 0xb3, 0x07, 0xa7, 0xc4, 0xf2, 0x74, 0x75, 0x63, 0x4d, 0x1f, 0x59, 0x7d, 0x46, 0x2c,
+	0xcf, 0xe3, 0x81, 0xcc, 0x2c, 0xf4, 0x69, 0xc9, 0xe5, 0x2e, 0x97, 0x8f, 0x24, 0x7c, 0x52, 0xd6,
+	0xda, 0x3e, 0x7c, 0xe9, 0xc3, 0x10, 0xd2, 0xdb, 0xb2, 0xc6, 0x47, 0x81, 0x15, 0x50, 0x93, 0x9e,
+	0x0f, 0xa8, 0x08, 0xd0, 0xcb, 0x10, 0x3a, 0x1d, 0x8b, 0x79, 0x6d, 0xcf, 0xea, 0xd1, 0x32, 0xa8,
+	0x82, 0xfa, 0xa2, 0xb9, 0x28, 0x2d, 0xc7, 0x56, 0x8f, 0xd6, 0xbe, 0x03, 0xb0, 0xfc, 0x30, 0x54,
+	0xf4, 0xb9, 0x27, 0x28, 0x7a, 0x1d, 0x16, 0x14, 0xea, 0xb6, 0x08, 0xed, 0x32, 0x3a, 0xdf, 0x2a,
+	0x61, 0x85, 0x10, 0x47, 0xe0, 0xf1, 0x5b, 0xde, 0xc8, 0xcc, 0x3b, 0xe3, 0x04, 0xa8, 0x04, 0xe7,
+	0xfb, 0x3e, 0xe7, 0xa7, 0xe5, 0x99, 0x2a, 0xa8, 0x17, 0x4c, 0xf5, 0x82, 0xde, 0x81, 0x05, 0xf9,
+	0xd0, 0xee, 0x50, 0xe6, 0x76, 0x82, 0xf2, 0xac, 0x4c, 0xb7, 0x8a, 0x53, 0xe4, 0xc6, 0xef, 0x49,
+	0x97, 0xc3, 0xb9, 0xeb, 0xdf, 0xd6, 0x73, 0x66, 0x5e, 0x86, 0x29, 0x53, 0xcd, 0x7e, 0x08, 0x58,
+	0x44, 0x64, 0x8f, 0x20, 0x1c, 0x37, 0x43, 0xc3, 0xdd, 0xc0, 0xaa, 0x73, 0x38, 0xec, 0x1c, 0x56,
+	0x7d, 0xd6, 0x9d, 0xc3, 0x1f, 0x58, 0x6e, 0x24, 0x94, 0x19, 0x8b, 0xac, 0xfd, 0x02, 0xe0, 0x4a,
+	0x4a, 0x11, 0x2d, 0x0b, 0x87, 0x4b, 0x71, 0x59, 0x44, 0x19, 0x54, 0x67, 0xeb, 0xf9, 0xd6, 0x56,
+	0x2a, 0x91, 0xf7, 0x4f, 0xa8, 0x17, 0xb0, 0x53, 0x46, 0x4f, 0x62, 0xb9, 0x0e, 0x2b, 0x21, 0xaf,
+	0x6f, 0x7f, 0x5f, 0x7f, 0x31, 0xf5, 0x58, 0x98, 0x85, 0x98, 0x9a, 0x02, 0xbd, 0x9b, 0xa0, 0x35,
+	0x23, 0x69, 0x6d, 0xfe, 0x2b, 0x2d, 0x85, 0x36, 0xc1, 0xeb, 0x7b, 0x00, 0x0d, 0xc5, 0x2b, 0x3c,
+	0xf2, 0xc4, 0x40, 0x3c, 0x62, 0x56, 0xd0, 0x26, 0x2c, 0xfa, 0x74, 0xc8, 0x04, 0xe3, 0x5e, 0xdb,
+	0x1b, 0xf4, 0x6c, 0xea, 0x4b, 0x2c, 0x73, 0xe6, 0x72, 0x64, 0x3e, 0x96, 0xd6, 0x84, 0x63, 0xac,
+	0xd7, 0x31, 0x47, 0xd5, 0x4b, 0xf4, 0x0a, 0x5c, 0xea, 0x86, 0x0c, 0x83, 0xc8, 0x6d, 0xae, 0x0a,
+	0xea, 0x0b, 0x66, 0x41, 0x19, 0x75, 0xc3, 0x7f, 0x04, 0x70, 0x35, 0x15, 0xb4, 0x6e, 0xc7, 0x9b,
+	0xb0, 0xe8, 0x44, 0x27, 0x19, 0x06, 0x75, 0xd9, 0x49, 0xa4, 0xf9, 0x5f, 0x67, 0xf5, 0x8b, 0x74,
+	0xe8, 0x22, 0xa3, 0xe0, 0x47, 0x29, 0x7d, 0x7f, 0xca, 0x38, 0xff, 0x04, 0xe0, 0x5a, 0x3a, 0x0c,
+	0x2d, 0xe1, 0x67, 0xf0, 0xb9, 0x09, 0x09, 0xa3, 0xa1, 0x6e, 0xa4, 0x32, 0x4e, 0xe6, 0xf9, 0x98,
+	0x05, 0x9d, 0x84, 0x06, 0xc5, 0xa4, 0xc4, 0xff, 0xe1, 0x00, 0xef, 0xc2, 0x92, 0x24, 0x62, 0xd2,
+	0xae, 0x35, 0xa2, 0x7e, 0x46, 0x21, 0x6b, 0x3b, 0xf0, 0x85, 0x89, 0x30, 0x4d, 0xdc, 0x80, 0x0b,
+	0xbe, 0xb6, 0x49, 0xc2, 0x8b, 0xe6, 0xfd, 0x7b, 0xeb, 0xea, 0x59, 0x38, 0x2f, 0xa3, 0xd0, 0x37,
+	0x00, 0xe6, 0x63, 0xd7, 0x13, 0xbd, 0x96, 0x2a, 0xca, 0x94, 0x0d, 0x6c, 0x34, 0x32, 0x7a, 0x2b,
+	0x48, 0xb5, 0x37, 0x3e, 0xff, 0xf9, 0xcf, 0x2f, 0x67, 0x76, 0xd1, 0x0e, 0x79, 0xf8, 0x11, 0x51,
+	0xdf, 0x9b, 0xc4, 0xf2, 0x21, 0x17, 0x63, 0xe2, 0x97, 0xe8, 0x6b, 0x00, 0x0b, 0xf1, 0x45, 0x82,
+	0xb2, 0x15, 0x8f, 0x74, 0x34, 0x70, 0x56, 0x77, 0x0d, 0x16, 0x4b, 0xb0, 0x75, 0xb4, 0x91, 0x0d,
+	0x2c, 0xfa, 0x0b, 0xc0, 0xe5, 0xe4, 0xf0, 0x20, 0xf2, 0x0f, 0x25, 0xd3, 0xb6, 0x94, 0xb1, 0x9d,
+	0x3d, 0x40, 0xa3, 0xf4, 0x25, 0xca, 0x2e, 0x3a, 0x9b, 0x8e, 0x72, 0x62, 0xfa, 0x13, 0xaa, 0x92,
+	0x68, 0x6b, 0x91, 0x8b, 0x89, 0xfd, 0x77, 0x49, 0xd4, 0x7a, 0x88, 0x1d, 0x28, 0xc3, 0x25, 0xfa,
+	0x01, 0xc0, 0xe2, 0xc4, 0x75, 0x43, 0x99, 0x91, 0xdf, 0xf7, 0xa3, 0xf9, 0x88, 0x08, 0x4d, 0xf6,
+	0x40, 0x92, 0xdd, 0x47, 0x7b, 0x4f, 0x23, 0x8b, 0xbe, 0x02, 0x70, 0x21, 0xba, 0x27, 0xe8, 0xd5,
+	0xe9, 0xf5, 0x27, 0xae, 0xa0, 0xb1, 0x95, 0xc5, 0x55, 0x63, 0xdc, 0x93, 0x18, 0xb7, 0x11, 0x9e,
+	0x8a, 0x31, 0xba, 0x85, 0x09, 0x6c, 0x87, 0x9f, 0x5c, 0xdf, 0x56, 0xc0, 0xcd, 0x6d, 0x05, 0xfc,
+	0x71, 0x5b, 0x01, 0x57, 0x77, 0x95, 0xdc, 0xcd, 0x5d, 0x25, 0xf7, 0xeb, 0x5d, 0x25, 0xf7, 0xe9,
+	0x81, 0xcb, 0x82, 0xce, 0xc0, 0xc6, 0x0e, 0xef, 0x11, 0x9b, 0x59, 0xde, 0x19, 0xa3, 0x16, 0x23,
+	0x21, 0xa2, 0x86, 0xcb, 0x49, 0x8f, 0x9f, 0x0c, 0xba, 0x54, 0x90, 0xf1, 0x7f, 0xd9, 0x76, 0xab,
+	0xa1, 0x2b, 0x06, 0xa3, 0x3e, 0x15, 0xf6, 0x33, 0xf2, 0x1b, 0xb1, 0xf3, 0x77, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xdd, 0x28, 0x02, 0x6b, 0x1d, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -677,8 +688,9 @@ type QueryClient interface {
 	// ConsensusStates queries all the consensus state associated with a given
 	// client.
 	ConsensusStates(ctx context.Context, in *QueryConsensusStatesRequest, opts ...grpc.CallOption) (*QueryConsensusStatesResponse, error)
-	// ClientParams queries all parameters of the ibc client.
-	ClientParams(ctx context.Context, in *QueryClientParamsRequest, opts ...grpc.CallOption) (*QueryClientParamsResponse, error)
+	// Relayers queries all the relayers associated with a given
+	// client.
+	Relayers(ctx context.Context, in *QueryRelayersRequest, opts ...grpc.CallOption) (*QueryRelayersResponse, error)
 }
 
 type queryClient struct {
@@ -725,9 +737,9 @@ func (c *queryClient) ConsensusStates(ctx context.Context, in *QueryConsensusSta
 	return out, nil
 }
 
-func (c *queryClient) ClientParams(ctx context.Context, in *QueryClientParamsRequest, opts ...grpc.CallOption) (*QueryClientParamsResponse, error) {
-	out := new(QueryClientParamsResponse)
-	err := c.cc.Invoke(ctx, "/tibc.core.client.v1.Query/ClientParams", in, out, opts...)
+func (c *queryClient) Relayers(ctx context.Context, in *QueryRelayersRequest, opts ...grpc.CallOption) (*QueryRelayersResponse, error) {
+	out := new(QueryRelayersResponse)
+	err := c.cc.Invoke(ctx, "/tibc.core.client.v1.Query/Relayers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -746,8 +758,9 @@ type QueryServer interface {
 	// ConsensusStates queries all the consensus state associated with a given
 	// client.
 	ConsensusStates(context.Context, *QueryConsensusStatesRequest) (*QueryConsensusStatesResponse, error)
-	// ClientParams queries all parameters of the ibc client.
-	ClientParams(context.Context, *QueryClientParamsRequest) (*QueryClientParamsResponse, error)
+	// Relayers queries all the relayers associated with a given
+	// client.
+	Relayers(context.Context, *QueryRelayersRequest) (*QueryRelayersResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -766,8 +779,8 @@ func (*UnimplementedQueryServer) ConsensusState(ctx context.Context, req *QueryC
 func (*UnimplementedQueryServer) ConsensusStates(ctx context.Context, req *QueryConsensusStatesRequest) (*QueryConsensusStatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConsensusStates not implemented")
 }
-func (*UnimplementedQueryServer) ClientParams(ctx context.Context, req *QueryClientParamsRequest) (*QueryClientParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ClientParams not implemented")
+func (*UnimplementedQueryServer) Relayers(ctx context.Context, req *QueryRelayersRequest) (*QueryRelayersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Relayers not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -846,20 +859,20 @@ func _Query_ConsensusStates_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ClientParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryClientParamsRequest)
+func _Query_Relayers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRelayersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).ClientParams(ctx, in)
+		return srv.(QueryServer).Relayers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/tibc.core.client.v1.Query/ClientParams",
+		FullMethod: "/tibc.core.client.v1.Query/Relayers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ClientParams(ctx, req.(*QueryClientParamsRequest))
+		return srv.(QueryServer).Relayers(ctx, req.(*QueryRelayersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -885,8 +898,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_ConsensusStates_Handler,
 		},
 		{
-			MethodName: "ClientParams",
-			Handler:    _Query_ClientParams_Handler,
+			MethodName: "Relayers",
+			Handler:    _Query_Relayers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -913,10 +926,10 @@ func (m *QueryClientStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.ClientId)))
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChainName)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1099,10 +1112,10 @@ func (m *QueryConsensusStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.ClientId)))
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChainName)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1193,10 +1206,10 @@ func (m *QueryConsensusStatesRequest) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.ClientId) > 0 {
-		i -= len(m.ClientId)
-		copy(dAtA[i:], m.ClientId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.ClientId)))
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChainName)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1252,7 +1265,7 @@ func (m *QueryConsensusStatesResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryClientParamsRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryRelayersRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1262,20 +1275,27 @@ func (m *QueryClientParamsRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryClientParamsRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRelayersRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryClientParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRelayersRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.ChainName) > 0 {
+		i -= len(m.ChainName)
+		copy(dAtA[i:], m.ChainName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChainName)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryClientParamsResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryRelayersResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1285,27 +1305,24 @@ func (m *QueryClientParamsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryClientParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRelayersResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryClientParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRelayersResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Params != nil {
-		{
-			size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
+	if len(m.Relayers) > 0 {
+		for iNdEx := len(m.Relayers) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Relayers[iNdEx])
+			copy(dAtA[i:], m.Relayers[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.Relayers[iNdEx])))
+			i--
+			dAtA[i] = 0xa
 		}
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1327,7 +1344,7 @@ func (m *QueryClientStateRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.ClientId)
+	l = len(m.ChainName)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -1391,7 +1408,7 @@ func (m *QueryConsensusStateRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.ClientId)
+	l = len(m.ChainName)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -1432,7 +1449,7 @@ func (m *QueryConsensusStatesRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.ClientId)
+	l = len(m.ChainName)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -1462,24 +1479,30 @@ func (m *QueryConsensusStatesResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryClientParamsRequest) Size() (n int) {
+func (m *QueryRelayersRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	l = len(m.ChainName)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
-func (m *QueryClientParamsResponse) Size() (n int) {
+func (m *QueryRelayersResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Params != nil {
-		l = m.Params.Size()
-		n += 1 + l + sovQuery(uint64(l))
+	if len(m.Relayers) > 0 {
+		for _, s := range m.Relayers {
+			l = len(s)
+			n += 1 + l + sovQuery(uint64(l))
+		}
 	}
 	return n
 }
@@ -1521,7 +1544,7 @@ func (m *QueryClientStateRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1549,7 +1572,7 @@ func (m *QueryClientStateRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
+			m.ChainName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1962,7 +1985,7 @@ func (m *QueryConsensusStateRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1990,7 +2013,7 @@ func (m *QueryConsensusStateRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
+			m.ChainName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -2255,7 +2278,7 @@ func (m *QueryConsensusStatesRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2283,7 +2306,7 @@ func (m *QueryConsensusStatesRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ClientId = string(dAtA[iNdEx:postIndex])
+			m.ChainName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2462,7 +2485,7 @@ func (m *QueryConsensusStatesResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryClientParamsRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryRelayersRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2485,12 +2508,44 @@ func (m *QueryClientParamsRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryClientParamsRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRelayersRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryClientParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRelayersRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2512,7 +2567,7 @@ func (m *QueryClientParamsRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryClientParamsResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryRelayersResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2535,17 +2590,17 @@ func (m *QueryClientParamsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryClientParamsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRelayersResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryClientParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRelayersResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayers", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowQuery
@@ -2555,27 +2610,23 @@ func (m *QueryClientParamsResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthQuery
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthQuery
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Params == nil {
-				m.Params = &Params{}
-			}
-			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Relayers = append(m.Relayers, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

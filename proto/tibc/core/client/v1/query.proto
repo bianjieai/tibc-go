@@ -13,30 +13,38 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/ty
 service Query {
   // ClientState queries an IBC light client.
   rpc ClientState(QueryClientStateRequest) returns (QueryClientStateResponse) {
-    option (google.api.http).get = "/ibc/core/client/v1beta1/client_states/{client_id}";
+    option (google.api.http).get =
+        "/ibc/core/client/v1beta1/client_states/{chain_name}";
   }
 
   // ClientStates queries all the IBC light clients of a chain.
-  rpc ClientStates(QueryClientStatesRequest) returns (QueryClientStatesResponse) {
+  rpc ClientStates(QueryClientStatesRequest)
+      returns (QueryClientStatesResponse) {
     option (google.api.http).get = "/ibc/core/client/v1beta1/client_states";
   }
 
   // ConsensusState queries a consensus state associated with a client state at
   // a given height.
-  rpc ConsensusState(QueryConsensusStateRequest) returns (QueryConsensusStateResponse) {
-    option (google.api.http).get = "/ibc/core/client/v1beta1/consensus_states/{client_id}/revision/{revision_number}/"
+  rpc ConsensusState(QueryConsensusStateRequest)
+      returns (QueryConsensusStateResponse) {
+    option (google.api.http).get = "/ibc/core/client/v1beta1/consensus_states/"
+                                   "{chain_name}/revision/{revision_number}/"
                                    "height/{revision_height}";
   }
 
   // ConsensusStates queries all the consensus state associated with a given
   // client.
-  rpc ConsensusStates(QueryConsensusStatesRequest) returns (QueryConsensusStatesResponse) {
-    option (google.api.http).get = "/ibc/core/client/v1beta1/consensus_states/{client_id}";
+  rpc ConsensusStates(QueryConsensusStatesRequest)
+      returns (QueryConsensusStatesResponse) {
+    option (google.api.http).get =
+        "/ibc/core/client/v1beta1/consensus_states/{chain_name}";
   }
 
-  // ClientParams queries all parameters of the ibc client.
-  rpc ClientParams(QueryClientParamsRequest) returns (QueryClientParamsResponse) {
-    option (google.api.http).get = "/ibc/client/v1beta1/params";
+  // Relayers queries all the relayers associated with a given
+  // client.
+  rpc Relayers(QueryRelayersRequest) returns (QueryRelayersResponse) {
+    option (google.api.http).get =
+        "/ibc/core/client/v1beta1/relayers/{chain_name}";
   }
 }
 
@@ -44,7 +52,7 @@ service Query {
 // method
 message QueryClientStateRequest {
   // client state unique identifier
-  string client_id = 1;
+  string chain_name = 1;
 }
 
 // QueryClientStateResponse is the response type for the Query/ClientState RPC
@@ -56,7 +64,7 @@ message QueryClientStateResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryClientStatesRequest is the request type for the Query/ClientStates RPC
@@ -70,8 +78,10 @@ message QueryClientStatesRequest {
 // method.
 message QueryClientStatesResponse {
   // list of stored ClientStates of the chain.
-  repeated IdentifiedClientState client_states = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "IdentifiedClientStates"];
+  repeated IdentifiedClientState client_states = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "IdentifiedClientStates"
+  ];
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -81,7 +91,7 @@ message QueryClientStatesResponse {
 // from which the proof was retrieved.
 message QueryConsensusStateRequest {
   // client identifier
-  string client_id = 1;
+  string chain_name = 1;
   // consensus state revision number
   uint64 revision_number = 2;
   // consensus state revision height
@@ -99,14 +109,14 @@ message QueryConsensusStateResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryConsensusStatesRequest is the request type for the Query/ConsensusStates
 // RPC method.
 message QueryConsensusStatesRequest {
   // client identifier
-  string client_id = 1;
+  string chain_name = 1;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
@@ -115,16 +125,22 @@ message QueryConsensusStatesRequest {
 // Query/ConsensusStates RPC method
 message QueryConsensusStatesResponse {
   // consensus states associated with the identifier
-  repeated ConsensusStateWithHeight consensus_states = 1 [(gogoproto.nullable) = false];
+  repeated ConsensusStateWithHeight consensus_states = 1
+      [ (gogoproto.nullable) = false ];
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-// QueryClientParamsRequest is the request type for the Query/ClientParams RPC method.
-message QueryClientParamsRequest {}
+// QueryRelayersRequest is the request type for the Query/Relayers
+// RPC method.
+message QueryRelayersRequest {
+  // client identifier
+  string chain_name = 1;
+}
 
-// QueryClientParamsResponse is the response type for the Query/ClientParams RPC method.
-message QueryClientParamsResponse {
-  // params defines the parameters of the module.
-  Params params = 1;
+// QueryConsensusStatesResponse is the response type for the
+// Query/Relayers RPC method
+message QueryRelayersResponse {
+  // relayers address associated with the client
+  repeated string relayers = 1;
 }

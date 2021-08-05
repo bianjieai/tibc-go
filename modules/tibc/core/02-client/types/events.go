@@ -8,7 +8,7 @@ import (
 
 // IBC client events
 const (
-	AttributeKeyClientID        = "client_id"
+	AttributeKeyChainName       = "chain_name"
 	AttributeKeyClientType      = "client_type"
 	AttributeKeyConsensusHeight = "consensus_height"
 	AttributeKeyHeader          = "header"
@@ -16,11 +16,10 @@ const (
 
 // IBC client events vars
 var (
-	EventTypeCreateClient         = "create_client"
-	EventTypeUpdateClient         = "update_client"
-	EventTypeUpgradeClient        = "upgrade_client"
-	EventTypeSubmitMisbehaviour   = "client_misbehaviour"
-	EventTypeUpdateClientProposal = "update_client_proposal"
+	EventTypeCreateClientProposal  = "create_client_proposal"
+	EventTypeUpdateClient          = "update_client"
+	EventTypeUpgradeClientProposal = "upgrade_client_proposal"
+	EventTypeUpdateClientProposal  = "update_client_proposal"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
 )

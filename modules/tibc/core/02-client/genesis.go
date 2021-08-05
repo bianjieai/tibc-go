@@ -13,8 +13,6 @@ import (
 // InitGenesis initializes the ibc client submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
-	k.SetParams(ctx, gs.Params)
-
 	// Set all client metadata first. This will allow client keeper to overwrite client and consensus state keys
 	// if clients accidentally write to ClientKeeper reserved keys.
 	if len(gs.ClientsMetadata) != 0 {
@@ -27,26 +25,24 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 			panic("invalid client state")
 		}
 
-		if !gs.Params.IsAllowedClient(cs.ClientType()) {
-			panic(fmt.Sprintf("client state type %s is not registered on the allowlist", cs.ClientType()))
-		}
-
-		k.SetClientState(ctx, client.ClientId, cs)
+		k.SetClientState(ctx, client.ChainName, cs)
 	}
 
 	for _, cs := range gs.ClientsConsensus {
 		for _, consState := range cs.ConsensusStates {
 			consensusState, ok := consState.ConsensusState.GetCachedValue().(exported.ConsensusState)
 			if !ok {
-				panic(fmt.Sprintf("invalid consensus state with client ID %s at height %s", cs.ClientId, consState.Height))
+				panic(fmt.Sprintf("invalid consensus state with chain name %s at height %s", cs.ChainName, consState.Height))
 			}
 
-			k.SetClientConsensusState(ctx, cs.ClientId, consState.Height, consensusState)
+			k.SetClientConsensusState(ctx, cs.ChainName, consState.Height, consensusState)
 		}
 	}
 
-	k.SetNextClientSequence(ctx, gs.NextClientSequence)
-
+	for _, rs := range gs.Relayers {
+		k.RegisterRelayers(ctx, rs.ChainName, rs.Relayers)
+	}
+	k.SetChainName(ctx, gs.NativeChainName)
 	// NOTE: localhost creation is specifically disallowed for the time being.
 	// Issue: https://github.com/cosmos/cosmos-sdk/issues/7871
 }
@@ -61,11 +57,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		panic(err)
 	}
 	return types.GenesisState{
-		Clients:            genClients,
-		ClientsMetadata:    clientsMetadata,
-		ClientsConsensus:   k.GetAllConsensusStates(ctx),
-		Params:             k.GetParams(ctx),
-		CreateLocalhost:    false,
-		NextClientSequence: k.GetNextClientSequence(ctx),
+		Clients:          genClients,
+		ClientsMetadata:  clientsMetadata,
+		ClientsConsensus: k.GetAllConsensusStates(ctx),
+		NativeChainName:  k.GetChainName(ctx),
+		Relayers:         k.GetAllRelayers(ctx),
 	}
 }

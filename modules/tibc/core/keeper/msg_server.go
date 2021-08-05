@@ -18,41 +18,6 @@ import (
 var _ clienttypes.MsgServer = Keeper{}
 var _ packettypes.MsgServer = Keeper{}
 
-// CreateClient defines a rpc handler method for MsgCreateClient.
-func (k Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-
-	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	clientID, err := k.ClientKeeper.CreateClient(ctx, clientState, consensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			clienttypes.EventTypeCreateClient,
-			sdk.NewAttribute(clienttypes.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	})
-
-	return &clienttypes.MsgCreateClientResponse{}, nil
-}
-
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
 func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -62,7 +27,12 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 		return nil, err
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, header); err != nil {
+	// Verify that the account has permission to update the client
+	if !k.ClientKeeper.AuthRelayer(ctx, msg.ChainName, msg.Signer) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "relayer: %s", msg.Signer)
+	}
+
+	if err = k.ClientKeeper.UpdateClient(ctx, msg.ChainName, header); err != nil {
 		return nil, err
 	}
 
@@ -74,59 +44,6 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 	)
 
 	return &clienttypes.MsgUpdateClientResponse{}, nil
-}
-
-// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
-func (k Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	upgradedClient, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return nil, err
-	}
-	upgradedConsState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = k.ClientKeeper.UpgradeClient(ctx, msg.ClientId, upgradedClient, upgradedConsState,
-		msg.ProofUpgradeClient, msg.ProofUpgradeConsensusState); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-		),
-	)
-
-	return &clienttypes.MsgUpgradeClientResponse{}, nil
-}
-
-// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
-func (k Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	misbehaviour, err := clienttypes.UnpackMisbehaviour(msg.Misbehaviour)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := k.ClientKeeper.CheckMisbehaviourAndUpdateState(ctx, misbehaviour); err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to process misbehaviour for IBC client")
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			clienttypes.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(clienttypes.AttributeKeyClientID, msg.ClientId),
-			sdk.NewAttribute(clienttypes.AttributeKeyClientType, misbehaviour.ClientType()),
-			sdk.NewAttribute(clienttypes.AttributeKeyConsensusHeight, misbehaviour.GetHeight().String()),
-		),
-	)
-
-	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
 }
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.

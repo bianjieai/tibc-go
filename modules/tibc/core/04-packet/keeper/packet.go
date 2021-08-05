@@ -30,15 +30,15 @@ func (k Keeper) SendPacket(
 		return sdkerrors.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s)", packet.GetPort())
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
-	if !found {
-		return clienttypes.ErrConsensusStateNotFound
-	}
+	// clientState, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
+	// if !found {
+	// 	return clienttypes.ErrConsensusStateNotFound
+	// }
 
 	// prevent accidental sends with clients that cannot be updated
-	if clientState.IsFrozen() {
-		return sdkerrors.Wrapf(clienttypes.ErrClientFrozen, "cannot send packet on a frozen client with ID %s", packet.GetDestChain())
-	}
+	// if clientState.IsFrozen() {
+	// 	return sdkerrors.Wrapf(clienttypes.ErrClientFrozen, "cannot send packet on a frozen client with ID %s", packet.GetDestChain())
+	// }
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 	if !found {
@@ -105,8 +105,7 @@ func (k Keeper) RecvPacket(
 	// verify that the counterparty did commit to sending this packet
 	if err := targetClient.VerifyPacketCommitment(
 		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
-		uint64(ctx.BlockTime().UnixNano()), 0,
-		nil, proof, packet.GetPort(), "",
+		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), commitment,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
@@ -240,8 +239,7 @@ func (k Keeper) AcknowledgePacket(
 
 	if err := clientState.VerifyPacketAcknowledgement(
 		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
-		uint64(ctx.BlockTime().UnixNano()), 0,
-		nil, proof, packet.GetPort(), "",
+		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), acknowledgement,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", targetClientID)

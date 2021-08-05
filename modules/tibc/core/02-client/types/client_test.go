@@ -7,7 +7,6 @@ import (
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
@@ -19,12 +18,6 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 		name     string
 		malleate func()
 	}{
-		{
-			"solo machine client", func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 1)
-				cswh = types.NewConsensusStateWithHeight(types.NewHeight(0, soloMachine.Sequence), soloMachine.ConsensusState())
-			},
-		},
 		{
 			"tendermint client", func() {
 				clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)

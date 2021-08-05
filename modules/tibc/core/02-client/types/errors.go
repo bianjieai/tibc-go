@@ -33,4 +33,5 @@ var (
 	ErrUpdateClientFailed                     = sdkerrors.Register(moduleName, 23, "unable to update light client")
 	ErrInvalidUpdateClientProposal            = sdkerrors.Register(moduleName, 24, "invalid update client proposal")
 	ErrInvalidUpgradeClient                   = sdkerrors.Register(moduleName, 25, "invalid client upgrade")
+	ErrRelayerExists                          = sdkerrors.Register(moduleName, 26, "relayer already exists")
 )
