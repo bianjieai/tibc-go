@@ -227,7 +227,7 @@ func sequencePath(sequence uint64) string {
 }
 
 // ICS05
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-005-port-allocation#store-paths
+// The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-026-routing-allocation#store-paths
 
 // PortPath defines the path under which ports paths are stored on the capability module
 func PortPath(portID string) string {

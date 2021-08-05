@@ -11,7 +11,7 @@ import (
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/05-port/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	coretypes "github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
@@ -140,9 +140,9 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
 	if !ok {
-		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
 	// Perform TAO verification
@@ -192,9 +192,9 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 	}
 
 	// Retrieve callbacks from router
-	cbs, ok := k.Router.GetRoute(module)
+	cbs, ok := k.RoutingKeeper.Router.GetRoute(module)
 	if !ok {
-		return nil, sdkerrors.Wrapf(porttypes.ErrInvalidRoute, "route not found to module: %s", module)
+		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", module)
 	}
 
 	// Perform TAO verification
