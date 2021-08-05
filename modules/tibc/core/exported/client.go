@@ -67,6 +67,17 @@ type ClientState interface {
 		sequence uint64,
 		acknowledgement []byte,
 	) error
+
+	VerifyPacketCleanCommitment(
+		store sdk.KVStore,
+		cdc codec.BinaryMarshaler,
+		height Height,
+		proof []byte,
+		sourceChain string,
+		destChain string,
+		sequence uint64,
+		cleanCommitmentBytes []byte,
+	) error
 }
 
 // ConsensusState is the state of the consensus process

@@ -213,6 +213,23 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	return nil
 }
 
+// VerifyPacketAcknowledgement verifies a proof of an incoming packet
+// acknowledgement at the specified port, specified channel, and specified sequence.
+func (cs ClientState) VerifyPacketCleanCommitment(
+	store sdk.KVStore,
+	cdc codec.BinaryMarshaler,
+	height exported.Height,
+	proof []byte,
+	sourceChain string,
+	destChain string,
+	sequence uint64,
+	cleanCommitmentBytes []byte,
+) error {
+	//TODO
+
+	return nil
+}
+
 // verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
 // before allowing verification to continue.
 func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight exported.Height, currentTimestamp, delayPeriod uint64) error {
