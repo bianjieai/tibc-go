@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +9,7 @@ import (
 )
 
 const (
-	Prefix = "tibc/nft"
+	PREFIX = "tibc/nft"
 )
 
 func (k Keeper) SendNftTransfer(
@@ -32,22 +31,22 @@ func (k Keeper) SendNftTransfer(
 	}
 
 	if awayFromOrigin{
-		// lock nft
+		// Two conversion scenarios
+		// 1. class -> tibc/nft/A/class
+		// 2. tibc/nft/A/class -> tibc/nft/A/B/class
+
+		// Two things need to be done
+		// 1. lock nft  |send to moduleAccount
+		// 2. send packet
 		if err := k.nk.TransferOwner(ctx, class, id, "", uri, "",
 			sender, k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
 			return err
 		}
 	} else {
-		// transfer the nft to the module account and burn them
-		if err := k.nk.TransferOwner(ctx, class, id, "", uri, "",
-			sender, k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
-			return err
-		}
-
 		// burn nft
 		if err := k.nk.BurnNFT(ctx, class, id,
 			k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
-			panic(fmt.Sprintf("cannot burn nft after a successful send to a module account: %v", err))
+			return err
 		}
 	}
 
@@ -70,6 +69,16 @@ func (k Keeper) SendNftTransfer(
 	return nil
 }
 
+
+/*
+OnRecvPacket
+A->B->C  away_from_source == true
+	B receive packet from A : class -> tibc/nft/A/class
+	c receive packet from B : tibc/nft/A/class -> tibc/nft/A/B/class
+C->B->A  away_from_source == flase
+	B receive packet from C : tibc/nft/A/B/class -> tibc/nft/A/class
+	A receive packet from B : tibc/nft/A/class -> class
+*/
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData) error{
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
@@ -82,40 +91,25 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		return err
 	}
 
-	// decode the receiver address
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
-	if err != nil {
-		return err
-	}
-
+	var newClass string
 	if data.AwayFromOrigin{
-		if strings.HasPrefix(data.Class, Prefix){
-			// has prefix
+		if strings.HasPrefix(data.Class, PREFIX){
 			// tibc/nft/A/class -> tibc/nft/A/B/class
+			// [tibc][nft][A][class] -> [tibc][nft][A][B][class]
 			classSplit := strings.Split(data.Class, "/")
 			classSplit = append(classSplit[:len(classSplit) - 2], packet.SourceChain)
-			newClass := strings.Join(classSplit, "/")
-			if err := k.nk.MintNFT(ctx, newClass, data.Id, "", data.Uri, "", sender); err != nil{
-				return err
-			}
+			newClass = strings.Join(classSplit, "/")
 		} else {
-			// not has prefix
 			// class -> tibc/nft/A/classs
-			newClass := Prefix + "/" + packet.SourceChain + data.Class
-			if err := k.nk.MintNFT(ctx, newClass, data.Id, "", data.Uri, "", sender); err != nil{
-				return err
-			}
-			// lock todo
-			// send packet  todo
+			newClass = PREFIX + "/" + packet.SourceChain + "/" + data.Class
+		}
+		if err := k.nk.MintNFT(ctx, newClass, data.Id, "", data.Uri, "", sender); err != nil{
+			return err
 		}
 	} else {
-		if strings.HasPrefix(data.Class, Prefix){
+		if strings.HasPrefix(data.Class, PREFIX){
 			classSplit := strings.Split(data.Class, "/")
-			destChain := classSplit[len(classSplit) - 2]
-			if destChain != packet.DestinationChain{
-				// return err  must equal
-			}
-			var newClass string
+
 			if len(classSplit) == 4{
 				// tibc/nft/A/class -> class
 				newClass = classSplit[len(classSplit) - 1]
@@ -124,27 +118,24 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 				classSplit = append(classSplit[:len(classSplit) - 3], classSplit[len(classSplit) - 1])
 				newClass = strings.Join(classSplit, "/")
 			}
-			// unlock : from moduleAddr to receiver
-			if err := k.nk.TransferOwner(ctx, newClass, data.Id, "", data.Uri, "",
-				k.GetNftTransferModuleAddr(types.ModuleName), receiver); err != nil{
+
+			// burn nft
+			if err := k.nk.BurnNFT(ctx, newClass, data.Id,
+				k.GetNftTransferModuleAddr(types.ModuleName)); err != nil{
 				return err
 			}
-
-			// if two skip
-			// need create packet &&sendpacket todo
-
 		} else {
-			//  return err must has prefix if awayfromchain todo
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix", data.Class)
 		}
 	}
 	return nil
 }
 
 
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData, ack packetType.Acknowledgement) error {
+func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, data types.NonFungibleTokenPacketData, ack packetType.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *packetType.Acknowledgement_Error:
-		return k.refundPacketToken(ctx, packet, data)
+		return k.refundPacketToken(ctx, data)
 	default:
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
@@ -152,15 +143,9 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet packetType.Packe
 	}
 }
 
-func (k Keeper) refundPacketToken(ctx sdk.Context, packet packetType.Packet, data types.NonFungibleTokenPacketData) error {
+func (k Keeper) refundPacketToken(ctx sdk.Context, data types.NonFungibleTokenPacketData) error {
 	// decode the sender address
 	sender, err := sdk.AccAddressFromBech32(data.Sender)
-	if err != nil {
-		return err
-	}
-
-	// decode the recevier address
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return err
 	}
@@ -168,7 +153,7 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, packet packetType.Packet, dat
 	if data.AwayFromOrigin{
 		// unlock
 		if err := k.nk.TransferOwner(ctx, data.Class, data.Id, "", data.Uri, "",
-			k.GetNftTransferModuleAddr(types.ModuleName), receiver); err != nil{
+			k.GetNftTransferModuleAddr(types.ModuleName), sender); err != nil{
 			return err
 		}
 

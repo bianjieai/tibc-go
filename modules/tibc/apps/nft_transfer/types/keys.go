@@ -7,4 +7,8 @@ const (
 
 	// RouterKey is the message route for the NFT-transfer module
 	RouterKey = ModuleName
+
+
+	// QuerierRoute is the querier route for TIBC nft-transfer
+	QuerierRoute = ModuleName
 )

@@ -3,12 +3,11 @@ package nft_transfer
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
-	nftTransferTypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -29,36 +28,40 @@ var (
 type AppModuleBasic struct{}
 
 func (a AppModuleBasic) RegisterRESTRoutes(context client.Context, m *interface{}) {
-	panic("implement me")
 }
 
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
-	panic("implement me")
 }
 
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	panic("implement me")
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the ibc module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	//todo
+	//return cli.GetQueryCmd()
+	return nil
 }
 
 func (a AppModuleBasic) Name() string {
-	panic("implement me")
+	return types.ModuleName
 }
 
-func (a AppModuleBasic) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
-	panic("implement me")
+// RegisterLegacyAminoCodec implements AppModuleBasic interface
+func (a AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
+// RegisterInterfaces registers module concrete types into protobuf Any.
 func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	panic("implement me")
+	types.RegisterInterfaces(registry)
 }
 
-func (a AppModuleBasic) DefaultGenesis(marshaler codec.JSONMarshaler) json.RawMessage {
-	panic("implement me")
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	//return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	//todo
+	return nil
 }
 
 func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
@@ -71,36 +74,12 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
-func (a AppModule) Name() string {
-	panic("implement me")
-}
-
-func (a AppModule) RegisterLegacyAminoCodec(amino *codec.LegacyAmino) {
-	panic("implement me")
-}
-
-func (a AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	panic("implement me")
-}
-
-func (a AppModule) DefaultGenesis(marshaler codec.JSONMarshaler) json.RawMessage {
-	panic("implement me")
-}
-
-func (a AppModule) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
-	panic("implement me")
-}
 
 func (a AppModule) RegisterRESTRoutes(context client.Context, m *interface{}) {
-	panic("implement me")
 }
 
 func (a AppModule) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
 	panic("implement me")
-}
-
-func (a AppModule) GetTxCmd() *interface{} {
-	return cli.NewTxCmd()
 }
 
 func (a AppModule) InitGenesis(context sdk.Context, marshaler codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
@@ -120,33 +99,34 @@ func (a AppModule) Route() sdk.Route {
 }
 
 func (a AppModule) QuerierRoute() string {
-	panic("implement me")
+	return types.QuerierRoute
 }
 
 func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
 	panic("implement me")
 }
 
-func (a AppModule) RegisterServices(configurator module.Configurator) {
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
 	panic("implement me")
 }
 
-func (a AppModule) ConsensusVersion() uint64 {
-	panic("implement me")
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (am AppModule) ConsensusVersion() uint64 { return 1 }
+
+// BeginBlock implements the AppModule interface
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
-func (a AppModule) BeginBlock(context sdk.Context, block abci.RequestBeginBlock) {
-	panic("implement me")
+// EndBlock implements the AppModule interface
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }
 
-func (a AppModule) EndBlock(context sdk.Context, block abci.RequestEndBlock) []abci.ValidatorUpdate {
-	panic("implement me")
-}
+func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sdk.Result, []byte, error) {
 
-func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Result, []byte, error) {
-
-	var data nftTransferTypes.NonFungibleTokenPacketData
-	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	var data types.NonFungibleTokenPacketData
+	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 nft-transfer packet data: %s", err.Error())
 	}
 
@@ -159,13 +139,13 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Resu
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			nftTransferTypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, nftTransferTypes.ModuleName),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyClass, data.Class),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyId, data.Class),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyUri, data.Uri),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", err == nil)),
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyClass, data.Class),
+			sdk.NewAttribute(types.AttributeKeyId, data.Class),
+			sdk.NewAttribute(types.AttributeKeyUri, data.Uri),
+			sdk.NewAttribute(types.AttributeKeyAckSuccess, fmt.Sprintf("%t", err == nil)),
 		),
 	)
 
@@ -175,29 +155,29 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet types.Packet) (*sdk.Resu
 	}, acknowledgement.GetBytes(), nil
 }
 
-func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet types.Packet, acknowledgement []byte) (*sdk.Result, error) {
+func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet packettypes.Packet, acknowledgement []byte) (*sdk.Result, error) {
 	var ack packettypes.Acknowledgement
-	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
-	var data nftTransferTypes.NonFungibleTokenPacketData
-	if err := nftTransferTypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	var data types.NonFungibleTokenPacketData
+	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if err := a.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := a.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			nftTransferTypes.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, nftTransferTypes.ModuleName),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyReceiver, data.Receiver),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyClass, data.Class),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyId, data.Class),
-			sdk.NewAttribute(nftTransferTypes.AttributeKeyUri, data.Uri),
+			types.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyReceiver, data.Receiver),
+			sdk.NewAttribute(types.AttributeKeyClass, data.Class),
+			sdk.NewAttribute(types.AttributeKeyId, data.Class),
+			sdk.NewAttribute(types.AttributeKeyUri, data.Uri),
 			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", ack)),
 		),
 	)
@@ -206,15 +186,15 @@ func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet types.Packet,
 	case *packettypes.Acknowledgement_Result:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				nftTransferTypes.EventTypePacket,
-				sdk.NewAttribute(nftTransferTypes.AttributeKeyAckSuccess, string(resp.Result)),
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
 	case *packettypes.Acknowledgement_Error:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				nftTransferTypes.EventTypePacket,
-				sdk.NewAttribute(nftTransferTypes.AttributeKeyAckError, resp.Error),
+				types.EventTypePacket,
+				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
 			),
 		)
 	}
