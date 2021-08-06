@@ -24,21 +24,17 @@ var _ exported.ClientState = (*ClientState)(nil)
 func NewClientState(
 	chainID string, trustLevel Fraction,
 	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
-	latestHeight clienttypes.Height, specs []*ics23.ProofSpec,
-	upgradePath []string, allowUpdateAfterExpiry, allowUpdateAfterMisbehaviour bool,
+	latestHeight clienttypes.Height, specs []*ics23.ProofSpec, prefix commitmenttypes.MerklePrefix,
 ) *ClientState {
 	return &ClientState{
-		ChainId:                      chainID,
-		TrustLevel:                   trustLevel,
-		TrustingPeriod:               trustingPeriod,
-		UnbondingPeriod:              ubdPeriod,
-		MaxClockDrift:                maxClockDrift,
-		LatestHeight:                 latestHeight,
-		FrozenHeight:                 clienttypes.ZeroHeight(),
-		ProofSpecs:                   specs,
-		UpgradePath:                  upgradePath,
-		AllowUpdateAfterExpiry:       allowUpdateAfterExpiry,
-		AllowUpdateAfterMisbehaviour: allowUpdateAfterMisbehaviour,
+		ChainId:         chainID,
+		TrustLevel:      trustLevel,
+		TrustingPeriod:  trustingPeriod,
+		UnbondingPeriod: ubdPeriod,
+		MaxClockDrift:   maxClockDrift,
+		LatestHeight:    latestHeight,
+		ProofSpecs:      specs,
+		MerklePrefix:    prefix,
 	}
 }
 
@@ -57,20 +53,19 @@ func (cs ClientState) GetLatestHeight() exported.Height {
 	return cs.LatestHeight
 }
 
-// DelayTime returns latest block height.
-func (cs ClientState) DelayTime() uint64 {
+// GetDelayTime returns the period of transaction confirmation delay.
+func (cs ClientState) GetDelayTime() uint64 {
+	return cs.TimeDelay
+}
+
+// GetDelayBlock returns the number of blocks delayed in transaction confirmation.
+func (cs ClientState) GetDelayBlock() uint64 {
 	return 0
 }
 
-// DelayBlock returns latest block height.
-func (cs ClientState) DelayBlock() uint64 {
-	return 0
-}
-
-// Prefix returns latest block height.
-func (cs ClientState) Prefix() exported.Prefix {
-	//TODO
-	return nil
+// GetPrefix returns the prefix path for proof key.
+func (cs ClientState) GetPrefix() exported.Prefix {
+	return cs.MerklePrefix
 }
 
 // IsExpired returns whether or not the client has passed the trusting period since the last
@@ -115,13 +110,6 @@ func (cs ClientState) Validate() error {
 			return sdkerrors.Wrapf(ErrInvalidProofSpecs, "proof spec cannot be nil at index: %d", i)
 		}
 	}
-	// UpgradePath may be empty, but if it isn't, each key must be non-empty
-	for i, k := range cs.UpgradePath {
-		if strings.TrimSpace(k) == "" {
-			return sdkerrors.Wrapf(clienttypes.ErrInvalidClient, "key in upgrade path at index %d cannot be empty", i)
-		}
-	}
-
 	return nil
 }
 
@@ -146,6 +134,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
 // the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	height exported.Height,
@@ -155,18 +144,18 @@ func (cs ClientState) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.Prefix(), proof)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
 	if err != nil {
 		return err
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, cs.DelayTime(), cs.DelayBlock()); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, cs.GetDelayTime()); err != nil {
 		return err
 	}
 
 	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(sourceChain, destChain, sequence))
-	path, err := commitmenttypes.ApplyPrefix(cs.Prefix(), commitmentPath)
+	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), commitmentPath)
 	if err != nil {
 		return err
 	}
@@ -181,6 +170,7 @@ func (cs ClientState) VerifyPacketCommitment(
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	height exported.Height,
@@ -190,18 +180,18 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	sequence uint64,
 	acknowledgement []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.Prefix(), proof)
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
 	if err != nil {
 		return err
 	}
 
 	// check delay period has passed
-	if err := verifyDelayPeriodPassed(store, height, cs.DelayTime(), cs.DelayBlock()); err != nil {
+	if err := verifyDelayPeriodPassed(ctx, store, height, cs.GetDelayTime()); err != nil {
 		return err
 	}
 
 	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(sourceChain, destChain, sequence))
-	path, err := commitmenttypes.ApplyPrefix(cs.Prefix(), ackPath)
+	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), ackPath)
 	if err != nil {
 		return err
 	}
@@ -216,6 +206,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
 // acknowledgement at the specified port, specified channel, and specified sequence.
 func (cs ClientState) VerifyPacketCleanCommitment(
+	ctx sdk.Context,
 	store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	height exported.Height,
@@ -232,12 +223,13 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 
 // verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
 // before allowing verification to continue.
-func verifyDelayPeriodPassed(store sdk.KVStore, proofHeight exported.Height, currentTimestamp, delayPeriod uint64) error {
+func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exported.Height, delayPeriod uint64) error {
 	// check that executing chain's timestamp has passed consensusState's processed time + delay period
 	processedTime, ok := GetProcessedTime(store, proofHeight)
 	if !ok {
 		return sdkerrors.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
 	}
+	currentTimestamp := uint64(ctx.BlockTime().UnixNano())
 	validTime := processedTime + delayPeriod
 	// NOTE: delay period is inclusive, so if currentTimestamp is validTime, then we return no error
 	if validTime > currentTimestamp {

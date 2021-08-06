@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/binary"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,7 +14,10 @@ import (
 )
 
 // KeyProcessedTime is appended to consensus state key to store the processed time
-var KeyProcessedTime = []byte("/processedTime")
+var (
+	KeyIterateConsensusStatePrefix = "iterateConsensusStates"
+	KeyProcessedTime               = []byte("/processedTime")
+)
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
@@ -60,6 +64,32 @@ func IterateProcessedTime(store sdk.KVStore, cb func(key, val []byte) bool) {
 			break
 		}
 	}
+}
+
+// GetHeightFromIterationKey takes an iteration key and returns the height that it references
+func GetHeightFromIterationKey(iterKey []byte) exported.Height {
+	bigEndianBytes := iterKey[len([]byte(KeyIterateConsensusStatePrefix)):]
+	revisionBytes := bigEndianBytes[0:8]
+	heightBytes := bigEndianBytes[8:]
+	revision := binary.BigEndian.Uint64(revisionBytes)
+	height := binary.BigEndian.Uint64(heightBytes)
+	return clienttypes.NewHeight(revision, height)
+}
+
+// IterateConsensusStateAscending iterates through the consensus states in ascending order. It calls the provided
+// callback on each height, until stop=true is returned.
+func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
+	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		iterKey := iterator.Key()
+		height := GetHeightFromIterationKey(iterKey)
+		if cb(height) {
+			return nil
+		}
+	}
+	return nil
 }
 
 // ProcessedTime Store code

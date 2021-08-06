@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	CreateClientProposalHandler    = govclient.NewProposalHandler(cli.NewCmdCreateClientProposal, nil)
-	UpgradeClientProposalHandler   = govclient.NewProposalHandler(cli.NewCmdUpgradeClientProposal, nil)
-	RegisterRelayerProposalHandler = govclient.NewProposalHandler(cli.NewCmdRegisterRelayerProposal, nil)
+	CreateClientProposalHandler    = govclient.NewProposalHandler(cli.NewCreateClientProposalCmd, nil)
+	UpgradeClientProposalHandler   = govclient.NewProposalHandler(cli.NewUpgradeClientProposalCmd, nil)
+	RegisterRelayerProposalHandler = govclient.NewProposalHandler(cli.NewRegisterRelayerProposalCmd, nil)
 )
 
 // NewClientProposalHandler defines the client manager proposal handler

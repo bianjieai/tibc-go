@@ -62,10 +62,9 @@ var (
 	TestHash                              = tmhash.Sum([]byte("TESTING HASH"))
 	TestCoin                              = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
-	UpgradePath = []string{"upgrade", "upgradedIBCState"}
-
 	MockAcknowledgement = mock.MockAcknowledgement
 	MockCommitment      = mock.MockCommitment
+	Prefix              = commitmenttypes.MerklePrefix{KeyPrefix: []byte("ibc")}
 )
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
@@ -357,7 +356,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 		height := counterparty.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctmtypes.NewClientState(
 			counterparty.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath, false, false,
+			height, commitmenttypes.GetSDKSpecs(), Prefix,
 		)
 		consensusState = counterparty.LastHeader.ConsensusState()
 	default:
