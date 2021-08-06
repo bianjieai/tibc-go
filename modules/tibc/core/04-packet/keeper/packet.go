@@ -259,3 +259,28 @@ func (k Keeper) AcknowledgePacket(
 
 	return nil
 }
+
+// MsgRecvPacket receives incoming IBC packet
+type MsgCleanPacket struct {
+	Sequence    uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
+	DestChain   string `protobuf:"bytes,3,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
+	RelayChain  string `protobuf:"bytes,4,opt,name=relay_chain,json=relayChain,proto3" json:"relay_chain,omitempty"`
+}
+
+// CleanPacket.
+func (k Keeper) CleanPacket(
+	ctx sdk.Context,
+	sourceChain string,
+	destChain string,
+	sequence uint64,
+) error {
+	_, found := k.GetPacketReceipt(ctx, sourceChain, destChain, sequence)
+	if !found {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence does not exist!", sequence,
+		)
+	}
+	return nil
+}

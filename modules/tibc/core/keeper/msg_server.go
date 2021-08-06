@@ -128,3 +128,14 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 
 	return &packettypes.MsgAcknowledgementResponse{}, nil
 }
+
+// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPacket) (*packettypes.MsgCleanPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.Packetkeeper.CleanPacket(ctx, msg.SourceChain, msg.DestChain, msg.Sequence); err != nil {
+		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+	}
+
+
+	return &packettypes.MsgCleanPacketResponse{}, nil
+}
