@@ -61,6 +61,34 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 		return nil, nil, err
 	}
 
+	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// so that we can delete consensus state and all associated metadata.
+	var (
+		pruneHeight exported.Height
+		pruneError  error
+	)
+	pruneCb := func(height exported.Height) bool {
+		consState, err := GetConsensusState(clientStore, cdc, height)
+		// this error should never occur
+		if err != nil {
+			pruneError = err
+			return true
+		}
+		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+			pruneHeight = height
+		}
+		return true
+	}
+	IterateConsensusStateAscending(clientStore, pruneCb)
+	if pruneError != nil {
+		return nil, nil, pruneError
+	}
+	// if pruneHeight is set, delete consensus state and metadata
+	if pruneHeight != nil {
+		deleteConsensusState(clientStore, pruneHeight)
+		deleteConsensusMetadata(clientStore, pruneHeight)
+	}
+
 	newClientState, consensusState := update(ctx, clientStore, &cs, tmHeader)
 	return newClientState, consensusState, nil
 }
@@ -181,7 +209,7 @@ func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, 
 
 	// set context time as processed time as this is state internal to tendermint client logic.
 	// client state and consensus state will be set by client keeper
-	SetProcessedTime(clientStore, header.GetHeight(), uint64(ctx.BlockTime().UnixNano()))
+	setConsensusMetadata(ctx, clientStore, header.GetHeight())
 
 	return clientState, consensusState
 }

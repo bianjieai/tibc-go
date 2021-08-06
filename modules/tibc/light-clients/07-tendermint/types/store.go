@@ -21,7 +21,8 @@ var (
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore, cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, error) {
+func GetConsensusState(store sdk.KVStore,
+	cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(
@@ -78,7 +79,8 @@ func GetHeightFromIterationKey(iterKey []byte) exported.Height {
 
 // IterateConsensusStateAscending iterates through the consensus states in ascending order. It calls the provided
 // callback on each height, until stop=true is returned.
-func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height exported.Height) (stop bool)) error {
+func IterateConsensusStateAscending(clientStore sdk.KVStore,
+	cb func(height exported.Height) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
 	defer iterator.Close()
 
@@ -86,10 +88,9 @@ func IterateConsensusStateAscending(clientStore sdk.KVStore, cb func(height expo
 		iterKey := iterator.Key()
 		height := GetHeightFromIterationKey(iterKey)
 		if cb(height) {
-			return nil
+			return
 		}
 	}
-	return nil
 }
 
 // ProcessedTime Store code
@@ -117,4 +118,67 @@ func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, 
 		return 0, false
 	}
 	return sdk.BigEndianToUint64(bz), true
+}
+
+// IterationKey returns the key under which the consensus state key will be stored.
+// The iteration key is a BigEndian representation of the consensus state key to support efficient iteration.
+func IterationKey(height exported.Height) []byte {
+	heightBytes := bigEndianHeightBytes(height)
+	return append([]byte(KeyIterateConsensusStatePrefix), heightBytes...)
+}
+
+// SetIterationKey stores the consensus state key under a key that is more efficient for ordered iteration
+func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
+	key := IterationKey(height)
+	val := host.ConsensusStateKey(height)
+	clientStore.Set(key, val)
+}
+
+// setConsensusMetadata sets context time as processed time and set context height as processed height
+// as this is internal tendermint light client logic.
+// client state and consensus state will be set by client keeper
+// set iteration key to provide ability for efficient ordered iteration of consensus states.
+func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+}
+
+// deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
+func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
+	deleteProcessedTime(clientStore, height)
+	deleteIterationKey(clientStore, height)
+}
+
+// setConsensusMetadataWithValues sets the consensus metadata with the provided values
+func setConsensusMetadataWithValues(
+	clientStore sdk.KVStore, height,
+	processedHeight exported.Height,
+	processedTime uint64,
+) {
+	SetProcessedTime(clientStore, height, processedTime)
+	SetIterationKey(clientStore, height)
+}
+
+// deleteConsensusState deletes the consensus state at the given height
+func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
+	key := host.ConsensusStateKey(height)
+	clientStore.Delete(key)
+}
+
+// deleteProcessedTime deletes the processedTime for a given height
+func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
+	key := ProcessedTimeKey(height)
+	clientStore.Delete(key)
+}
+
+// deleteIterationKey deletes the iteration key for a given height
+func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
+	key := IterationKey(height)
+	clientStore.Delete(key)
+}
+
+func bigEndianHeightBytes(height exported.Height) []byte {
+	heightBytes := make([]byte, 16)
+	binary.BigEndian.PutUint64(heightBytes, height.GetRevisionNumber())
+	binary.BigEndian.PutUint64(heightBytes[8:], height.GetRevisionHeight())
+	return heightBytes
 }

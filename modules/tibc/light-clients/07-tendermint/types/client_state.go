@@ -127,7 +127,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 			&ConsensusState{}, consState)
 	}
 	// set processed time with initial consensus state height equal to initial client state's latest height
-	SetProcessedTime(clientStore, cs.GetLatestHeight(), uint64(ctx.BlockTime().UnixNano()))
+	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
 	return nil
 }
 
@@ -239,8 +239,8 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 	return nil
 }
 
-// produceVerificationArgs perfoms the basic checks on the arguments that are
-// shared between the verification functions and returns the unmarshalled
+// produceVerificationArgs performs the basic checks on the arguments that are
+// shared between the verification functions and returns the unmarshal
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
 	store sdk.KVStore,
