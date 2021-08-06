@@ -260,14 +260,6 @@ func (k Keeper) AcknowledgePacket(
 	return nil
 }
 
-// MsgRecvPacket receives incoming IBC packet
-type MsgCleanPacket struct {
-	Sequence    uint64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
-	DestChain   string `protobuf:"bytes,3,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	RelayChain  string `protobuf:"bytes,4,opt,name=relay_chain,json=relayChain,proto3" json:"relay_chain,omitempty"`
-}
-
 // CleanPacket.
 func (k Keeper) CleanPacket(
 	ctx sdk.Context,
@@ -275,6 +267,19 @@ func (k Keeper) CleanPacket(
 	destChain string,
 	sequence uint64,
 ) error {
+	//targetClient, found := k.clientKeeper.GetClientState(ctx, sourceChain)
+	//if !found {
+	//	return sdkerrors.Wrap(clienttypes.ErrClientNotFound, sourceChain)
+	//}
+	//
+	//if err := targetClient.VerifyPacketCommitment(ctx,
+	//	k.clientKeeper.ClientStore(ctx, sourceChain), k.cdc, proofHeight,
+	//	proof, sourceChain, destChain,
+	//	sequence, commitment,
+	//); err != nil {
+	//	return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
+	//}
+
 	_, found := k.GetPacketReceipt(ctx, sourceChain, destChain, sequence)
 	if !found {
 		return sdkerrors.Wrapf(
