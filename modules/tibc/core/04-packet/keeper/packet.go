@@ -282,5 +282,15 @@ func (k Keeper) CleanPacket(
 			"packet sequence does not exist!", sequence,
 		)
 	}
+	found = k.HasPacketAcknowledgement(ctx, sourceChain, destChain, sequence)
+	if !found {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence does not exist!", sequence,
+		)
+	}
+
+	k.deletePacketAcknowledgement(ctx, sourceChain, destChain, sequence)
+	k.deletePacketReceipt(ctx, sourceChain, destChain, sequence)
 	return nil
 }
