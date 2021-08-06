@@ -2,10 +2,8 @@ package types_test
 
 import (
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
-	solomachinetypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/06-solomachine/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
@@ -38,14 +36,6 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false,
 		},
-		{
-			"invalid consensus state (solomachine)", func() {
-				// marshal and set solomachine consensus state
-				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
-				consensusStateBz := suite.chainA.App.IBCKeeper.ClientKeeper.MustMarshalConsensusState(&solomachinetypes.ConsensusState{})
-				store.Set(host.ConsensusStateKey(height), consensusStateBz)
-			}, false,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -54,7 +44,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			clientA, _, _, _, _, _ = suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.UNORDERED)
+			clientA, _ = suite.coordinator.Setup(suite.chainA, suite.chainB)
 			clientState := suite.chainA.GetClientState(clientA)
 			height = clientState.GetLatestHeight()
 
