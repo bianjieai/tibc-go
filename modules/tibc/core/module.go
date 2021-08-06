@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -156,7 +155,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	ibcclient.BeginBlocker(ctx, am.keeper.ClientKeeper)
 }
 
 // EndBlock returns the end blocker for the ibc module. It returns no validator
