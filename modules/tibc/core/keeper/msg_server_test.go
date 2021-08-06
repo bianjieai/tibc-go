@@ -66,8 +66,8 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 		expPass  bool
 	}{
 		{"success: ORDERED", func() {
-			_, clientB, _, _, channelA, channelB := suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.ORDERED)
-			packet = packettypes.NewPacket(ibctesting.MockCommitment, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, timeoutHeight, 0)
+			clientA, clientB := suite.coordinator.Setup(suite.chainA, suite.chainB)
+			packet = packettypes.NewPacket(ibctesting.MockCommitment, 1, clientA, clientB, timeoutHeight, 0)
 
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
 			suite.Require().NoError(err)
