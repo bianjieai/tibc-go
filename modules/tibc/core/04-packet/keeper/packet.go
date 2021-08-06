@@ -95,7 +95,7 @@ func (k Keeper) RecvPacket(
 	}
 
 	// verify that the counterparty did commit to sending this packet
-	if err := targetClient.VerifyPacketCommitment(
+	if err := targetClient.VerifyPacketCommitment(ctx,
 		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), commitment,
@@ -227,7 +227,7 @@ func (k Keeper) AcknowledgePacket(
 		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetClientID)
 	}
 
-	if err := clientState.VerifyPacketAcknowledgement(
+	if err := clientState.VerifyPacketAcknowledgement(ctx,
 		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), acknowledgement,

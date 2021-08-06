@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"math"
 	"sort"
 	"strings"
 
@@ -93,20 +92,8 @@ func ValidateClientType(clientType string) error {
 		return sdkerrors.Wrap(ErrInvalidClientType, "client type cannot be blank")
 	}
 
-	smallestPossibleClientID := FormatClientIdentifier(clientType, 0)
-	largestPossibleClientID := FormatClientIdentifier(clientType, uint64(math.MaxUint64))
-
-	// IsValidClientID will check client type format and if the sequence is a uint64
-	if !IsValidClientID(smallestPossibleClientID) {
-		return sdkerrors.Wrap(ErrInvalidClientType, "")
+	if err := host.ClientIdentifierValidator(clientType); err != nil {
+		return sdkerrors.Wrap(err, "client type being invalid")
 	}
-
-	if err := host.ClientIdentifierValidator(smallestPossibleClientID); err != nil {
-		return sdkerrors.Wrap(err, "client type results in smallest client identifier being invalid")
-	}
-	if err := host.ClientIdentifierValidator(largestPossibleClientID); err != nil {
-		return sdkerrors.Wrap(err, "client type results in largest client identifier being invalid")
-	}
-
 	return nil
 }

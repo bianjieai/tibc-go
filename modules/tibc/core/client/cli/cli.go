@@ -8,7 +8,6 @@ import (
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	packet "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	tendermint "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -22,7 +21,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	ibcTxCmd.AddCommand(
-		tendermint.GetTxCmd(),
+		ibcclient.GetTxCmd(),
 	)
 
 	return ibcTxCmd

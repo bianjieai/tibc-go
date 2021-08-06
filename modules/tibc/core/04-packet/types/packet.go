@@ -31,7 +31,7 @@ var _ exported.PacketI = (*Packet)(nil)
 // packet data interface is not registered.
 func NewPacket(
 	data []byte,
-	sequence uint64, sourceChain, destinationChain,
+	sequence uint64, sourceChain, destinationChain, relayChain,
 	port string,
 ) Packet {
 	return Packet{
@@ -39,6 +39,7 @@ func NewPacket(
 		Sequence:         sequence,
 		SourceChain:      sourceChain,
 		DestinationChain: destinationChain,
+		RelayChain:       relayChain,
 		Port:             port,
 	}
 }

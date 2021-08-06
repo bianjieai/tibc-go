@@ -16,7 +16,6 @@ import (
 	tmversion "github.com/tendermint/tendermint/version"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -63,10 +62,9 @@ var (
 	TestHash                              = tmhash.Sum([]byte("TESTING HASH"))
 	TestCoin                              = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100))
 
-	UpgradePath = []string{"upgrade", "upgradedIBCState"}
-
 	MockAcknowledgement = mock.MockAcknowledgement
 	MockCommitment      = mock.MockCommitment
+	Prefix              = commitmenttypes.MerklePrefix{KeyPrefix: []byte("ibc")}
 )
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
@@ -92,8 +90,7 @@ type TestChain struct {
 	SenderAccount authtypes.AccountI
 
 	// IBC specific helpers
-	ClientIDs   []string          // ClientID's used on this chain
-	Connections []*TestConnection // track connectionID's created for this chain
+	ClientIDs []string // ClientID's used on this chain
 }
 
 // NewTestChain initializes a new TestChain instance with a single validator set using a
@@ -148,12 +145,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		senderPrivKey: senderPrivKey,
 		SenderAccount: acc,
 		ClientIDs:     make([]string, 0),
-		Connections:   make([]*TestConnection, 0),
 	}
-
-	cap := chain.App.IBCKeeper.PortKeeper.BindPort(chain.GetContext(), MockPort)
-	err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(MockPort))
-	require.NoError(t, err)
 
 	chain.NextBlock()
 
@@ -329,19 +321,10 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 	return tmtypes.NewValidatorSet(tmValidators), true
 }
 
-// GetChannel retrieves an IBC Channel for the provided TestChannel. The channel
-// is expected to exist otherwise testing will fail.
-func (chain *TestChain) GetChannel(testChannel TestChannel) packettypes.Channel {
-	channel, found := chain.App.IBCKeeper.Packetkeeper.GetChannel(chain.GetContext(), testChannel.PortID, testChannel.ID)
-	require.True(chain.t, found)
-
-	return channel
-}
-
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.IBCKeeper.Packetkeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	ack, found := chain.App.IBCKeeper.Packetkeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	require.True(chain.t, found)
 
 	return ack
@@ -360,69 +343,9 @@ func (chain *TestChain) NewClientID(clientType string) string {
 	return clientID
 }
 
-// AddTestConnection appends a new TestConnection which contains references
-// to the connection id, client id and counterparty client id.
-func (chain *TestChain) AddTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	conn := chain.ConstructNextTestConnection(clientID, counterpartyClientID)
-
-	chain.Connections = append(chain.Connections, conn)
-	return conn
-}
-
-// ConstructNextTestConnection constructs the next test connection to be
-// created given a clientID and counterparty clientID. The connection id
-// format: <chainID>-conn<index>
-func (chain *TestChain) ConstructNextTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	connectionID := connectiontypes.FormatConnectionIdentifier(uint64(len(chain.Connections)))
-	return &TestConnection{
-		ID:                   connectionID,
-		ClientID:             clientID,
-		NextChannelVersion:   DefaultChannelVersion,
-		CounterpartyClientID: counterpartyClientID,
-	}
-}
-
-// GetFirstTestConnection returns the first test connection for a given clientID.
-// The connection may or may not exist in the chain state.
-func (chain *TestChain) GetFirstTestConnection(clientID, counterpartyClientID string) *TestConnection {
-	if len(chain.Connections) > 0 {
-		return chain.Connections[0]
-	}
-
-	return chain.ConstructNextTestConnection(clientID, counterpartyClientID)
-}
-
-// AddTestChannel appends a new TestChannel which contains references to the port and channel ID
-// used for channel creation and interaction. See 'NextTestChannel' for channel ID naming format.
-func (chain *TestChain) AddTestChannel(conn *TestConnection, portID string) TestChannel {
-	channel := chain.NextTestChannel(conn, portID)
-	conn.Channels = append(conn.Channels, channel)
-	return channel
-}
-
-// NextTestChannel returns the next test channel to be created on this connection, but does not
-// add it to the list of created channels. This function is expected to be used when the caller
-// has not created the associated channel in app state, but would still like to refer to the
-// non-existent channel usually to test for its non-existence.
-//
-// channel ID format: <connectionid>-chan<channel-index>
-//
-// The port is passed in by the caller.
-func (chain *TestChain) NextTestChannel(conn *TestConnection, portID string) TestChannel {
-	nextChanSeq := chain.App.IBCKeeper.Packetkeeper.GetNextChannelSequence(chain.GetContext())
-	channelID := packettypes.FormatChannelIdentifier(nextChanSeq)
-	return TestChannel{
-		PortID:               portID,
-		ID:                   channelID,
-		ClientID:             conn.ClientID,
-		CounterpartyClientID: conn.CounterpartyClientID,
-		Version:              conn.NextChannelVersion,
-	}
-}
-
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, clientID string, clientType string) *clienttypes.MsgCreateClient {
+func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, clientID string, clientType string) error {
 	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -433,30 +356,28 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 		height := counterparty.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctmtypes.NewClientState(
 			counterparty.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath, false, false,
+			height, commitmenttypes.GetSDKSpecs(), Prefix, 0,
 		)
 		consensusState = counterparty.LastHeader.ConsensusState()
-	case exported.Solomachine:
-		solo := NewSolomachine(chain.t, chain.Codec, clientID, "", 1)
-		clientState = solo.ClientState()
-		consensusState = solo.ConsensusState()
 	default:
 		chain.t.Fatalf("unsupported client state type %s", clientType)
 	}
 
-	msg, err := clienttypes.NewMsgCreateClient(
-		clientState, consensusState, chain.SenderAccount.GetAddress(),
+	err := chain.App.IBCKeeper.ClientKeeper.CreateClient(
+		chain.GetContext(),
+		clientID,
+		clientState, consensusState,
 	)
+
 	require.NoError(chain.t, err)
-	return msg
+	return err
 }
 
 // CreateTMClient will construct and execute a 07-tendermint MsgCreateClient. A counterparty
 // client will be created on the (target) chain.
 func (chain *TestChain) CreateTMClient(counterparty *TestChain, clientID string) error {
 	// construct MsgCreateClient using counterparty
-	msg := chain.ConstructMsgCreateClient(counterparty, clientID, exported.Tendermint)
-	return chain.sendMsgs(msg)
+	return chain.ConstructMsgCreateClient(counterparty, clientID, exported.Tendermint)
 }
 
 // UpdateTMClient will construct and execute a 07-tendermint MsgUpdateClient. The counterparty
@@ -649,112 +570,6 @@ func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capabi
 	return cap
 }
 
-// CreateChannelCapability binds and claims a capability for the given portID and channelID
-// if it does not already exist. This function will fail testing on any resulting error.
-func (chain *TestChain) CreateChannelCapability(portID, channelID string) {
-	capName := host.ChannelCapabilityPath(portID, channelID)
-	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), capName)
-	if !ok {
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), capName)
-		require.NoError(chain.t, err)
-		err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, capName)
-		require.NoError(chain.t, err)
-	}
-
-	chain.App.Commit()
-
-	chain.NextBlock()
-}
-
-// GetChannelCapability returns the channel capability for the given portID and channelID.
-// The capability must exist, otherwise testing will fail.
-func (chain *TestChain) GetChannelCapability(portID, channelID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.ChannelCapabilityPath(portID, channelID))
-	require.True(chain.t, ok)
-
-	return cap
-}
-
-// ChanOpenInit will construct and execute a MsgChannelOpenInit.
-func (chain *TestChain) ChanOpenInit(
-	ch, counterparty TestChannel,
-	order packettypes.Order,
-	connectionID string,
-) error {
-	msg := packettypes.NewMsgChannelOpenInit(
-		ch.PortID,
-		ch.Version, order, []string{connectionID},
-		counterparty.PortID,
-		chain.SenderAccount.GetAddress(),
-	)
-	return chain.sendMsgs(msg)
-}
-
-// ChanOpenTry will construct and execute a MsgChannelOpenTry.
-func (chain *TestChain) ChanOpenTry(
-	counterparty *TestChain,
-	ch, counterpartyCh TestChannel,
-	order packettypes.Order,
-	connectionID string,
-) error {
-	proof, height := counterparty.QueryProof(host.ChannelKey(counterpartyCh.PortID, counterpartyCh.ID))
-
-	msg := packettypes.NewMsgChannelOpenTry(
-		ch.PortID, "", // does not support handshake continuation
-		ch.Version, order, []string{connectionID},
-		counterpartyCh.PortID, counterpartyCh.ID, counterpartyCh.Version,
-		proof, height,
-		chain.SenderAccount.GetAddress(),
-	)
-	return chain.sendMsgs(msg)
-}
-
-// ChanOpenAck will construct and execute a MsgChannelOpenAck.
-func (chain *TestChain) ChanOpenAck(
-	counterparty *TestChain,
-	ch, counterpartyCh TestChannel,
-) error {
-	proof, height := counterparty.QueryProof(host.ChannelKey(counterpartyCh.PortID, counterpartyCh.ID))
-
-	msg := packettypes.NewMsgChannelOpenAck(
-		ch.PortID, ch.ID,
-		counterpartyCh.ID, counterpartyCh.Version, // testing doesn't use flexible selection
-		proof, height,
-		chain.SenderAccount.GetAddress(),
-	)
-	return chain.sendMsgs(msg)
-}
-
-// ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm.
-func (chain *TestChain) ChanOpenConfirm(
-	counterparty *TestChain,
-	ch, counterpartyCh TestChannel,
-) error {
-	proof, height := counterparty.QueryProof(host.ChannelKey(counterpartyCh.PortID, counterpartyCh.ID))
-
-	msg := packettypes.NewMsgChannelOpenConfirm(
-		ch.PortID, ch.ID,
-		proof, height,
-		chain.SenderAccount.GetAddress(),
-	)
-	return chain.sendMsgs(msg)
-}
-
-// ChanCloseInit will construct and execute a MsgChannelCloseInit.
-//
-// NOTE: does not work with ibc-transfer module
-func (chain *TestChain) ChanCloseInit(
-	counterparty *TestChain,
-	channel TestChannel,
-) error {
-	msg := packettypes.NewMsgChannelCloseInit(
-		channel.PortID, channel.ID,
-		chain.SenderAccount.GetAddress(),
-	)
-	return chain.sendMsgs(msg)
-}
-
 // GetPacketData returns a ibc-transfer marshalled packet to be used for
 // callback testing.
 func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
@@ -773,10 +588,8 @@ func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
 func (chain *TestChain) SendPacket(
 	packet exported.PacketI,
 ) error {
-	channelCap := chain.GetChannelCapability(packet.GetSourcePort(), packet.GetSourceChannel())
-
 	// no need to send message, acting as a module
-	err := chain.App.IBCKeeper.Packetkeeper.SendPacket(chain.GetContext(), channelCap, packet)
+	err := chain.App.IBCKeeper.Packetkeeper.SendPacket(chain.GetContext(), packet)
 	if err != nil {
 		return err
 	}
@@ -792,10 +605,8 @@ func (chain *TestChain) SendPacket(
 func (chain *TestChain) WriteAcknowledgement(
 	packet exported.PacketI,
 ) error {
-	channelCap := chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
-
 	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.Packetkeeper.WriteAcknowledgement(chain.GetContext(), channelCap, packet, TestHash)
+	err := chain.App.IBCKeeper.Packetkeeper.WriteAcknowledgement(chain.GetContext(), packet, TestHash)
 	if err != nil {
 		return err
 	}
