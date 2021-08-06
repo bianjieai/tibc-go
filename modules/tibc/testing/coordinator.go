@@ -64,10 +64,11 @@ func (coord *Coordinator) SetupClients(
 
 	clientA, err := coord.CreateClient(chainA, chainB, clientType)
 	require.NoError(coord.t, err)
+	chainA.App.IBCKeeper.ClientKeeper.RegisterRelayers(chainA.GetContext(),clientA,[]string{chainA.SenderAccount.GetAddress().String()})
 
 	clientB, err := coord.CreateClient(chainB, chainA, clientType)
 	require.NoError(coord.t, err)
-
+	chainB.App.IBCKeeper.ClientKeeper.RegisterRelayers(chainB.GetContext(),clientA,[]string{chainB.SenderAccount.GetAddress().String()})
 	return clientA, clientB
 }
 

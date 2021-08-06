@@ -148,7 +148,6 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	}
 
 	chain.NextBlock()
-
 	return chain
 }
 
