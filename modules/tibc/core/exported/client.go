@@ -28,9 +28,9 @@ type ClientState interface {
 	ClientType() string
 	GetLatestHeight() Height
 	Validate() error
-	DelayTime() uint64
-	DelayBlock() uint64
-	Prefix() Prefix
+	GetDelayTime() uint64
+	GetDelayBlock() uint64
+	GetPrefix() Prefix
 
 	// Initialization function
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
@@ -47,6 +47,7 @@ type ClientState interface {
 	// State verification functions
 
 	VerifyPacketCommitment(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryMarshaler,
 		height Height,
@@ -58,6 +59,7 @@ type ClientState interface {
 	) error
 
 	VerifyPacketAcknowledgement(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryMarshaler,
 		height Height,
@@ -69,6 +71,7 @@ type ClientState interface {
 	) error
 
 	VerifyPacketCleanCommitment(
+		ctx sdk.Context,
 		store sdk.KVStore,
 		cdc codec.BinaryMarshaler,
 		height Height,

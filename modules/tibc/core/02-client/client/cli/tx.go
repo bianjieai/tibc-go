@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -18,8 +20,8 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// NewCmdSubmitUpgradeProposal implements a command handler for submitting a client create proposal transaction.
-func NewCmdCreateClientProposal() *cobra.Command {
+// NewCreateClientProposalCmd implements a command handler for submitting a client create proposal transaction.
+func NewCreateClientProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "client-create [chain-name] [path/to/client_state.json] [path/to/consensus_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
@@ -100,8 +102,50 @@ func NewCmdCreateClientProposal() *cobra.Command {
 	return cmd
 }
 
-// NewCmdUpgradeClientProposal implements a command handler for submitting a client upgrade proposal transaction.
-func NewCmdUpgradeClientProposal() *cobra.Command {
+// NewUpdateClientCmd defines the command to update an IBC client.
+func NewUpdateClientCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "update [chain-name] [path/to/header.json]",
+		Short:   "update existing client with a header",
+		Long:    "update existing client with a header",
+		Example: fmt.Sprintf("%s tx ibc %s update [chain-name] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			chainName := args[0]
+
+			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+			var header exported.Header
+			headerContentOrFileName := args[1]
+			if err := cdc.UnmarshalInterfaceJSON([]byte(headerContentOrFileName), &header); err != nil {
+
+				// check for file path if JSON input is not provided
+				contents, err := ioutil.ReadFile(headerContentOrFileName)
+				if err != nil {
+					return errors.Wrap(err, "neither JSON input nor path to .json file for header were provided")
+				}
+
+				if err := cdc.UnmarshalInterfaceJSON(contents, &header); err != nil {
+					return errors.Wrap(err, "error unmarshalling header file")
+				}
+			}
+
+			msg, err := types.NewMsgUpdateClient(chainName, header, clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+}
+
+// NewUpgradeClientProposalCmd implements a command handler for submitting a client upgrade proposal transaction.
+func NewUpgradeClientProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "client-upgrade [chain-name] [path/to/client_state.json] [path/to/consensus_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
@@ -182,8 +226,8 @@ func NewCmdUpgradeClientProposal() *cobra.Command {
 	return cmd
 }
 
-// NewCmdRegisterRelayerProposal implements a command handler for submitting a relayer register proposal transaction.
-func NewCmdRegisterRelayerProposal() *cobra.Command {
+// NewRegisterRelayerProposalCmd implements a command handler for submitting a relayer register proposal transaction.
+func NewRegisterRelayerProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relayer-register [chain-name] [relayers-address] [flags]",
 		Args:  cobra.ExactArgs(2),
