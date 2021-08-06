@@ -10,7 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -268,29 +267,6 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 		Sequences: unreceivedSequences,
 		Height:    selfHeight,
 	}, nil
-}
-
-// NextSequenceReceive implements the Query/NextSequenceReceive gRPC method
-func (q Keeper) NextSequenceReceive(c context.Context, req *types.QueryNextSequenceReceiveRequest) (*types.QueryNextSequenceReceiveResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if err := validategRPCRequest(req.PortId, req.ChannelId); err != nil {
-		return nil, err
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-	sequence, found := q.GetNextSequenceRecv(ctx, req.PortId, req.ChannelId)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrSequenceReceiveNotFound, "port-id: %s, channel-id %s", req.PortId, req.ChannelId).Error(),
-		)
-	}
-
-	selfHeight := clienttypes.GetSelfHeight(ctx)
-	return types.NewQueryNextSequenceReceiveResponse(sequence, nil, selfHeight), nil
 }
 
 func validategRPCRequest(portID, channelID string) error {

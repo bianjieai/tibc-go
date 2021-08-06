@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/binary"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -11,43 +10,6 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/client"
 )
-
-// QueryNextSequenceReceive returns the next sequence receive.
-// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
-// it uses the gRPC query client.
-func QueryNextSequenceReceive(
-	clientCtx client.Context, portID, channelID string, prove bool,
-) (*types.QueryNextSequenceReceiveResponse, error) {
-	if prove {
-		return queryNextSequenceRecvABCI(clientCtx, portID, channelID)
-	}
-
-	queryClient := types.NewQueryClient(clientCtx)
-	req := &types.QueryNextSequenceReceiveRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	}
-
-	return queryClient.NextSequenceReceive(context.Background(), req)
-}
-
-func queryNextSequenceRecvABCI(clientCtx client.Context, portID, channelID string) (*types.QueryNextSequenceReceiveResponse, error) {
-	key := host.NextSequenceRecvKey(portID, channelID)
-
-	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if next sequence receive exists
-	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrChannelNotFound, "portID (%s), channelID (%s)", portID, channelID)
-	}
-
-	sequence := binary.BigEndian.Uint64(value)
-
-	return types.NewQueryNextSequenceReceiveResponse(sequence, proofBz, proofHeight), nil
-}
 
 // QueryPacketCommitment returns a packet commitment.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
