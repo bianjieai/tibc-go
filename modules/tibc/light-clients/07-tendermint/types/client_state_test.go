@@ -23,6 +23,7 @@ const (
 
 var (
 	invalidProof = []byte("invalid proof")
+	prefix       = commitmenttypes.MerklePrefix{KeyPrefix: []byte("ibc")}
 )
 
 func (suite *TendermintTestSuite) TestValidate() {
@@ -33,47 +34,47 @@ func (suite *TendermintTestSuite) TestValidate() {
 	}{
 		{
 			name:        "invalid chainID",
-			clientState: types.NewClientState("  ", types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState("  ", types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "invalid trust level",
-			clientState: types.NewClientState(chainID, types.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "invalid trusting period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "invalid unbonding period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "invalid max clock drift",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "invalid height",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "trusting period not less than unbonding period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs()),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs is nil",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, prefix, 0),
 			expPass:     false,
 		},
 		{
 			name:        "proof specs contains nil",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}),
+			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, prefix, 0),
 			expPass:     false,
 		},
 	}
@@ -173,7 +174,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
 			commitment := packettypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
-			err = clientState.VerifyPacketCommitment(
+			err = clientState.VerifyPacketCommitment(suite.chainA.GetContext(),
 				store, suite.chainA.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,
 			)
@@ -248,7 +249,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
 
-			err = clientState.VerifyPacketAcknowledgement(
+			err = clientState.VerifyPacketAcknowledgement(suite.chainA.GetContext(),
 				store, suite.chainA.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibcmock.MockAcknowledgement,
 			)

@@ -22,9 +22,13 @@ var _ exported.ClientState = (*ClientState)(nil)
 
 // NewClientState creates a new ClientState instance
 func NewClientState(
-	chainID string, trustLevel Fraction,
+	chainID string,
+	trustLevel Fraction,
 	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
-	latestHeight clienttypes.Height, specs []*ics23.ProofSpec, prefix commitmenttypes.MerklePrefix,
+	latestHeight clienttypes.Height,
+	specs []*ics23.ProofSpec,
+	prefix commitmenttypes.MerklePrefix,
+	timeDelay uint64,
 ) *ClientState {
 	return &ClientState{
 		ChainId:         chainID,
@@ -35,6 +39,7 @@ func NewClientState(
 		LatestHeight:    latestHeight,
 		ProofSpecs:      specs,
 		MerklePrefix:    prefix,
+		TimeDelay:       timeDelay,
 	}
 }
 
