@@ -28,9 +28,7 @@ import (
 )
 
 const (
-	testChainID          = "gaiahub-0"
-	testChainIDRevision1 = "gaiahub-1"
-
+	testChainID    = "gaiahub-0"
 	testChainName  = "tendermint-0"
 	testChainName2 = "tendermint-1"
 	testChainName3 = "tendermint-2"
@@ -43,9 +41,7 @@ const (
 )
 
 var (
-	testClientHeight          = types.NewHeight(0, 5)
-	testClientHeightRevision1 = types.NewHeight(1, 5)
-	newClientHeight           = types.NewHeight(1, 1)
+	testClientHeight = types.NewHeight(0, 5)
 )
 
 type KeeperTestSuite struct {
@@ -133,7 +129,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestSetClientState() {
-	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
 	suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 
 	retrievedState, found := suite.keeper.GetClientState(suite.ctx, testChainName)
@@ -157,9 +153,9 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 		testChainName2, testChainName3, testChainName,
 	}
 	expClients := []exported.ClientState{
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
+		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
 	}
 
 	expGenClients := make(types.IdentifiedClientStates, len(expClients))
@@ -211,7 +207,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 
 func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 	// initial setup
-	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false)
+	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
 
 	suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 	suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight, suite.consensusState)

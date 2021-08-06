@@ -13,14 +13,6 @@ import (
 	ibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
 
-const (
-	testClientID     = "clientidone"
-	testConnectionID = "connectionid"
-	testPortID       = "testportid"
-	testChannelID    = "testchannelid"
-	testSequence     = 1
-)
-
 var (
 	invalidProof = []byte("invalid proof")
 	prefix       = commitmenttypes.MerklePrefix{KeyPrefix: []byte("ibc")}
@@ -155,8 +147,8 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, channelB.PortID, channelB.ID, channelA.PortID, channelA.ID, clienttypes.NewHeight(0, 100), 0)
+			clientA, clientB := suite.coordinator.Setup(suite.chainA, suite.chainB)
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, clientA, clientB, "", "")
 			err := suite.coordinator.SendPacket(suite.chainB, suite.chainA, packet, clientA)
 			suite.Require().NoError(err)
 
@@ -225,8 +217,8 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
+			clientA, clientB := suite.coordinator.Setup(suite.chainA, suite.chainB)
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, clientA, clientB, "", "")
 
 			// send packet
 			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
