@@ -14,6 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -27,10 +29,20 @@ var (
 // AppModuleBasic is the TIBC nft Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
-func (a AppModuleBasic) RegisterRESTRoutes(context client.Context, m *interface{}) {
+func (a AppModuleBasic) DefaultGenesis(jsonCodec codec.JSONMarshaler) json.RawMessage {
+	panic("implement me")
 }
 
-func (a AppModuleBasic) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
+func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
+	panic("implement me")
+}
+
+func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	panic("implement me")
 }
 
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -58,16 +70,6 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 	types.RegisterInterfaces(registry)
 }
 
-func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	//return cdc.MustMarshalJSON(types.DefaultGenesisState())
-	//todo
-	return nil
-}
-
-func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
-	panic("implement me")
-}
-
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
@@ -75,18 +77,11 @@ type AppModule struct {
 }
 
 
-func (a AppModule) RegisterRESTRoutes(context client.Context, m *interface{}) {
-}
-
-func (a AppModule) RegisterGRPCGatewayRoutes(context client.Context, r *interface{}) {
+func (a AppModule) InitGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
 	panic("implement me")
 }
 
-func (a AppModule) InitGenesis(context sdk.Context, marshaler codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
-	panic("implement me")
-}
-
-func (a AppModule) ExportGenesis(context sdk.Context, marshaler codec.JSONMarshaler) json.RawMessage {
+func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler) json.RawMessage {
 	panic("implement me")
 }
 

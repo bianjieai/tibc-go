@@ -1,8 +1,6 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
 	TypeMsgNftTransfer    = "nft_transfer"
@@ -34,22 +32,21 @@ func (msg MsgNftTransfer) Route() string { return RouterKey }
 // Type Implements Msg
 func (msg MsgNftTransfer) Type() string { return  TypeMsgNftTransfer}
 
-// GetSigners Implements Msg.
+// GetSignBytes implements sdk.Msg.
+func (msg MsgNftTransfer) GetSignBytes() []byte {
+	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
+}
+
+// GetSigners implements sdk.Msg
 func (msg MsgNftTransfer) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.Sender)
+	signer, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{from}
+	return []sdk.AccAddress{signer}
 }
 
 // ValidateBasic Implements Msg.
 func (msg MsgNftTransfer) ValidateBasic() error {
 	return nil
-}
-
-// GetSignBytes Implements Msg.
-func (msg MsgNftTransfer) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }

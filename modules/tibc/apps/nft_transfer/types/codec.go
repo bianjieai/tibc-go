@@ -10,6 +10,8 @@ import (
 var (
 	amino     = codec.NewLegacyAmino()
 	ModuleCdc = codec.NewAminoCodec(amino)
+	// AminoCdc is a amino codec created to support amino json compatible msgs.
+	AminoCdc = codec.NewAminoCodec(amino)
 )
 
 

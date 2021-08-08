@@ -59,7 +59,7 @@ func (k Keeper) SendNftTransfer(
 		receiver,
 		awayFromOrigin,
 	)
-	packet := packetType.NewPacket(packetData.GetBytes(), sequence, "", destChain, "nftTransfer")
+	packet := packetType.NewPacket(packetData.GetBytes(), sequence, "", destChain, relayChain, "nftTransfer")
 
 	// send packet
 	if err := k.pk.SendPacket(ctx, packet); err != nil {
