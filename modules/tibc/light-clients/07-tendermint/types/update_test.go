@@ -2,13 +2,14 @@ package types_test
 
 import (
 	"fmt"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+
 	"time"
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	types "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
@@ -301,7 +302,8 @@ func (suite *TendermintTestSuite) TestCheckHeaderAndUpdateState() {
 
 func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// create path and setup clients
-	clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
 
 	// get the first height as it will be pruned first.
 	var pruneHeight exported.Height
@@ -309,20 +311,18 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 		pruneHeight = height
 		return true
 	}
-	ctx := suite.chainA.GetContext()
-	clientStore := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientA)
+	clientStore := path.EndpointA.ClientStore()
 	types.IterateConsensusStateAscending(clientStore, getFirstHeightCb)
 
 	// this height will be expired but not pruned
-	err := suite.coordinator.UpdateClient(suite.chainA,suite.chainB,clientA,exported.Tendermint)
+	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	expiredHeight := suite.chainA.GetClientState(clientA).GetLatestHeight()
+	expiredHeight :=  path.EndpointA.GetClientState().GetLatestHeight()
 
 	// expected values that must still remain in store after pruning
-	expectedConsState, ok := suite.chainA.GetConsensusState(clientA, expiredHeight)
-	suite.Require().True(ok)
-	ctx =suite.chainA.GetContext()
-	clientStore = suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientA)
+	expectedConsState := path.EndpointA.GetConsensusState(expiredHeight)
+
+	clientStore = path.EndpointA.ClientStore()
 	expectedProcessTime, ok := types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().True(ok)
 	//expectedConsKey := types.GetIterationKey(clientStore, expiredHeight)
@@ -332,50 +332,32 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
 
 	// create the consensus state that can be used as trusted height for next update
-	err = suite.coordinator.UpdateClient(suite.chainA,suite.chainB,clientA,exported.Tendermint)
+	err = path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
 	// Increment the time by another week, then update the client.
 	// This will cause the first two consensus states to become expired.
 	suite.coordinator.IncrementTimeBy(7 * 24 * time.Hour)
-	err = suite.coordinator.UpdateClient(suite.chainA,suite.chainB,clientA,exported.Tendermint)
+	err = path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	ctx = suite.chainA.GetContext()
-	clientStore = suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(ctx, clientA)
+	clientStore = path.EndpointA.ClientStore()
 
 	// check that the first expired consensus state got deleted along with all associated metadata
-	consState, ok := suite.chainA.GetConsensusState(clientA, pruneHeight)
+	consState := path.EndpointA.GetConsensusState(pruneHeight)
 	suite.Require().Nil(consState, "expired consensus state not pruned")
-	suite.Require().False(ok)
+
 	// check processed time metadata is pruned
 	processTime, ok := types.GetProcessedTime(clientStore, pruneHeight)
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
-	//processHeight, ok := types.GetProcessedHeight(clientStore, pruneHeight)
-	//suite.Require().Nil(processHeight, "processed height metadata not pruned")
-	//suite.Require().False(ok)
-
-	// check iteration key metadata is pruned
-	//consKey := types.GetIterationKey(clientStore, pruneHeight)
-	//suite.Require().Nil(consKey, "iteration key not pruned")
 
 	// check that second expired consensus state doesn't get deleted
 	// this ensures that there is a cap on gas cost of UpdateClient
-	consState, ok = suite.chainA.GetConsensusState(clientA, expiredHeight)
+	consState = path.EndpointA.GetConsensusState(expiredHeight)
 	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
-	suite.Require().True(ok)
 	// check processed time metadata is not pruned
 	processTime, ok = types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
 	suite.Require().True(ok)
-
-	// check processed height metadata is not pruned
-	//processHeight, ok = types.GetProcessedHeight(clientStore, expiredHeight)
-	//suite.Require().Equal(expectedProcessHeight, processHeight, "processed height metadata incorrectly pruned")
-	//suite.Require().True(ok)
-
-	// check iteration key metadata is not pruned
-	//consKey = types.GetIterationKey(clientStore, expiredHeight)
-	//suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }

@@ -3,37 +3,34 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
-	"strconv"
-	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
-
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
-	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 	"github.com/bianjieai/tibc-go/simapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
+	tmtypes "github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
+	"testing"
+	"time"
+
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 const (
@@ -75,6 +72,7 @@ var (
 type TestChain struct {
 	t *testing.T
 
+	Coordinator   *Coordinator
 	App           *simapp.SimApp
 	ChainID       string
 	LastHeader    *ibctmtypes.Header // header for last block height committed
@@ -88,9 +86,6 @@ type TestChain struct {
 
 	senderPrivKey cryptotypes.PrivKey
 	SenderAccount authtypes.AccountI
-
-	// IBC specific helpers
-	ClientIDs []string // ClientID's used on this chain
 }
 
 // NewTestChain initializes a new TestChain instance with a single validator set using a
@@ -101,7 +96,7 @@ type TestChain struct {
 //
 // Time management is handled by the Coordinator in order to ensure synchrony between chains.
 // Each update of any chain increments the block header time for all chains by 5 seconds.
-func NewTestChain(t *testing.T, chainID string) *TestChain {
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
@@ -134,6 +129,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 	// create an account to send transactions from
 	chain := &TestChain{
 		t:             t,
+		Coordinator:   coord,
 		ChainID:       chainID,
 		App:           app,
 		CurrentHeader: header,
@@ -144,10 +140,10 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Signers:       signers,
 		senderPrivKey: senderPrivKey,
 		SenderAccount: acc,
-		ClientIDs:     make([]string, 0),
 	}
 
-	chain.NextBlock()
+	coord.CommitBlock(chain)
+
 	return chain
 }
 
@@ -159,9 +155,15 @@ func (chain *TestChain) GetContext() sdk.Context {
 // QueryProof performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryProof(key []byte) ([]byte, clienttypes.Height) {
+	return chain.QueryProofAtHeight(key, chain.App.LastBlockHeight())
+}
+
+// QueryProofAtHeight performs an abci query with the given key and returns the proto encoded merkle proof
+// for the query and the height at which the proof will succeed on a tendermint verifier.
+func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, clienttypes.Height) {
 	res := chain.App.Query(abci.RequestQuery{
 		Path:   fmt.Sprintf("store/%s/key", host.StoreKey),
-		Height: chain.App.LastBlockHeight() - 1,
+		Height: height - 1,
 		Data:   key,
 		Prove:  true,
 	})
@@ -251,7 +253,6 @@ func (chain *TestChain) NextBlock() {
 	}
 
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-
 }
 
 // sendMsgs delivers a transaction through the application without returning the result.
@@ -279,11 +280,13 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		return nil, err
 	}
 
-	// SignCheckDeliver calls app.Commit()
+	// SignAndDeliver calls app.Commit()
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
 	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+
+	chain.Coordinator.IncrementTime()
 
 	return r, nil
 }
@@ -336,11 +339,11 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 
 // NewClientID appends a new clientID string in the format:
 // ClientFor<counterparty-chain-id><index>
-func (chain *TestChain) NewClientID(clientType string) string {
-	clientID := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
-	chain.ClientIDs = append(chain.ClientIDs, clientID)
-	return clientID
-}
+//func (chain *TestChain) NewClientID(clientType string) string {
+//	clientID := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
+//	chain.ClientIDs = append(chain.ClientIDs, clientID)
+//	return clientID
+//}
 
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
@@ -397,10 +400,18 @@ func (chain *TestChain) UpdateTMClient(counterparty *TestChain, clientID string)
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, clientID string) (*ibctmtypes.Header, error) {
+func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, chainName string) (*ibctmtypes.Header, error) {
+	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, chainName, clienttypes.ZeroHeight())
+}
+
+// ConstructUpdateTMClientHeaderWithTrustedHeight will construct a valid 07-tendermint Header to update the
+// light client on the source chain.
+func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, chainName string, trustedHeight clienttypes.Height) (*ibctmtypes.Header, error) {
 	header := counterparty.LastHeader
-	// Relayer must query for LatestHeight on client to get TrustedHeight
-	trustedHeight := chain.GetClientState(clientID).GetLatestHeight().(clienttypes.Height)
+	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
+	if trustedHeight.IsZero() {
+		trustedHeight = chain.GetClientState(chainName).GetLatestHeight().(clienttypes.Height)
+	}
 	var (
 		tmTrustedVals *tmtypes.ValidatorSet
 		ok            bool
@@ -437,7 +448,7 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
 // expire any clients with a trusting period less than or equal to this amount of time.
 func (chain *TestChain) ExpireClient(amount time.Duration) {
-	chain.CurrentHeader.Time = chain.CurrentHeader.Time.Add(amount)
+	chain.Coordinator.IncrementTimeBy(amount)
 }
 
 // CurrentTMClientHeader creates a TM header using the current header parameters
@@ -449,9 +460,14 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctmtypes.Header {
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
 func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator) *ibctmtypes.Header {
+	var (
+		valSet      *tmproto.ValidatorSet
+		trustedVals *tmproto.ValidatorSet
+	)
 	require.NotNil(chain.t, tmValSet)
 
 	vsetHash := tmValSet.Hash()
+
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
@@ -466,7 +482,7 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		AppHash:            chain.CurrentHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
-		ProposerAddress:    tmValSet.Proposer.Address,
+		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
 	}
 	hhash := tmHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
@@ -480,11 +496,13 @@ func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, 
 		Commit: commit.ToProto(),
 	}
 
-	valSet, err := tmValSet.ToProto()
-	if err != nil {
-		panic(err)
+	if tmValSet != nil {
+		valSet, err = tmValSet.ToProto()
+		if err != nil {
+			panic(err)
+		}
 	}
-	var trustedVals *tmproto.ValidatorSet
+
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
 		if err != nil {
@@ -531,88 +549,4 @@ func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
 		}
 		return []tmtypes.PrivValidator{suitePrivVal, altPrivVal}
 	}
-}
-
-// CreatePortCapability binds and claims a capability for the given portID if it does not
-// already exist. This function will fail testing on any resulting error.
-// NOTE: only creation of a capbility for a transfer or mock port is supported
-// Other applications must bind to the port in InitGenesis or modify this code.
-func (chain *TestChain) CreatePortCapability(portID string) {
-	// check if the portId is already binded, if not bind it
-	_, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
-	if !ok {
-		// create capability using the IBC capability keeper
-		cap, err := chain.App.ScopedIBCKeeper.NewCapability(chain.GetContext(), host.PortPath(portID))
-		require.NoError(chain.t, err)
-
-		switch portID {
-		case MockPort:
-			// claim capability using the mock capability keeper
-			err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
-			require.NoError(chain.t, err)
-		default:
-			panic(fmt.Sprintf("unsupported ibc testing package port ID %s", portID))
-		}
-	}
-
-	chain.App.Commit()
-
-	chain.NextBlock()
-}
-
-// GetPortCapability returns the port capability for the given portID. The capability must
-// exist, otherwise testing will fail.
-func (chain *TestChain) GetPortCapability(portID string) *capabilitytypes.Capability {
-	cap, ok := chain.App.ScopedIBCKeeper.GetCapability(chain.GetContext(), host.PortPath(portID))
-	require.True(chain.t, ok)
-
-	return cap
-}
-
-// GetPacketData returns a ibc-transfer marshalled packet to be used for
-// callback testing.
-func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
-	// packet := ibctransfertypes.FungibleTokenPacketData{
-	// 	Denom:    TestCoin.Denom,
-	// 	Amount:   TestCoin.Amount.Uint64(),
-	// 	Sender:   chain.SenderAccount.GetAddress().String(),
-	// 	Receiver: counterparty.SenderAccount.GetAddress().String(),
-	// }
-
-	return nil
-}
-
-// SendPacket simulates sending a packet through the channel keeper. No message needs to be
-// passed since this call is made from a module.
-func (chain *TestChain) SendPacket(
-	packet exported.PacketI,
-) error {
-	// no need to send message, acting as a module
-	err := chain.App.IBCKeeper.Packetkeeper.SendPacket(chain.GetContext(), packet)
-	if err != nil {
-		return err
-	}
-
-	// commit changes
-	chain.App.Commit()
-	chain.NextBlock()
-
-	return nil
-}
-
-// WriteAcknowledgement simulates writing an acknowledgement to the chain.
-func (chain *TestChain) WriteAcknowledgement(
-	packet exported.PacketI,
-) error {
-	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.Packetkeeper.WriteAcknowledgement(chain.GetContext(), packet, TestHash)
-	if err != nil {
-		return err
-	}
-
-	// commit changes
-	chain.App.Commit()
-	chain.NextBlock()
-
-	return nil
 }
