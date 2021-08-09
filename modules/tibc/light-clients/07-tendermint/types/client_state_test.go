@@ -236,10 +236,8 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-
 			suite.coordinator.SetupClients(path)
 
-			// setup testing conditions
 			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
 
 			// send packet
