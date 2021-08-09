@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	ics23 "github.com/confio/ics23/go"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -8,7 +10,6 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-	ics23 "github.com/confio/ics23/go"
 )
 
 var (
@@ -98,6 +99,8 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	suite.Require().NoError(err)
 
 	clientState := path.EndpointA.GetClientState()
+	relayers := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+	suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
 	store := path.EndpointA.ClientStore()
 
 	for _, tc := range testCases {
@@ -150,6 +153,12 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			suite.coordinator.SetupClients(path)
 
+			relayerAs := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+			suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
+
+			relayerBs := path.EndpointB.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.ChainName)
+			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
+
 			// setup testing conditions
 			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
 
@@ -162,14 +171,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.Require().True(ok)
 
 			// make packet commitment proof
-			packetKey := host.PacketCommitmentKey(packet.GetPort(), packet.GetSourceChain(), packet.GetSequence())
+			packetKey := host.PacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 			proof, proofHeight = suite.chainA.QueryProof(packetKey)
 
 			tc.malleate() // make changes as necessary
 
 			store := path.EndpointB.ClientStore()
 
-			commitment := packettypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
+			commitment := packettypes.CommitPacket(suite.chainB.App.IBCKeeper.Codec(), packet)
 			err = clientState.VerifyPacketCommitment(suite.chainB.GetContext(),
 				store, suite.chainB.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,
@@ -189,9 +198,9 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 // is simulated.
 func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
-		clientState      *types.ClientState
-		proof            []byte
-		proofHeight      exported.Height
+		clientState *types.ClientState
+		proof       []byte
+		proofHeight exported.Height
 	)
 
 	testCases := []struct {
@@ -204,18 +213,18 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		},
 		{
 			"ApplyPrefix failed", func() {
-			prefix = commitmenttypes.MerklePrefix{}
-		}, false,
+				prefix = commitmenttypes.MerklePrefix{}
+			}, false,
 		},
 		{
 			"latest client height < height", func() {
-			proofHeight = clientState.LatestHeight.Increment()
-		}, false,
+				proofHeight = clientState.LatestHeight.Increment()
+			}, false,
 		},
 		{
 			"proof verification failed", func() {
-			proof = invalidProof
-		}, false,
+				proof = invalidProof
+			}, false,
 		},
 	}
 
@@ -227,6 +236,10 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			// setup testing conditions
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			suite.coordinator.SetupClients(path)
+
+			// setup testing conditions
 			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
 
 			// send packet
@@ -252,7 +265,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			tc.malleate() // make changes as necessary
 
 			ctx := suite.chainA.GetContext()
-			store :=  path.EndpointA.ClientStore()
+			store := path.EndpointA.ClientStore()
 
 			err = clientState.VerifyPacketAcknowledgement(
 				ctx, store, suite.chainA.Codec, proofHeight, proof,

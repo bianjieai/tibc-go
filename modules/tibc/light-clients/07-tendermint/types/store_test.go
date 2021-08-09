@@ -10,8 +10,8 @@ import (
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {
 	var (
-		height  exported.Height
-		clientA string
+		height exported.Height
+		path   *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -31,7 +31,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		{
 			"not a consensus state interface", func() {
 				// marshal an empty client state and set as consensus state
-				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
 				clientStateBz := suite.chainA.App.IBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false,
@@ -44,18 +44,20 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
 			clientState := path.EndpointA.GetClientState()
 			height = clientState.GetLatestHeight()
 
 			tc.malleate() // change vars as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
 			consensusState, err := types.GetConsensusState(store, suite.chainA.Codec, height)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				expConsensusState, found := suite.chainA.GetConsensusState(clientA, height)
+				expConsensusState, found := suite.chainA.GetConsensusState(path.EndpointB.ChainName, height)
 				suite.Require().True(found)
 				suite.Require().Equal(expConsensusState, consensusState)
 			} else {
@@ -86,11 +88,13 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	suite.Require().True(ok, "could not retrieve processed time for stored consensus state")
 	suite.Require().Equal(uint64(expectedTime.UnixNano()), actualTime, "retrieved processed time is not expected value")
 
-	// Verify ProcessedTime on UpdateClient
+	suite.coordinator.UpdateTime()
 	// coordinator increments time before updating client
 	expectedTime = suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
 
-	suite.coordinator.UpdateTime()
+	// Verify ProcessedTime on UpdateClient
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
 	clientState = path.EndpointA.GetClientState()
 	height = clientState.GetLatestHeight()

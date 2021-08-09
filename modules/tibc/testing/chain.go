@@ -61,7 +61,7 @@ var (
 
 	MockAcknowledgement = mock.MockAcknowledgement
 	MockCommitment      = mock.MockCommitment
-	Prefix              = commitmenttypes.MerklePrefix{KeyPrefix: []byte("ibc")}
+	Prefix              = commitmenttypes.MerklePrefix{KeyPrefix: []byte("tibc")}
 )
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
@@ -265,7 +265,10 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
-	_, r, err := simapp.SignCheckDeliver(
+	// ensure the chain has the latest time
+	chain.Coordinator.UpdateTimeForChain(chain)
+
+	_, r, err := simapp.SignAndDeliver(
 		chain.t,
 		chain.TxConfig,
 		chain.App.BaseApp,

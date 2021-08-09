@@ -2,11 +2,12 @@ package ibctesting
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 const ChainIDPrefix = "testchain"

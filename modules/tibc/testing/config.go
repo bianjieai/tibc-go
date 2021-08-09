@@ -9,7 +9,7 @@ import (
 
 type ClientConfig interface {
 	GetClientType() string
- }
+}
 
 type TendermintConfig struct {
 	TrustLevel                   ibctmtypes.Fraction
@@ -34,4 +34,3 @@ func NewTendermintConfig() *TendermintConfig {
 func (tmcfg *TendermintConfig) GetClientType() string {
 	return exported.Tendermint
 }
-
