@@ -3,12 +3,12 @@ package client
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 )
 
 var (

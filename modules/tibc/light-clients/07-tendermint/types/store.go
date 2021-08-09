@@ -134,6 +134,13 @@ func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
 	clientStore.Set(key, val)
 }
 
+// GetIterationKey returns the consensus state key stored under the efficient iteration key.
+// NOTE: This function is currently only used for testing purposes
+func GetIterationKey(clientStore sdk.KVStore, height exported.Height) []byte {
+	key := IterationKey(height)
+	return clientStore.Get(key)
+}
+
 // setConsensusMetadata sets context time as processed time and set context height as processed height
 // as this is internal tendermint light client logic.
 // client state and consensus state will be set by client keeper

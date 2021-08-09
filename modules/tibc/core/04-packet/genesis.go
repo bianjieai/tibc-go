@@ -22,12 +22,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	for _, ss := range gs.SendSequences {
 		k.SetNextSequenceSend(ctx, ss.SourceChain, ss.DestinationChain, ss.Sequence)
 	}
-	for _, rs := range gs.RecvSequences {
-		k.SetNextSequenceRecv(ctx, rs.SourceChain, rs.DestinationChain, rs.Sequence)
-	}
-	for _, as := range gs.AckSequences {
-		k.SetNextSequenceAck(ctx, as.SourceChain, as.DestinationChain, as.Sequence)
-	}
 	k.SetNextChannelSequence(ctx, gs.NextChannelSequence)
 }
 

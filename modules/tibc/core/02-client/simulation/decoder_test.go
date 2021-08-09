@@ -23,10 +23,7 @@ func TestDecodeStore(t *testing.T) {
 
 	height := types.NewHeight(0, 10)
 
-	clientState := &ibctmtypes.ClientState{
-		FrozenHeight: height,
-	}
-
+	clientState := &ibctmtypes.ClientState{}
 	consState := &ibctmtypes.ConsensusState{
 		Timestamp: time.Now().UTC(),
 	}
