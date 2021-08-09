@@ -70,7 +70,7 @@ func (cs ClientState) GetDelayBlock() uint64 {
 
 // GetPrefix returns the prefix path for proof key.
 func (cs ClientState) GetPrefix() exported.Prefix {
-	return cs.MerklePrefix
+	return &cs.MerklePrefix
 }
 
 // IsExpired returns whether or not the client has passed the trusting period since the last
