@@ -8,16 +8,19 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"math/rand"
 )
 
 var (
@@ -29,8 +32,8 @@ var (
 // AppModuleBasic is the TIBC nft Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
-func (a AppModuleBasic) DefaultGenesis(jsonCodec codec.JSONMarshaler) json.RawMessage {
-	panic("implement me")
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
@@ -76,6 +79,32 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+func (a AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+func (a AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+func (a AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	return nil
+}
+
+func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	return
+}
+
+func (a AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	panic("implement me")
+}
+
+// NewAppModule creates a new 30-nft-transfer module
+func NewAppModule(k keeper.Keeper) AppModule {
+	return AppModule{
+		keeper: k,
+	}
+}
 
 func (a AppModule) InitGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
 	panic("implement me")
@@ -86,11 +115,11 @@ func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarsha
 }
 
 func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
-	panic("implement me")
+	// TODO
 }
 
 func (a AppModule) Route() sdk.Route {
-	panic("implement me")
+	return sdk.NewRoute(types.RouterKey, NewHandler(a.keeper))
 }
 
 func (a AppModule) QuerierRoute() string {
@@ -98,12 +127,14 @@ func (a AppModule) QuerierRoute() string {
 }
 
 func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
-	panic("implement me")
+	return nil
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	panic("implement me")
+	//todo
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	//types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

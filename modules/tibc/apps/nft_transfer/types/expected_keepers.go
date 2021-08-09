@@ -11,7 +11,7 @@ type NftKeeper interface {
 	MintNFT(ctx sdk.Context, denomID, tokenID, tokenNm, tokenURI, tokenData string, owner sdk.AccAddress) error
 	BurnNFT(ctx sdk.Context, denomID, tokenID string, owner sdk.AccAddress) error
 	TransferOwner(ctx sdk.Context, denomID, tokenID, tokenNm, tokenURI, tokenData string, srcOwner, dstOwner sdk.AccAddress) error
-	GetDenom(ctx sdk.Context, id string) (denom types.Denom, found bool)
+	GetDenom(ctx sdk.Context, id string) (denom types.Denom, err error)
 }
 
 

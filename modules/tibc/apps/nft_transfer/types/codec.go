@@ -9,13 +9,10 @@ import (
 
 var (
 	amino     = codec.NewLegacyAmino()
-	ModuleCdc = codec.NewAminoCodec(amino)
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 	// AminoCdc is a amino codec created to support amino json compatible msgs.
 	AminoCdc = codec.NewAminoCodec(amino)
 )
-
-
-
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgNftTransfer{}, "cosmos-sdk/MsgNftTransfer", nil)
@@ -30,3 +27,8 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
+
+func init() {
+	RegisterLegacyAminoCodec(amino)
+	amino.Seal()
+}
