@@ -80,42 +80,6 @@ func (k Keeper) SetNextSequenceSend(ctx sdk.Context, sourceChain, destChain stri
 	store.Set(host.NextSequenceSendKey(sourceChain, destChain), bz)
 }
 
-// GetNextSequenceRecv gets a channel's next receive sequence from the store
-func (k Keeper) GetNextSequenceRecv(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.NextSequenceRecvKey(portID, channelID))
-	if bz == nil {
-		return 0, false
-	}
-
-	return sdk.BigEndianToUint64(bz), true
-}
-
-// SetNextSequenceRecv sets a channel's next receive sequence to the store
-func (k Keeper) SetNextSequenceRecv(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.NextSequenceRecvKey(portID, channelID), bz)
-}
-
-// GetNextSequenceAck gets a channel's next ack sequence from the store
-func (k Keeper) GetNextSequenceAck(ctx sdk.Context, portID, channelID string) (uint64, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.NextSequenceAckKey(portID, channelID))
-	if bz == nil {
-		return 0, false
-	}
-
-	return sdk.BigEndianToUint64(bz), true
-}
-
-// SetNextSequenceAck sets a channel's next ack sequence to the store
-func (k Keeper) SetNextSequenceAck(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set(host.NextSequenceAckKey(portID, channelID), bz)
-}
-
 // GetPacketReceipt gets a packet receipt from the store
 func (k Keeper) GetPacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
