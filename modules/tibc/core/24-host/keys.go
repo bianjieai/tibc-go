@@ -172,3 +172,12 @@ func sequencePath(sequence uint64) string {
 func PortPath(portID string) string {
 	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
+
+// RoutingRulesPath defines the routing rules store path
+func RoutingRulesPath() string {
+	return fmt.Sprintf("Routing/Rules")
+}
+
+func RoutingRulesKey() []byte {
+	return []byte(RoutingRulesPath())
+}

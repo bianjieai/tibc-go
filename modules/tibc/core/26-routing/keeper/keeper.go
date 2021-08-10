@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/tendermint/tendermint/libs/log"
 	"regexp"
 	"strings"
@@ -13,12 +15,15 @@ import (
 
 // Keeper defines the TIBC routing keeper
 type Keeper struct {
-	Router *types.Router
+	Router   *types.Router
+	storeKey sdk.StoreKey
 }
 
 // NewKeeper creates a new TIBC connection Keeper instance
-func NewKeeper() Keeper {
-	return Keeper{}
+func NewKeeper(key sdk.StoreKey) Keeper {
+	return Keeper{
+		storeKey: key,
+	}
 }
 
 // Logger returns a module-specific logger.
@@ -43,23 +48,31 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 			panic("Invalid rule!")
 		}
 	}
-
-	k.
-
+	routingBz, err := json.Marshal(rules)
+	if err != nil {
+		return fmt.Errorf("failed to marshal rules: %w", err)
+	}
+	store := ctx.KVStore(k.storeKey)
+	store.Set(host.RoutingRulesKey(), routingBz)
 	return nil
 }
 
-func (k Keeper) GetRoutingRules(ctx sdk.Context) []string {
+func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	var rules []string
-	rulestr := string(router.routeTable)
-	_ = rulestr
-	json.Unmarshal(router.routeTable, &rules)
-	return rules
-	return nil
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.RoutingRulesKey())
+	if bz == nil {
+		return nil, false
+	}
+	json.Unmarshal(bz, &rules)
+	return rules, true
 }
 
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
-	rules := router.GetRoutingRules()
+	rules, found := k.GetRoutingRules(ctx)
+	if !found{
+		return false
+	}
 	flag := false
 	for _, rule := range rules {
 		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+"."+destinationChain+"."+port)
@@ -68,7 +81,6 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 		}
 	}
 	return flag
-	return true
 }
 
 func ConvWildcardToRegular(wildcard string) string {
