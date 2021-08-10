@@ -21,8 +21,7 @@ func (k Keeper) SendNftTransfer(
 	destChain, relayChain string,
 ) error {
 	// get the next sequence
-	// todo  call packetKeeper.getSequence
-	var sequence = uint64(1)
+	sequence := k.pk.GetNextSequenceSend(ctx, k.ck.GetChainName(ctx), destChain)
 
 	// class must be existed
 	_, err := k.nk.GetDenom(ctx, class)
@@ -59,6 +58,7 @@ func (k Keeper) SendNftTransfer(
 		receiver,
 		awayFromOrigin,
 	)
+
 	packet := packetType.NewPacket(packetData.GetBytes(), sequence, "", destChain, relayChain, "nftTransfer")
 
 	// send packet
@@ -125,7 +125,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 				return err
 			}
 		} else {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix", data.Class)
+			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 	}
 	return nil

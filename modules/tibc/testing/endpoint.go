@@ -105,6 +105,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	endpoint.Chain.App.IBCKeeper.Packetkeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
 
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
+	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
 	endpoint.Chain.App.IBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
 	err = endpoint.Chain.App.IBCKeeper.ClientKeeper.CreateClient(
 		endpoint.Chain.GetContext(),

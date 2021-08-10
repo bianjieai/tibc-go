@@ -24,8 +24,7 @@ type AccountKeeper interface {
 
 // PacketKeeper defines the expected packet keeper
 type PacketKeeper interface {
-	// todo getSequence
-
+	GetNextSequenceSend(ctx sdk.Context, sourceChain, destChain string) uint64
 	SendPacket(ctx sdk.Context, packet exported.PacketI) error
 }
 

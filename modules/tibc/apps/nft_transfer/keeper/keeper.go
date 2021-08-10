@@ -30,10 +30,9 @@ func NewKeeper(
 	pk  types.PacketKeeper, ck  types.ClientKeeper,
 ) Keeper {
 
-	// ensure tibc nft-transfer module account is set todo
-	/*if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
+	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the TIBC nft-transfer module account has not been set")
-	}*/
+	}
 
 	return Keeper{
 		cdc:           cdc,

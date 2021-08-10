@@ -2,6 +2,7 @@ package nft_transfer_test
 
 import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/testing"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 	"github.com/stretchr/testify/suite"
@@ -38,7 +39,10 @@ A->B B->C
 */
 func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// setup between chainA and chainB
-	suite.coordinator.Setup(suite.chainA, suite.chainB)
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+	suite.coordinator.SetupClients(path)
 
 	// issue denom
 	issueDenomMsg :=  nfttypes.NewMsgIssueDenom("mobile", "mobile-name", "",
@@ -62,6 +66,19 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	_, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
+
+	// relay send
+	NonfungibleTokenPacket := types.NewNonFungibleTokenPacketData("mobile", "xiaomi",
+		"", suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),true,
+	)
+	packet := packettypes.NewPacket(NonfungibleTokenPacket.GetBytes(), 1,
+		path.EndpointA.ChainName, path.EndpointB.ChainName, "", "nftTransfer")
+
+	ack := packettypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = path.RelayPacket(packet, ack.GetBytes())
+	suite.Require().NoError(err) // relay committed
+
 
 }
 
