@@ -22,7 +22,7 @@ func (k Keeper) SendNftTransfer(
 ) error {
 	// get the next sequence
 	// todo  call packetKeeper.getSequence
-	var sequence = uint64(0)
+	var sequence = uint64(1)
 
 	// class must be existed
 	_, err := k.nk.GetDenom(ctx, class)
