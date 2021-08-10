@@ -10,15 +10,6 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-	ibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
-)
-
-const (
-	testClientID     = "clientidone"
-	testConnectionID = "connectionid"
-	testPortID       = "testportid"
-	testChannelID    = "testchannelid"
-	testSequence     = 1
 )
 
 var (
@@ -103,11 +94,14 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		},
 	}
 
-	clientA, err := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	err := path.EndpointA.CreateClient()
 	suite.Require().NoError(err)
 
-	clientState := suite.chainA.GetClientState(clientA)
-	store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+	clientState := path.EndpointA.GetClientState()
+	relayers := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+	suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
+	store := path.EndpointA.ClientStore()
 
 	for _, tc := range testCases {
 		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
@@ -155,27 +149,38 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, channelB.PortID, channelB.ID, channelA.PortID, channelA.ID, clienttypes.NewHeight(0, 100), 0)
-			err := suite.coordinator.SendPacket(suite.chainB, suite.chainA, packet, clientA)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			suite.coordinator.SetupClients(path)
+
+			relayerAs := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+			suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
+
+			relayerBs := path.EndpointB.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.ChainName)
+			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
+
+			// setup testing conditions
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
+
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := path.EndpointB.GetClientState()
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
 			// make packet commitment proof
-			packetKey := host.PacketCommitmentKey(packet.GetPort(), packet.GetSourceChain(), packet.GetSequence())
-			proof, proofHeight = suite.chainB.QueryProof(packetKey)
+			packetKey := host.PacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+			proof, proofHeight = suite.chainA.QueryProof(packetKey)
 
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			store := path.EndpointB.ClientStore()
 
-			commitment := packettypes.CommitPacket(suite.chainA.App.IBCKeeper.Codec(), packet)
-			err = clientState.VerifyPacketCommitment(suite.chainA.GetContext(),
-				store, suite.chainA.Codec, proofHeight, proof,
+			commitment := packettypes.CommitPacket(suite.chainB.App.IBCKeeper.Codec(), packet)
+			err = clientState.VerifyPacketCommitment(suite.chainB.GetContext(),
+				store, suite.chainB.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,
 			)
 
@@ -207,6 +212,11 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			"successful verification", func() {}, true,
 		},
 		{
+			"ApplyPrefix failed", func() {
+				prefix = commitmenttypes.MerklePrefix{}
+			}, false,
+		},
+		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
@@ -225,33 +235,39 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, channelA.PortID, channelA.ID, channelB.PortID, channelB.ID, clienttypes.NewHeight(0, 100), 0)
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
 
 			// send packet
-			err := suite.coordinator.SendPacket(suite.chainA, suite.chainB, packet, clientB)
+			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 
 			// write receipt and ack
-			err = suite.coordinator.RecvPacket(suite.chainA, suite.chainB, clientA, packet)
+			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
 			var ok bool
-			clientStateI := suite.chainA.GetClientState(clientA)
+			clientStateI := path.EndpointA.GetClientState()
 			clientState, ok = clientStateI.(*types.ClientState)
 			suite.Require().True(ok)
 
+			prefix = suite.chainB.GetPrefix()
+
 			// make packet acknowledgement proof
-			acknowledgementKey := host.PacketAcknowledgementKey(packet.GetPort(), packet.GetSourceChain(), packet.GetSequence())
+			acknowledgementKey := host.PacketAcknowledgementKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 			proof, proofHeight = suite.chainB.QueryProof(acknowledgementKey)
 
+			// reset time and block delays to 0, malleate may change to a specific non-zero value.
 			tc.malleate() // make changes as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientA)
+			ctx := suite.chainA.GetContext()
+			store := path.EndpointA.ClientStore()
 
-			err = clientState.VerifyPacketAcknowledgement(suite.chainA.GetContext(),
-				store, suite.chainA.Codec, proofHeight, proof,
-				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibcmock.MockAcknowledgement,
+			err = clientState.VerifyPacketAcknowledgement(
+				ctx, store, suite.chainA.Codec, proofHeight, proof,
+				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibctesting.TestHash,
 			)
 
 			if tc.expPass {

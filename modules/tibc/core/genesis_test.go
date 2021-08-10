@@ -11,12 +11,10 @@ import (
 
 	ibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	localhosttypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-localhost/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	"github.com/bianjieai/tibc-go/simapp"
 )
@@ -26,7 +24,6 @@ const (
 	clientID      = "07-tendermint-0"
 	connectionID2 = "connection-1"
 	clientID2     = "07-tendermin-1"
-	localhostID   = exported.Localhost + "-1"
 
 	port1 = "firstport"
 	port2 = "secondport"
@@ -77,10 +74,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-						),
-						clienttypes.NewIdentifiedClientState(
-							localhostID, localhosttypes.NewClientState("chaindID", clientHeight),
+							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
 						),
 					},
 					[]clienttypes.ClientConsensusStates{
@@ -105,9 +99,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 							},
 						),
 					},
-					clienttypes.NewParams(exported.Tendermint, exported.Localhost),
-					true,
-					2,
 				),
 			},
 			expPass: true,
@@ -118,10 +109,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-						),
-						clienttypes.NewIdentifiedClientState(
-							localhostID, localhosttypes.NewClientState("(chaindID)", clienttypes.ZeroHeight()),
+							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
 						),
 					},
 					nil,
@@ -134,9 +122,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 							},
 						),
 					},
-					clienttypes.NewParams(exported.Tendermint),
-					false,
-					2,
 				),
 			},
 			expPass: false,
@@ -185,10 +170,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false),
-						),
-						clienttypes.NewIdentifiedClientState(
-							exported.Localhost, localhosttypes.NewClientState("chaindID", clientHeight),
+							clientID, ibctmtypes.NewClientState(suite.chainA.ChainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
 						),
 					},
 					[]clienttypes.ClientConsensusStates{
@@ -213,9 +195,6 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 							},
 						),
 					},
-					clienttypes.NewParams(exported.Tendermint, exported.Localhost),
-					true,
-					0,
 				),
 			},
 		},
@@ -239,7 +218,7 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			"success",
 			func() {
 				// creates clients
-				suite.coordinator.Setup(suite.chainA, suite.chainB, packettypes.UNORDERED)
+				suite.coordinator.Setup(suite.chainA, suite.chainB)
 				// create extra clients
 				suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
 				suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)

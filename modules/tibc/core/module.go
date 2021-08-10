@@ -68,8 +68,8 @@ func (AppModuleBasic) RegisterRESTRoutes(client.Context, *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
-	packettypes.RegisterQueryHandlerClient(context.Background(), mux, packettypes.NewQueryClient(clientCtx))
+	_ = clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
+	_ = packettypes.RegisterQueryHandlerClient(context.Background(), mux, packettypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the ibc module.
