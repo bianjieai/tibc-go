@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -33,6 +34,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgUpdateClient{},
+	)
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&CreateClientProposal{},
+		&UpgradeClientProposal{},
+		&RegisterRelayerProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
