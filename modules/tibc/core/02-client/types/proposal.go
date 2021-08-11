@@ -84,17 +84,17 @@ func (cup *CreateClientProposal) ValidateBasic() error {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (cup CreateClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState));err != nil  {
+	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState)); err != nil {
 		return err
 	}
 
-	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState));err != nil  {
+	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState)); err != nil {
 		return err
 	}
 	return nil
 }
 
-// NewUpgradeClientProposal creates a upgrade client proposal.
+// NewUpgradeClientProposal create a upgrade client proposal.
 func NewUpgradeClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*UpgradeClientProposal, error) {
 	clientStateAny, err := PackClientState(clientState)
 	if err != nil {
@@ -147,11 +147,11 @@ func (cup *UpgradeClientProposal) ValidateBasic() error {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (cup UpgradeClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState));err != nil  {
+	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState)); err != nil {
 		return err
 	}
 
-	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState));err != nil  {
+	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState)); err != nil {
 		return err
 	}
 	return nil

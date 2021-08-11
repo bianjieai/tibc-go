@@ -176,20 +176,20 @@ func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusSta
 	clientConsStates := make(types.ClientsConsensusStates, 0)
 	mapClientIDToConsStateIdx := make(map[string]int)
 
-	k.IterateConsensusStates(ctx, func(clientID string, cs types.ConsensusStateWithHeight) bool {
-		idx, ok := mapClientIDToConsStateIdx[clientID]
+	k.IterateConsensusStates(ctx, func(clientName string, cs types.ConsensusStateWithHeight) bool {
+		idx, ok := mapClientIDToConsStateIdx[clientName]
 		if ok {
 			clientConsStates[idx].ConsensusStates = append(clientConsStates[idx].ConsensusStates, cs)
 			return false
 		}
 
 		clientConsState := types.ClientConsensusStates{
-			ChainName:       clientID,
+			ChainName:       clientName,
 			ConsensusStates: []types.ConsensusStateWithHeight{cs},
 		}
 
 		clientConsStates = append(clientConsStates, clientConsState)
-		mapClientIDToConsStateIdx[clientID] = len(clientConsStates) - 1
+		mapClientIDToConsStateIdx[clientName] = len(clientConsStates) - 1
 		return false
 	})
 
