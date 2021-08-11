@@ -32,12 +32,12 @@ type ClientState interface {
 	GetDelayBlock() uint64
 	GetPrefix() Prefix
 
-	// Initialization function
+	// Initialize function
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
 	Initialize(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, ConsensusState) error
 
-	// Genesis function
+	// ExportMetadata function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
