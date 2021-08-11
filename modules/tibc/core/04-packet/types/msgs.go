@@ -145,8 +145,8 @@ func NewMsgCleanPacket(
 	signer sdk.AccAddress,
 ) *MsgCleanPacket {
 	return &MsgCleanPacket{
-		Packet:          packet,
-		Signer:          signer.String(),
+		Packet: packet,
+		Signer: signer.String(),
 	}
 }
 

@@ -54,7 +54,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
-	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx){
+	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx) {
 		// Retrieve callbacks from router
 		cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 		if !ok {
@@ -152,7 +152,6 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 
 	return &packettypes.MsgCleanPacketResponse{}, nil
 }
-
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvCleanPacket) (*packettypes.MsgRecvCleanPacketResponse, error) {

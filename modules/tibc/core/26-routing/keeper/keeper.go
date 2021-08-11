@@ -71,7 +71,7 @@ func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
 	rules, found := k.GetRoutingRules(ctx)
-	if !found{
+	if !found {
 		return false
 	}
 	flag := false

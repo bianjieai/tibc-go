@@ -23,24 +23,16 @@ func (k Keeper) SendPacket(
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
-	if len(packet.GetRelayChain())>0{
+	if len(packet.GetRelayChain()) > 0 {
 		_, found := k.clientKeeper.GetClientState(ctx, packet.GetRelayChain())
 		if !found {
 			return clienttypes.ErrConsensusStateNotFound
 		}
-		////prevent accidental sends with clients that cannot be updated
-		//if clientState.IsFrozen() {
-		//	return sdkerrors.Wrapf(clienttypes.ErrClientFrozen, "cannot send packet on a frozen client with ID %s", packet.GetDestChain())
-		//}
-	}else{
+	} else {
 		_, found := k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
 		if !found {
 			return clienttypes.ErrConsensusStateNotFound
 		}
-		////prevent accidental sends with clients that cannot be updated
-		//if clientState.IsFrozen() {
-		//	return sdkerrors.Wrapf(clienttypes.ErrClientFrozen, "cannot send packet on a frozen client with ID %s", packet.GetDestChain())
-		//}
 	}
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
@@ -99,13 +91,13 @@ func (k Keeper) RecvPacket(
 	commitment := types.CommitPacket(k.cdc, packet)
 	var isRelay bool
 	var targetClientID string
-	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx){
+	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
 			targetClientID = packet.GetRelayChain()
-		}else {
+		} else {
 			targetClientID = packet.GetSourceChain()
 		}
-	}else{
+	} else {
 		isRelay = true
 		targetClientID = packet.GetSourceChain()
 	}
@@ -159,7 +151,7 @@ func (k Keeper) RecvPacket(
 		),
 	})
 
-	if isRelay{
+	if isRelay {
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain
 		ctx.EventManager().EmitEvents(sdk.Events{

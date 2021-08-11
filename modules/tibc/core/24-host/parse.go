@@ -32,7 +32,6 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 	return sequence, nil
 }
 
-
 // ParseChannelPath returns the port and channel ID from a full path. It returns
 // an error if the provided path is invalid.
 func ParseChannelPath(path string) (string, string, error) {
@@ -43,5 +42,3 @@ func ParseChannelPath(path string) (string, string, error) {
 
 	return split[1], split[2], nil
 }
-
-
