@@ -79,6 +79,7 @@ import (
 
 	ibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
+	ibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	ibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	ibckeeper "github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
@@ -279,7 +280,7 @@ func NewSimApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,
 		&stakingKeeper, govRouter,
