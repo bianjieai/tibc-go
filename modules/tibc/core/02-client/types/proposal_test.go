@@ -23,8 +23,13 @@ func (suite *TypesTestSuite) TestNewCreateClientProposal() {
 // tests a client update proposal can be marshaled and unmarshaled, and the
 // client state can be unpacked
 func (suite *TypesTestSuite) TestMarshalCreateClientProposalProposal() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+
+	clientState := path.EndpointA.GetClientState()
+	consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 	// create proposal
-	proposal, err := types.NewCreateClientProposal("update IBC client", "description", "client-id", nil, nil)
+	proposal, err := types.NewCreateClientProposal("update IBC client", "description", "client-id", clientState, consensusState)
 	suite.Require().NoError(err)
 
 	// create codec

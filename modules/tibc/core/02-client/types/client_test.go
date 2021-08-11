@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
@@ -20,11 +20,11 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	}{
 		{
 			"tendermint client", func() {
-				clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-				clientState := suite.chainA.GetClientState(clientA)
-				consensusState, ok := suite.chainA.GetConsensusState(clientA, clientState.GetLatestHeight())
-				suite.Require().True(ok)
-
+				// setup testing conditions
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
+				clientState := path.EndpointA.GetClientState()
+				consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 				cswh = types.NewConsensusStateWithHeight(clientState.GetLatestHeight().(types.Height), consensusState)
 			},
 		},

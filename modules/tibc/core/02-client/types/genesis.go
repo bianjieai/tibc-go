@@ -70,12 +70,16 @@ func (ccs ClientConsensusStates) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
-	clients []IdentifiedClientState, clientsConsensus ClientsConsensusStates, clientsMetadata []IdentifiedGenesisMetadata,
+	clients []IdentifiedClientState,
+	clientsConsensus ClientsConsensusStates,
+	clientsMetadata []IdentifiedGenesisMetadata,
+	nativeChainName string,
 ) GenesisState {
 	return GenesisState{
 		Clients:          clients,
 		ClientsConsensus: clientsConsensus,
 		ClientsMetadata:  clientsMetadata,
+		NativeChainName:  nativeChainName,
 	}
 }
 
@@ -84,6 +88,7 @@ func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Clients:          []IdentifiedClientState{},
 		ClientsConsensus: ClientsConsensusStates{},
+		NativeChainName: "tibc-test",
 	}
 }
 

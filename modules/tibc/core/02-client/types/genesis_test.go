@@ -8,7 +8,6 @@ import (
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
@@ -28,8 +27,9 @@ var clientHeight = types.NewHeight(0, 10)
 
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
-	clientA, _ := suite.coordinator.Setup(suite.chainA, suite.chainB)
-	err := suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
+	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
 	genesis := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.IBCKeeper.ClientKeeper)
@@ -96,6 +96,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						},
 					),
 				},
+				tmChainName1,
 			),
 			expPass: true,
 		},
@@ -121,19 +122,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					),
 				},
 				nil,
-			),
-			expPass: false,
-		},
-		{
-			name: "invalid client",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
-					),
-				},
-				nil,
-				nil,
+				tmChainName1,
 			),
 			expPass: false,
 		},
@@ -159,6 +148,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					),
 				},
 				nil,
+				tmChainName1,
 			),
 			expPass: false,
 		},
@@ -184,6 +174,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					),
 				},
 				nil,
+				tmChainName1,
 			),
 			expPass: false,
 		},
@@ -209,6 +200,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					),
 				},
 				nil,
+				tmChainName1,
 			),
 			expPass: false,
 		},
@@ -242,6 +234,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						},
 					),
 				},
+				tmChainName1,
 			),
 			expPass: false,
 		},
@@ -275,6 +268,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						},
 					),
 				},
+				tmChainName1,
 			),
 		},
 		{
@@ -299,6 +293,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 					),
 				},
 				nil,
+				tmChainName1,
 			),
 			expPass: false,
 		},
