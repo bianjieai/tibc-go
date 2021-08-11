@@ -11,4 +11,6 @@ const moduleName = host.ModuleName + "-" + SubModuleName
 // TIBC routing sentinel errors
 var (
 	ErrInvalidRoute = sdkerrors.Register(moduleName, 2, "route not found")
+	ErrInvalidRule = sdkerrors.Register(moduleName, 3, "invalid rule")
+	ErrFailMarshalRules = sdkerrors.Register(moduleName, 4, "ailed to marshal rules")
 )

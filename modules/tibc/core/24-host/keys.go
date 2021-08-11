@@ -174,15 +174,6 @@ func PortPath(portID string) string {
 	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
 
-// RoutingRulesPath defines the routing rules store path
-func RoutingRulesPath() string {
-	return fmt.Sprintf("Routing/Rules")
-}
-
-func RoutingRulesKey() []byte {
-	return []byte(RoutingRulesPath())
-}
-
 // PacketCleanPath defines the packet clean store path
 func PacketCleanPath(sourceChain, destinationChain string, sequence uint64) string {
 	return fmt.Sprintf("%s/%d", PacketCleanPrefixPath(sourceChain, destinationChain), sequence)

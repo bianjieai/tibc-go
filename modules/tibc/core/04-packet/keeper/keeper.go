@@ -292,8 +292,8 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
-		sourceChain := keySplit[2]
-		destChain := keySplit[4]
+		sourceChain := keySplit[1]
+		destChain := keySplit[2]
 
 		sequence, err := strconv.ParseUint(keySplit[len(keySplit)-1], 10, 64)
 		if err != nil {

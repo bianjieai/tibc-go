@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	"github.com/armon/go-metrics"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -50,29 +49,31 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket) (*packettypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Retrieve callbacks from router
-	cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
-	if !ok {
-		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
-	}
-
 	// Perform TAO verification
 	if err := k.Packetkeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
-	// Perform application logic callback
-	_, ack, err := cbs.OnRecvPacket(ctx, msg.Packet)
-	if err != nil {
-		return nil, sdkerrors.Wrap(err, "receive packet callback failed")
-	}
+	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx){
+		// Retrieve callbacks from router
+		cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
+		if !ok {
+			return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
+		}
 
-	// Set packet acknowledgement only if the acknowledgement is not nil.
-	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
-	// acknowledgement is nil.
-	if ack != nil {
-		if err := k.Packetkeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
-			return nil, err
+		// Perform application logic callback
+		_, ack, err := cbs.OnRecvPacket(ctx, msg.Packet)
+		if err != nil {
+			return nil, sdkerrors.Wrap(err, "receive packet callback failed")
+		}
+
+		// Set packet acknowledgement only if the acknowledgement is not nil.
+		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
+		// acknowledgement is nil.
+		if ack != nil {
+			if err := k.Packetkeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+				return nil, err
+			}
 		}
 	}
 

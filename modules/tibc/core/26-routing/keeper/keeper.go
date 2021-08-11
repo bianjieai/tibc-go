@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/log"
 	"regexp"
 	"strings"
@@ -43,24 +44,24 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 
 func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	for _, rule := range rules {
-		valid, _ := regexp.MatchString("^([^.]{1,50}\\.){2}[^.]{1,50}$", rule)
+		valid, _ := regexp.MatchString(types.RulePattern, rule)
 		if !valid {
-			panic("Invalid rule!")
+			return sdkerrors.Wrap(types.ErrInvalidRule, "invalid rule")
 		}
 	}
 	routingBz, err := json.Marshal(rules)
 	if err != nil {
-		return fmt.Errorf("failed to marshal rules: %w", err)
+		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %w", err)
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(host.RoutingRulesKey(), routingBz)
+	store.Set(RoutingRulesKey(), routingBz)
 	return nil
 }
 
 func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	var rules []string
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.RoutingRulesKey())
+	bz := store.Get(RoutingRulesKey())
 	if bz == nil {
 		return nil, false
 	}
@@ -89,4 +90,13 @@ func ConvWildcardToRegular(wildcard string) string {
 	regular = strings.Replace(regular, "?", ".", -1)
 	regular = "^" + regular + "$"
 	return regular
+}
+
+// RoutingRulesPath defines the routing rules store path
+func RoutingRulesPath() string {
+	return fmt.Sprintf("Routing/Rules")
+}
+
+func RoutingRulesKey() []byte {
+	return []byte(RoutingRulesPath())
 }
