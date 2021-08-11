@@ -24,8 +24,8 @@ func (k Keeper) SendNftTransfer(
 	sequence := k.pk.GetNextSequenceSend(ctx, k.ck.GetChainName(ctx), destChain)
 
 	// class must be existed
-	_, err := k.nk.GetDenom(ctx, class)
-	if err != nil {
+	_, found := k.nk.GetDenom(ctx, class)
+	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
 	}
 

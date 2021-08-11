@@ -36,6 +36,11 @@ func (suite *KeeperTestSuite) TestGetTransferMoudleAddr() {
 	suite.Require().Equal(expectedMaccAddr, macc)
 }
 
+func NewTransferPath(scChain, destChain *ibctesting.TestChain) *ibctesting.Path {
+	path := ibctesting.NewPath(scChain, destChain)
+	// setport
+	return path
+}
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
