@@ -17,6 +17,9 @@ service Msg {
 
   // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
   rpc CleanPacket(MsgCleanPacket) returns (MsgCleanPacketResponse);
+
+  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  rpc RecvCleanPacket(MsgRecvCleanPacket) returns (MsgRecvCleanPacketResponse);
 }
 
 // MsgRecvPacket receives incoming IBC packet
@@ -55,15 +58,25 @@ message MsgCleanPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  uint64 sequence = 1 ;
-  string source_chain = 2 ;
-  string dest_chain = 3;
-  string relay_chain = 4;
-  bytes  proof_commitment = 5 [(gogoproto.moretags) = "yaml:\"proof_commitment\""];
-  tibc.core.client.v1.Height proof_height = 6
-  [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
-  string signer = 7;
+  Packet packet = 1 [(gogoproto.nullable) = false];
+  string signer = 2;
 }
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgCleanPacketResponse {}
+
+
+// MsgRecvPacket receives incoming IBC packet
+message MsgRecvCleanPacket {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  Packet packet = 1 [(gogoproto.nullable) = false];
+  bytes  proof_commitment = 2 [(gogoproto.moretags) = "yaml:\"proof_commitment\""];
+  tibc.core.client.v1.Height proof_height = 3
+  [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];
+  string signer = 4;
+}
+
+// MsgRecvPacketResponse defines the Msg/RecvPacket response type.
+message MsgRecvCleanPacketResponse {}

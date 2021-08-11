@@ -263,39 +263,95 @@ func (k Keeper) AcknowledgePacket(
 // CleanPacket.
 func (k Keeper) CleanPacket(
 	ctx sdk.Context,
-	sourceChain string,
-	destChain string,
-	sequence uint64,
+	packet exported.PacketI,
 ) error {
-	//targetClient, found := k.clientKeeper.GetClientState(ctx, sourceChain)
-	//if !found {
-	//	return sdkerrors.Wrap(clienttypes.ErrClientNotFound, sourceChain)
-	//}
-	//
-	//if err := targetClient.VerifyPacketCommitment(ctx,
-	//	k.clientKeeper.ClientStore(ctx, sourceChain), k.cdc, proofHeight,
-	//	proof, sourceChain, destChain,
-	//	sequence, commitment,
-	//); err != nil {
-	//	return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
-	//}
-
-	_, found := k.GetPacketReceipt(ctx, sourceChain, destChain, sequence)
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence does not exist!", sequence,
-		)
+	if err := packet.ValidateBasic(); err != nil {
+		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	found = k.HasPacketAcknowledgement(ctx, sourceChain, destChain, sequence)
+
+	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 	if !found {
 		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence does not exist!", sequence,
+			types.ErrSequenceSendNotFound,
+			"source chain: %s, dest chain: %s", packet.GetSourceChain(), packet.GetDestChain(),
 		)
 	}
 
-	k.deletePacketAcknowledgement(ctx, sourceChain, destChain, sequence)
-	k.deletePacketReceipt(ctx, sourceChain, destChain, sequence)
+	if packet.GetSequence() != nextSequenceSend {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence ≠ next send sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceSend,
+		)
+	}
+
+	commitment := types.CommitPacket(k.cdc, packet)
+
+	nextSequenceSend++
+	k.SetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain(), nextSequenceSend)
+	k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
+
+	// Emit Event with Packet data along with other packet information for relayer to pick up
+	// and relay to other chain
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSendPacket,
+			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+			sdk.NewAttribute(types.AttributeKeyPort, packet.GetPort()),
+			sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
+			sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
+			sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
+			// we only support 1-hop packets now, and that is the most important hop for a relayer
+			// (is it going to a chain I am connected to)
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
+	k.Logger(ctx).Info("packet sent", "packet", fmt.Sprintf("%v", packet))
+	return nil
+}
+
+// CleanPacket.
+func (k Keeper) RecvCleanPacket(
+	ctx sdk.Context,
+	packet exported.PacketI,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	commitment := types.CommitPacket(k.cdc, packet)
+	targetClientID := packet.GetSourceChain()
+	targetClient, found := k.clientKeeper.GetClientState(ctx, targetClientID)
+	if !found {
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetClientID)
+	}
+
+	if err := targetClient.VerifyPacketCommitment(ctx,
+		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
+		proof, packet.GetSourceChain(), packet.GetDestChain(),
+		packet.GetSequence(), commitment,
+	); err != nil {
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
+	}
+
+	_, found = k.GetPacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	if !found {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence does not exist!", packet.GetSequence(),
+		)
+	}
+	found = k.HasPacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	if !found {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence does not exist!", packet.GetSequence(),
+		)
+	}
+
+	k.deletePacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.deletePacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	return nil
 }

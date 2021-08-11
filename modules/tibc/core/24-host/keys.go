@@ -41,6 +41,7 @@ const (
 	KeyPacketCommitmentPrefix  = "commitments"
 	KeyPacketAckPrefix         = "acks"
 	KeyPacketReceiptPrefix     = "receipts"
+	KeyPacketCleanPrefix       = "cleans"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
@@ -180,4 +181,20 @@ func RoutingRulesPath() string {
 
 func RoutingRulesKey() []byte {
 	return []byte(RoutingRulesPath())
+}
+
+// PacketCleanPath defines the packet clean store path
+func PacketCleanPath(sourceChain, destinationChain string, sequence uint64) string {
+	return fmt.Sprintf("%s/%d", PacketCleanPrefixPath(sourceChain, destinationChain), sequence)
+}
+
+// PacketAcknowledgementKey returns the store key of under which a packet
+// acknowledgement is stored
+func PacketCleanKey(sourceChain, destinationChain string, sequence uint64) []byte {
+	return []byte(PacketCleanPath(sourceChain, destinationChain, sequence))
+}
+
+// PacketAcknowledgementPrefixPath defines the prefix for commitments to packet data fields store path.
+func PacketCleanPrefixPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketCleanPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
 }
