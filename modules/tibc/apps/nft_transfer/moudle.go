@@ -3,12 +3,8 @@ package nft_transfer
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
+	"math/rand"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -20,12 +16,18 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"math/rand"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	porttypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
-	_ porttypes.TIBCModule   = AppModule{}
+	_ porttypes.TIBCModule  = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
@@ -229,4 +231,3 @@ func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet packettypes.P
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }
-

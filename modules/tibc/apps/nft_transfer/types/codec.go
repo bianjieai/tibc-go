@@ -18,7 +18,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgNftTransfer{}, "cosmos-sdk/MsgNftTransfer", nil)
 }
 
-
 // RegisterInterfaces register the ibc transfer module interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
@@ -26,7 +25,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
-
 
 func init() {
 	RegisterLegacyAminoCodec(amino)

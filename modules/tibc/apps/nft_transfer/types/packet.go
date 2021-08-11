@@ -1,27 +1,26 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strings"
 )
 
 // NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
 	class, id, uri, sender, receiver string,
 	awayFromOrigin bool,
-	) NonFungibleTokenPacketData {
+) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
-		Class:  	class,
-		Id:   		id,
-		Uri:		uri,
-		Sender:     sender,
-		Receiver: receiver,
+		Class:          class,
+		Id:             id,
+		Uri:            uri,
+		Sender:         sender,
+		Receiver:       receiver,
 		AwayFromOrigin: awayFromOrigin,
 	}
 }
-
-
 
 // ValidateBasic is used for validating the nft transfer.
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
@@ -37,7 +36,6 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	}
 	return nil
 }
-
 
 // GetBytes is a helper for serialising
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {

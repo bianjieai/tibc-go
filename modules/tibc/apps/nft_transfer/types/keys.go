@@ -1,5 +1,8 @@
 package types
 
+import (
+	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+)
 
 const (
 	// ModuleName defines the TIBC nft_transfer name
@@ -9,10 +12,10 @@ const (
 	RouterKey = ModuleName
 
 	// PortID is the default port id that nft-transfer module binds to
-	PortID = "nftTransfer"
+	PortID = string(types.NFT)
 
 	// StoreKey is the store key string for TIBC nft-transfer
-	StoreKey = 	ModuleName
+	StoreKey = ModuleName
 	// QuerierRoute is the querier route for TIBC nft-transfer
 	QuerierRoute = ModuleName
 )

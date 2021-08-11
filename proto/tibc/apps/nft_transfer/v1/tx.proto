@@ -19,18 +19,14 @@
   string class = 1;
   // the nft id
   string id = 2;
-  // the address defined by NFT outside the chain
-  string uri = 3;
   // the nft sender
-  string sender = 4;
+  string sender = 3;
   // the nft receiver
-  string receiver = 5;
-  // identify whether it is far away from the source chain
-  bool away_from_origin = 6;
+  string receiver = 4;
   // target chain of transmission
-  string dest_chain = 7;
+  string dest_chain = 5;
   // relay chain during transmission
-  string realay_chain = 8;
+  string realay_chain = 6;
 }
 
 // MsgTransferResponse defines the Msg/NftTransfer response type.

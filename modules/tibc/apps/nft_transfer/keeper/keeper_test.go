@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
-	"testing"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type KeeperTestSuite struct {

@@ -5,16 +5,13 @@ import (
 )
 
 const (
-	FlagRelayChain = "relayChain"
-	FlagAwayFromChain = "awayFromChain"
+	FlagRelayChain = "relay-chain"
 )
 
 var (
-	FsNftTransfer    = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNftTransfer = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
 	FsNftTransfer.String(FlagRelayChain, "", "relay chain used by cross-chain NFT")
-	FsNftTransfer.String(FlagAwayFromChain, "", "indicates whether nft is far away from the source")
 }
-

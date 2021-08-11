@@ -3,34 +3,27 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	TypeMsgNftTransfer    = "nft_transfer"
+	TypeMsgNftTransfer = "tibc_nft_transfer"
 )
-
 
 // NewMsgNftTransfer creates a new NewMsgNftTransfer instance
 func NewMsgNftTransfer(
-	class, id, uri, sender, receiver string,
-	awayFromOrigin bool,
-	destChain, realayChain string,
-) *MsgNftTransfer {
+	class, id, sender, receiver, destChain, realayChain string) *MsgNftTransfer {
 	return &MsgNftTransfer{
 		Class:       class,
-		Id:    id,
-		Uri:            uri,
-		Sender:           sender,
-		Receiver:         receiver,
-		AwayFromOrigin:    awayFromOrigin,
-		DestChain: destChain,
+		Id:          id,
+		Sender:      sender,
+		Receiver:    receiver,
+		DestChain:   destChain,
 		RealayChain: realayChain,
 	}
 }
-
 
 // Route Implements Msg
 func (msg MsgNftTransfer) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgNftTransfer) Type() string { return  TypeMsgNftTransfer}
+func (msg MsgNftTransfer) Type() string { return TypeMsgNftTransfer }
 
 // GetSignBytes implements sdk.Msg.
 func (msg MsgNftTransfer) GetSignBytes() []byte {

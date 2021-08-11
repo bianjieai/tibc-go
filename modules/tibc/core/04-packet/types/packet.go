@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -84,7 +85,6 @@ func (p Packet) ValidateBasic() error {
 	}
 	return nil
 }
-
 
 // NewResultAcknowledgement returns a new instance of Acknowledgement using an Acknowledgement_Result
 // type in the Response field.
