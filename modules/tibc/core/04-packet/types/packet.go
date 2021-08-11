@@ -65,18 +65,6 @@ func (p Packet) GetData() []byte { return p.Data }
 
 // ValidateBasic implements PacketI interface
 func (p Packet) ValidateBasic() error {
-	// if err := host.PortIdentifierValidator(p.SourceChain); err != nil {
-	// 	return sdkerrors.Wrap(err, "invalid source port ID")
-	// }
-	// if err := host.PortIdentifierValidator(p.DestinationPort); err != nil {
-	// 	return sdkerrors.Wrap(err, "invalid destination port ID")
-	// }
-	// if err := host.ChannelIdentifierValidator(p.SourceChannel); err != nil {
-	// 	return sdkerrors.Wrap(err, "invalid source channel ID")
-	// }
-	// if err := host.ChannelIdentifierValidator(p.DestinationChannel); err != nil {
-	// 	return sdkerrors.Wrap(err, "invalid destination channel ID")
-	// }
 	if p.Sequence == 0 {
 		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
 	}

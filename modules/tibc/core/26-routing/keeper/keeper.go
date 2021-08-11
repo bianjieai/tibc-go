@@ -1,7 +1,12 @@
 package keeper
 
 import (
+	"encoding/json"
+	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/log"
+	"regexp"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -11,12 +16,15 @@ import (
 
 // Keeper defines the TIBC routing keeper
 type Keeper struct {
-	Router *types.Router
+	Router   *types.Router
+	storeKey sdk.StoreKey
 }
 
 // NewKeeper creates a new TIBC connection Keeper instance
-func NewKeeper() Keeper {
-	return Keeper{}
+func NewKeeper(key sdk.StoreKey) Keeper {
+	return Keeper{
+		storeKey: key,
+	}
 }
 
 // Logger returns a module-specific logger.
@@ -34,14 +42,61 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 	k.Router.Seal()
 }
 
-func (k Keeper) SetRoutingRules(ctx sdk.Context, sourceChain, destinationChain string, rules []string) error {
+func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
+	for _, rule := range rules {
+		valid, _ := regexp.MatchString(types.RulePattern, rule)
+		if !valid {
+			return sdkerrors.Wrap(types.ErrInvalidRule, "invalid rule")
+		}
+	}
+	routingBz, err := json.Marshal(rules)
+	if err != nil {
+		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %w", err)
+	}
+	store := ctx.KVStore(k.storeKey)
+	store.Set(RoutingRulesKey(), routingBz)
 	return nil
 }
 
-func (k Keeper) GetRoutingRules(ctx sdk.Context, sourceChain, destinationChain string) []string {
-	return nil
+func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
+	var rules []string
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(RoutingRulesKey())
+	if bz == nil {
+		return nil, false
+	}
+	json.Unmarshal(bz, &rules)
+	return rules, true
 }
 
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
-	return true
+	rules, found := k.GetRoutingRules(ctx)
+	if !found {
+		return false
+	}
+	flag := false
+	for _, rule := range rules {
+		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+"."+destinationChain+"."+port)
+		if flag {
+			break
+		}
+	}
+	return flag
+}
+
+func ConvWildcardToRegular(wildcard string) string {
+	regular := strings.Replace(wildcard, ".", "\\.", -1)
+	regular = strings.Replace(wildcard, "*", ".*", -1)
+	regular = strings.Replace(regular, "?", ".", -1)
+	regular = "^" + regular + "$"
+	return regular
+}
+
+// RoutingRulesPath defines the routing rules store path
+func RoutingRulesPath() string {
+	return fmt.Sprintf("Routing/Rules")
+}
+
+func RoutingRulesKey() []byte {
+	return []byte(RoutingRulesPath())
 }

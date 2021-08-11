@@ -50,7 +50,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 				clientState := path.EndpointA.GetClientState()
-			    consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
+				consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
 				content, err = clienttypes.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, "test-chain-name", clientState, consensusState)
 				suite.Require().NoError(err)
@@ -71,17 +71,17 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 		{
 			"valid create client proposal", func() {
 
-			// setup testing conditions
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+				// setup testing conditions
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
 
-			relayers := []string{
-				suite.chainB.SenderAccount.GetAddress().String(),
-			}
+				relayers := []string{
+					suite.chainB.SenderAccount.GetAddress().String(),
+				}
 
-			content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description,path.EndpointB.ChainName, relayers)
-			suite.Require().NoError(err)
-		}, true,
+				content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, relayers)
+				suite.Require().NoError(err)
+			}, true,
 		},
 		{
 			"nil proposal", func() {

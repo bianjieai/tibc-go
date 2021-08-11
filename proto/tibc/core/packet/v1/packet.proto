@@ -4,7 +4,6 @@ package tibc.core.packet.v1;
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types";
 
 import "gogoproto/gogo.proto";
-import "tibc/core/client/v1/client.proto";
 
 // Packet defines a type that carries data across different chains through IBC
 message Packet {

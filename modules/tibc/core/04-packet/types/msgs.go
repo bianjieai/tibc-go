@@ -135,3 +135,117 @@ func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 func (msg MsgAcknowledgement) Type() string {
 	return "acknowledge_packet"
 }
+
+var _ sdk.Msg = &MsgCleanPacket{}
+
+// NewMsgCleanPacket constructs new MsgCleanPacket
+// nolint:interfacer
+func NewMsgCleanPacket(
+	packet Packet,
+	signer sdk.AccAddress,
+) *MsgCleanPacket {
+	return &MsgCleanPacket{
+		Packet: packet,
+		Signer: signer.String(),
+	}
+}
+
+// Route implements sdk.Msg
+func (msg MsgCleanPacket) Route() string {
+	return host.RouterKey
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgCleanPacket) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Packet.ValidateBasic()
+}
+
+// GetSignBytes implements sdk.Msg. The function will panic since it is used
+// for amino transaction verification which IBC does not support.
+func (msg MsgCleanPacket) GetSignBytes() []byte {
+	panic("IBC messages do not support amino")
+}
+
+// GetDataSignBytes returns the base64-encoded bytes used for the
+// data field when signing the packet.
+func (msg MsgCleanPacket) GetDataSignBytes() []byte {
+	s := "\"" + base64.StdEncoding.EncodeToString(msg.Packet.Data) + "\""
+	return []byte(s)
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgCleanPacket) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
+}
+
+// Type implements sdk.Msg
+func (msg MsgCleanPacket) Type() string {
+	return "clean_packet"
+}
+
+var _ sdk.Msg = &MsgRecvCleanPacket{}
+
+// NewMsgCleanPacket constructs new MsgCleanPacket
+// nolint:interfacer
+func NewMsgRecvCleanPacket(
+	packet Packet,
+	proofCommitment []byte,
+	proofHeight clienttypes.Height,
+	signer sdk.AccAddress,
+) *MsgRecvCleanPacket {
+	return &MsgRecvCleanPacket{
+		Packet:          packet,
+		ProofCommitment: proofCommitment,
+		ProofHeight:     proofHeight,
+		Signer:          signer.String(),
+	}
+}
+
+// Route implements sdk.Msg
+func (msg MsgRecvCleanPacket) Route() string {
+	return host.RouterKey
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg MsgRecvCleanPacket) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return msg.Packet.ValidateBasic()
+}
+
+// GetSignBytes implements sdk.Msg. The function will panic since it is used
+// for amino transaction verification which IBC does not support.
+func (msg MsgRecvCleanPacket) GetSignBytes() []byte {
+	panic("IBC messages do not support amino")
+}
+
+// GetDataSignBytes returns the base64-encoded bytes used for the
+// data field when signing the packet.
+func (msg MsgRecvCleanPacket) GetDataSignBytes() []byte {
+	s := "\"" + base64.StdEncoding.EncodeToString(msg.Packet.Data) + "\""
+	return []byte(s)
+}
+
+// GetSigners implements sdk.Msg
+func (msg MsgRecvCleanPacket) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
+}
+
+// Type implements sdk.Msg
+func (msg MsgRecvCleanPacket) Type() string {
+	return "recv_clean_packet"
+}

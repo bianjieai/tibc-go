@@ -211,6 +211,26 @@ func (endpoint *Endpoint) AcknowledgePacket(packet packettypes.Packet, ack []byt
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
+func (endpoint *Endpoint) CleanPacket(packet packettypes.Packet) error {
+	// commit changes since no message was sent
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	cleanMsg := packettypes.NewMsgCleanPacket(packet, endpoint.Chain.SenderAccount.GetAddress())
+
+	return endpoint.Chain.sendMsgs(cleanMsg)
+}
+
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
+func (endpoint *Endpoint) RecvCleanPacket(packet packettypes.Packet) error {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketCleanKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	recvCleanMsg := packettypes.NewMsgRecvCleanPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress())
+
+	return endpoint.Chain.sendMsgs(recvCleanMsg)
+}
+
 func (endpoint *Endpoint) ClientStore() sdk.KVStore {
 	return endpoint.Chain.App.IBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName)
 }
