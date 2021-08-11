@@ -1,6 +1,7 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -19,7 +20,16 @@ var (
 	_ govtypes.Content = &CreateClientProposal{}
 	_ govtypes.Content = &UpgradeClientProposal{}
 	_ govtypes.Content = &RegisterRelayerProposal{}
+
+	_ codectypes.UnpackInterfacesMessage = &CreateClientProposal{}
+	_ codectypes.UnpackInterfacesMessage = &UpgradeClientProposal{}
 )
+
+func init() {
+	govtypes.RegisterProposalType(ProposalTypeClientCreate)
+	govtypes.RegisterProposalType(ProposalTypeClientUpgrade)
+	govtypes.RegisterProposalType(ProposalTypeRelayerRegister)
+}
 
 // NewCreateClientProposal creates a new client proposal.
 func NewCreateClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*CreateClientProposal, error) {
@@ -72,6 +82,18 @@ func (cup *CreateClientProposal) ValidateBasic() error {
 	return clientState.Validate()
 }
 
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (cup CreateClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState)); err != nil {
+		return err
+	}
+
+	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState)); err != nil {
+		return err
+	}
+	return nil
+}
+
 // NewUpgradeClientProposal create a upgrade client proposal.
 func NewUpgradeClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*UpgradeClientProposal, error) {
 	clientStateAny, err := PackClientState(clientState)
@@ -121,6 +143,18 @@ func (cup *UpgradeClientProposal) ValidateBasic() error {
 		return err
 	}
 	return clientState.Validate()
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (cup UpgradeClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	if err := unpacker.UnpackAny(cup.ClientState, new(exported.ClientState)); err != nil {
+		return err
+	}
+
+	if err := unpacker.UnpackAny(cup.ConsensusState, new(exported.ConsensusState)); err != nil {
+		return err
+	}
+	return nil
 }
 
 // NewRegisterRelayerProposal creates a new client proposal.
