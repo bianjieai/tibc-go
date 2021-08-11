@@ -11,7 +11,6 @@ import (
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
@@ -115,17 +114,16 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"success",
 			func() {
-				clientA1, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-				clientA2, _ := suite.coordinator.CreateClient(suite.chainA, suite.chainB, exported.Tendermint)
+				// setup testing conditions
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
 
-				clientStateA1 := suite.chainA.GetClientState(clientA1)
-				clientStateA2 := suite.chainA.GetClientState(clientA2)
+				clientStateA1 := path.EndpointA.GetClientState()
 
-				idcs := types.NewIdentifiedClientState(clientA1, clientStateA1)
-				idcs2 := types.NewIdentifiedClientState(clientA2, clientStateA2)
+				idcs := types.NewIdentifiedClientState(path.EndpointB.ChainName, clientStateA1)
 
 				// order is sorted by client id, localhost is last
-				expClientStates = types.IdentifiedClientStates{idcs, idcs2}.Sort()
+				expClientStates = types.IdentifiedClientStates{idcs}.Sort()
 				req = &types.QueryClientStatesRequest{
 					Pagination: &query.PageRequest{
 						Limit:      7,
@@ -140,17 +138,9 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
-			expClientStates = nil
-
 			tc.malleate()
 
-			// always add localhost which is created by default in init genesis
-			localhostClientState := suite.chainA.GetClientState(testChainName)
-			identifiedLocalhost := types.NewIdentifiedClientState(testChainName, localhostClientState)
-			expClientStates = append(expClientStates, identifiedLocalhost)
-
 			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
-
 			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
 
 			if tc.expPass {

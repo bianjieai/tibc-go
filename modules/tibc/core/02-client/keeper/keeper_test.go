@@ -112,13 +112,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
 
-	// add localhost client
-	// revision := types.ParseChainID(suite.chainA.ChainID)
-	// localHostClient := localhosttypes.NewClientState(
-	// 	suite.chainA.ChainID, types.NewHeight(revision, uint64(suite.chainA.GetContext().BlockHeight())),
-	// )
-	// suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), testClientName, localHostClient)
-
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
@@ -165,13 +158,7 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 		expGenClients[i] = types.NewIdentifiedClientState(clientIDs[i], expClients[i])
 	}
 
-	// add localhost client
-	localHostClient, found := suite.chainA.App.IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), testChainName)
-	suite.Require().True(found)
-	expGenClients = append(expGenClients, types.NewIdentifiedClientState(testChainName, localHostClient))
-
 	genClients := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
-
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
@@ -232,48 +219,37 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 // 2 clients in total are created on chainA. The first client is updated so it contains an initial consensus state
 // and a consensus state at the update height.
 func (suite KeeperTestSuite) TestGetAllConsensusStates() {
-	clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
+	// setup testing conditions
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	suite.coordinator.SetupClients(path)
 
-	clientState := suite.chainA.GetClientState(clientA)
+	clientState := suite.chainA.GetClientState(path.EndpointB.ChainName)
 	expConsensusHeight0 := clientState.GetLatestHeight()
-	consensusState0, ok := suite.chainA.GetConsensusState(clientA, expConsensusHeight0)
+	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointB.ChainName, expConsensusHeight0)
 	suite.Require().True(ok)
 
 	// update client to create a second consensus state
-	err := suite.coordinator.UpdateClient(suite.chainA, suite.chainB, clientA, exported.Tendermint)
+	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = suite.chainA.GetClientState(clientA)
+	clientState = suite.chainA.GetClientState(path.EndpointB.ChainName)
 	expConsensusHeight1 := clientState.GetLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
-	consensusState1, ok := suite.chainA.GetConsensusState(clientA, expConsensusHeight1)
+	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointB.ChainName, expConsensusHeight1)
 	suite.Require().True(ok)
 
-	expConsensus := []exported.ConsensusState{
-		consensusState0,
-		consensusState1,
+	consensusStateAny0, err := types.PackConsensusState(consensusState0)
+	suite.Require().NoError(err)
+
+	consensusStateAny1, err := types.PackConsensusState(consensusState1)
+	suite.Require().NoError(err)
+	expConsensus := []types.ConsensusStateWithHeight{
+		{Height: expConsensusHeight0.(types.Height), ConsensusState: consensusStateAny0},
+		{Height: expConsensusHeight1.(types.Height), ConsensusState: consensusStateAny1},
 	}
 
-	// create second client on chainA
-	clientA2, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	clientState = suite.chainA.GetClientState(clientA2)
-
-	expConsensusHeight2 := clientState.GetLatestHeight()
-	consensusState2, ok := suite.chainA.GetConsensusState(clientA2, expConsensusHeight2)
-	suite.Require().True(ok)
-
-	expConsensus2 := []exported.ConsensusState{consensusState2}
-
-	expConsensusStates := types.ClientsConsensusStates{
-		types.NewClientConsensusStates(clientA, []types.ConsensusStateWithHeight{
-			types.NewConsensusStateWithHeight(expConsensusHeight0.(types.Height), expConsensus[0]),
-			types.NewConsensusStateWithHeight(expConsensusHeight1.(types.Height), expConsensus[1]),
-		}),
-		types.NewClientConsensusStates(clientA2, []types.ConsensusStateWithHeight{
-			types.NewConsensusStateWithHeight(expConsensusHeight2.(types.Height), expConsensus2[0]),
-		}),
-	}.Sort()
-
-	consStates := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
-	suite.Require().Equal(expConsensusStates, consStates, "%s \n\n%s", expConsensusStates, consStates)
+	consStates := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
+	suite.Require().Len(consStates, 1)
+	suite.Require().Equal(path.EndpointB.ChainName, consStates[0].ChainName)
+	suite.Require().Equal(expConsensus, consStates[0].ConsensusStates)
 }

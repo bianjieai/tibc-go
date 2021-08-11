@@ -72,7 +72,7 @@ func (cup *CreateClientProposal) ValidateBasic() error {
 	return clientState.Validate()
 }
 
-// NewCreateClientProposal creates a new client proposal.
+// NewUpgradeClientProposal create a upgrade client proposal.
 func NewUpgradeClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*UpgradeClientProposal, error) {
 	clientStateAny, err := PackClientState(clientState)
 	if err != nil {
