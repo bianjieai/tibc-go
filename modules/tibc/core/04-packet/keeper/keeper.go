@@ -126,6 +126,30 @@ func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain s
 	store.Delete(host.PacketCommitmentKey(sourceChain, destChain, sequence))
 }
 
+// GetPacketCommitment gets the packet commitment hash from the store
+func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) []byte {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
+	return bz
+}
+
+// HasPacketCommitment returns true if the packet commitment exists
+func (k Keeper) HasCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
+}
+
+// SetPacketCommitment sets the packet commitment hash to the store
+func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence), []byte{byte(1)})
+}
+
+func (k Keeper) deleteCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
+}
+
 // SetPacketAcknowledgement sets the packet ack hash to the store
 func (k Keeper) SetPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64, ackHash []byte) {
 	store := ctx.KVStore(k.storeKey)
@@ -305,3 +329,23 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 		}
 	}
 }
+
+func (k Keeper) cleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+	//TODO
+}
+
+func (k Keeper) cleanPacketAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+
+	//TODO
+}
+
+func (k Keeper) cleanacketReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+	//TODO
+
+}
+
+func (k Keeper) cleanCleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+	//TODO
+
+}
+

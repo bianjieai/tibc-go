@@ -219,9 +219,26 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 	sourceChain string,
 	destChain string,
 	sequence uint64,
-	cleanCommitmentBytes []byte,
 ) error {
-	//TODO
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
+	if err != nil {
+		return err
+	}
+
+	// check delay period has passed
+	if err := verifyDelayPeriodPassed(ctx, store, height, cs.GetDelayTime()); err != nil {
+		return err
+	}
+
+	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain, sequence))
+	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), cleanCommitmentPath)
+	if err != nil {
+		return err
+	}
+
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, []byte{byte(1)}); err != nil {
+		return err
+	}
 
 	return nil
 }
