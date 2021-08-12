@@ -146,6 +146,7 @@ func (k Keeper) RecvPacket(
 	})
 
 	if isRelay {
+		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain
 		ctx.EventManager().EmitEvents(sdk.Events{
@@ -343,11 +344,13 @@ func (k Keeper) CleanPacket(
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-
+	if err := k.ValidateCleanPacket(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()); err != nil {
+		return sdkerrors.Wrap(err, "packet failed basic validation")
+	}
 	k.SetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanacketReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanCleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()-1)
 
 	// Emit Event with Packet data along with other packet information for relayer to pick up
@@ -406,7 +409,7 @@ func (k Keeper) RecvCleanPacket(
 
 	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanacketReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanCleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()-1)
 
 	// emit an event that the relayer can query for

@@ -149,7 +149,7 @@ func PacketAcknowledgementPrefixPath(sourceChain, destinationChain string) strin
 
 // PacketReceiptPath defines the packet receipt store path
 func PacketReceiptPath(sourceChain, destinationChain string, sequence uint64) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, packetPath(sourceChain, destinationChain), sequencePath(sequence))
+	return fmt.Sprintf("%s/%d", PacketReceiptPrefixPath(sourceChain, destinationChain), sequence)
 }
 
 // PacketReceiptKey returns the store key of under which a packet
@@ -158,12 +158,14 @@ func PacketReceiptKey(sourceChain, destinationChain string, sequence uint64) []b
 	return []byte(PacketReceiptPath(sourceChain, destinationChain, sequence))
 }
 
-func packetPath(sourceChain, destinationChain string) string {
-	return fmt.Sprintf("%s/%s", sourceChain, destinationChain)
+// PacketReceiptKey returns the store key of under which a packet
+// receipt is stored
+func PacketReceiptPrefixPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
 }
 
-func sequencePath(sequence uint64) string {
-	return fmt.Sprintf("%s/%d", KeySequencePrefix, sequence)
+func packetPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", sourceChain, destinationChain)
 }
 
 // ICS05
