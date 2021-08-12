@@ -65,14 +65,14 @@ func (k Keeper) SetNextChannelSequence(ctx sdk.Context, sequence uint64) {
 }
 
 // GetNextSequenceSend gets a channel's next send sequence from the store
-func (k Keeper) GetNextSequenceSend(ctx sdk.Context, sourceChain, destChain string) uint64 {
+func (k Keeper) GetNextSequenceSend(ctx sdk.Context, sourceChain, destChain string) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.NextSequenceSendKey(sourceChain, destChain))
 	if bz == nil {
-		return 1
+		return 1, false
 	}
 
-	return sdk.BigEndianToUint64(bz)
+	return sdk.BigEndianToUint64(bz), true
 }
 
 // SetNextSequenceSend sets a channel's next send sequence to the store
