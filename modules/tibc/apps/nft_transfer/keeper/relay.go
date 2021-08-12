@@ -37,7 +37,7 @@ func (k Keeper) SendNftTransfer(
 	awayFromOrigin := k.determineAwayFromOrigin(class, destChain)
 
 	// get the next sequence
-	sequence := k.pk.GetNextSequenceSend(ctx, k.ck.GetChainName(ctx), destChain)
+	sequence, _ := k.pk.GetNextSequenceSend(ctx, k.ck.GetChainName(ctx), destChain)
 
 	// class must be existed
 	_, found := k.nk.GetDenom(ctx, class)
