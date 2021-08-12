@@ -348,13 +348,9 @@ func (k Keeper) CleanPacket(
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	if err := k.ValidateCleanPacket(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
-	}
+
 	k.SetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanAcknowledgementAndReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 	// Emit Event with Packet data along with other packet information for relayer to pick up
 	// and relay to other chain
@@ -410,9 +406,7 @@ func (k Keeper) RecvCleanPacket(
 		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
 	}
 
-	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanAcknowledgementAndReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 	// emit an event that the relayer can query for
 	ctx.EventManager().EmitEvents(sdk.Events{
