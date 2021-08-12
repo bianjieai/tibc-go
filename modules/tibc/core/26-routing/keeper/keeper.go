@@ -52,7 +52,7 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	}
 	routingBz, err := json.Marshal(rules)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %w", err)
+		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %s", err.Error())
 	}
 	store := ctx.KVStore(k.storeKey)
 	store.Set(RoutingRulesKey(), routingBz)

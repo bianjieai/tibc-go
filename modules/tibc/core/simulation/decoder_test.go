@@ -10,8 +10,6 @@ import (
 
 	"github.com/bianjieai/tibc-go/simapp"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
@@ -22,31 +20,14 @@ func TestDecodeStore(t *testing.T) {
 	dec := simulation.NewDecodeStore(*app.IBCKeeper)
 
 	clientID := "clientidone"
-	connectionID := "connectionidone"
-	channelID := "channelidone"
-	portID := "portidone"
 
-	clientState := &ibctmtypes.ClientState{
-		FrozenHeight: clienttypes.NewHeight(0, 10),
-	}
-	channel := packettypes.Channel{
-		State:   packettypes.OPEN,
-		Version: "1.0",
-	}
+	clientState := &ibctmtypes.ClientState{}
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(clientID),
 				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
-			},
-			{
-				Key:   host.ConnectionKey(connectionID),
-				Value: app.IBCKeeper.Codec().MustMarshalBinaryBare(&connection),
-			},
-			{
-				Key:   host.ChannelKey(portID, channelID),
-				Value: app.IBCKeeper.Codec().MustMarshalBinaryBare(&channel),
 			},
 			{
 				Key:   []byte{0x99},
@@ -59,8 +40,6 @@ func TestDecodeStore(t *testing.T) {
 		expectedLog string
 	}{
 		{"ClientState", fmt.Sprintf("ClientState A: %v\nClientState B: %v", clientState, clientState)},
-		{"ConnectionEnd", fmt.Sprintf("ConnectionEnd A: %v\nConnectionEnd B: %v", connection, connection)},
-		{"Channel", fmt.Sprintf("Channel A: %v\nChannel B: %v", channel, channel)},
 		{"other", ""},
 	}
 

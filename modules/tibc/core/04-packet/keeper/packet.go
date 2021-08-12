@@ -29,7 +29,7 @@ func (k Keeper) SendPacket(
 			return clienttypes.ErrConsensusStateNotFound
 		}
 	} else {
-		_, found := k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
+		_, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
 		if !found {
 			return clienttypes.ErrConsensusStateNotFound
 		}
@@ -375,14 +375,14 @@ func (k Keeper) RecvCleanPacket(
 	if !found {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet sequence does not exist!", packet.GetSequence(),
+			"packet sequence (%d) does not exist!", packet.GetSequence(),
 		)
 	}
 	found = k.HasPacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	if !found {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidPacket,
-			"packet sequence does not exist!", packet.GetSequence(),
+			"packet sequence (%d) does not exist!", packet.GetSequence(),
 		)
 	}
 

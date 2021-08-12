@@ -109,11 +109,13 @@ func NewAppModule(k keeper.Keeper) AppModule {
 }
 
 func (a AppModule) InitGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
-	panic("implement me")
+	// TODO
+	return []abci.ValidatorUpdate{}
 }
 
 func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler) json.RawMessage {
-	panic("implement me")
+	// TODO
+	return nil
 }
 
 func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
