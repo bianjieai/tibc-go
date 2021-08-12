@@ -343,11 +343,11 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix([]byte(""))
 }
 
-// NewClientID appends a new chainName string in the format:
+// NewChainName appends a new chainName string in the format:
 // ClientFor<counterparty-chain-id><index>
-//func (chain *TestChain) NewClientID(clientType string) string {
-//	chainName := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
-//	chain.ClientIDs = append(chain.ClientIDs, chainName)
+//func (chain *TestChain) NewChainName(clientType string) string {
+//	chainName := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ChainNames)))
+//	chain.ChainNames = append(chain.ChainNames, chainName)
 //	return chainName
 //}
 

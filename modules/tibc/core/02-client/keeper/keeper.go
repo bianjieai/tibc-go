@@ -174,10 +174,10 @@ func (k Keeper) SetAllClientMetadata(ctx sdk.Context, genMetadata []types.Identi
 // GetAllConsensusStates returns all stored client consensus states.
 func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusStates {
 	clientConsStates := make(types.ClientsConsensusStates, 0)
-	mapClientIDToConsStateIdx := make(map[string]int)
+	mapChainNameToConsStateIdx := make(map[string]int)
 
 	k.IterateConsensusStates(ctx, func(clientName string, cs types.ConsensusStateWithHeight) bool {
-		idx, ok := mapClientIDToConsStateIdx[clientName]
+		idx, ok := mapChainNameToConsStateIdx[clientName]
 		if ok {
 			clientConsStates[idx].ConsensusStates = append(clientConsStates[idx].ConsensusStates, cs)
 			return false
@@ -189,7 +189,7 @@ func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusSta
 		}
 
 		clientConsStates = append(clientConsStates, clientConsState)
-		mapClientIDToConsStateIdx[clientName] = len(clientConsStates) - 1
+		mapChainNameToConsStateIdx[clientName] = len(clientConsStates) - 1
 		return false
 	})
 
