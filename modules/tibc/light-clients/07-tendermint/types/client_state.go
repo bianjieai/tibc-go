@@ -136,8 +136,24 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 	return nil
 }
 
+// Status function
+// Clients must return their status. Only Active clients are allowed to process packets.
+func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) exported.Status {
+	// get latest consensus state from clientStore to check for expiry
+	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	if err != nil {
+		return exported.Unknown
+	}
+
+	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+		return exported.Expired
+	}
+
+	return exported.Active
+}
+
 // VerifyPacketCommitment verifies a proof of an outgoing packet commitment at
-// the specified port, specified channel, and specified sequence.
+// the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -173,7 +189,7 @@ func (cs ClientState) VerifyPacketCommitment(
 }
 
 // VerifyPacketAcknowledgement verifies a proof of an incoming packet
-// acknowledgement at the specified port, specified channel, and specified sequence.
+// acknowledgement at the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -208,8 +224,8 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	return nil
 }
 
-// VerifyPacketAcknowledgement verifies a proof of an incoming packet
-// acknowledgement at the specified port, specified channel, and specified sequence.
+// VerifyPacketCleanCommitment verifies a proof of an incoming packet
+// acknowledgement at the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
@@ -219,9 +235,27 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 	sourceChain string,
 	destChain string,
 	sequence uint64,
-	cleanCommitmentBytes []byte,
+	acknowledgement []byte,
 ) error {
-	//TODO
+	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
+	if err != nil {
+		return err
+	}
+
+	// check delay period has passed
+	if err := verifyDelayPeriodPassed(ctx, store, height, cs.GetDelayTime()); err != nil {
+		return err
+	}
+
+	ackPath := commitmenttypes.NewMerklePath(host.PacketCleanPath(sourceChain, destChain, sequence))
+	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), ackPath)
+	if err != nil {
+		return err
+	}
+
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, packettypes.CommitAcknowledgement(acknowledgement)); err != nil {
+		return err
+	}
 
 	return nil
 }
