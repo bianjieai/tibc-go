@@ -230,13 +230,13 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 		return err
 	}
 
-	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain, sequence))
+	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain))
 	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), cleanCommitmentPath)
 	if err != nil {
 		return err
 	}
 
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, []byte{byte(1)}); err != nil {
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, []byte{byte(sequence)}); err != nil {
 		return err
 	}
 
