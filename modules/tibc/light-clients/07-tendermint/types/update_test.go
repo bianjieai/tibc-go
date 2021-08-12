@@ -325,6 +325,7 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	clientStore = path.EndpointA.ClientStore()
 	expectedProcessTime, ok := types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().True(ok)
+
 	expectedConsKey := types.GetIterationKey(clientStore, expiredHeight)
 	suite.Require().NotNil(expectedConsKey)
 
@@ -346,20 +347,26 @@ func (suite *TendermintTestSuite) TestPruneConsensusState() {
 	// check that the first expired consensus state got deleted along with all associated metadata
 	consState, ok := path.EndpointA.Chain.GetConsensusState(path.EndpointB.ChainName, pruneHeight)
 	suite.Require().Nil(consState, "expired consensus state not pruned")
-	suite.Require().True(ok)
-
+	suite.Require().False(ok)
 	// check processed time metadata is pruned
 	processTime, ok := types.GetProcessedTime(clientStore, pruneHeight)
 	suite.Require().Equal(uint64(0), processTime, "processed time metadata not pruned")
 	suite.Require().False(ok)
 
+	// check iteration key metadata is pruned
+	consKey := types.GetIterationKey(clientStore, pruneHeight)
+	suite.Require().Nil(consKey, "iteration key not pruned")
+
 	// check that second expired consensus state doesn't get deleted
 	// this ensures that there is a cap on gas cost of UpdateClient
-	consState, ok = path.EndpointA.Chain.GetConsensusState(path.EndpointB.ChainName, expiredHeight)
+	consState = path.EndpointA.GetConsensusState(expiredHeight)
 	suite.Require().Equal(expectedConsState, consState, "consensus state incorrectly pruned")
-	suite.Require().True(ok)
 	// check processed time metadata is not pruned
 	processTime, ok = types.GetProcessedTime(clientStore, expiredHeight)
 	suite.Require().Equal(expectedProcessTime, processTime, "processed time metadata incorrectly pruned")
 	suite.Require().True(ok)
+
+	// check iteration key metadata is not pruned
+	consKey = types.GetIterationKey(clientStore, expiredHeight)
+	suite.Require().Equal(expectedConsKey, consKey, "iteration key incorrectly pruned")
 }

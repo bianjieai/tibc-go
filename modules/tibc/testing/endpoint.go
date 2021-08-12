@@ -102,11 +102,17 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	}
 	ctx := endpoint.Chain.GetContext()
 
+	// set selft chain name
+	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
+
+	// set send sequence
 	endpoint.Chain.App.IBCKeeper.Packetkeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
 
+	// set relayers
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
-	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
 	endpoint.Chain.App.IBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
+
+	// create counterparty chain light client
 	err = endpoint.Chain.App.IBCKeeper.ClientKeeper.CreateClient(
 		endpoint.Chain.GetContext(),
 		endpoint.Counterparty.ChainName,
@@ -223,7 +229,7 @@ func (endpoint *Endpoint) CleanPacket(packet packettypes.Packet) error {
 // AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
 func (endpoint *Endpoint) RecvCleanPacket(packet packettypes.Packet) error {
 	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketCleanKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	packetKey := host.CleanPacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain())
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	recvCleanMsg := packettypes.NewMsgRecvCleanPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress())

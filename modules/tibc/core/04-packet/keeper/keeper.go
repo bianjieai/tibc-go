@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
 	"strings"
 
@@ -326,18 +327,36 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
-func (k Keeper) cleanAcknowledgementAndReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketAcknowledgementPrefixPath(sourceChain, destChain)))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if sequence < seq{
+		if sequence < seq {
 			break
 		}
-		k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
-		if k.HasPacketReceipt(ctx, sourceChain, destChain, seq){
-			k.deletePacketReceipt(ctx, sourceChain, destChain, seq)
+		if !k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
+			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
 		}
+	}
+	return nil
+}
+
+func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.ReverseIterator(host.PacketAcknowledgementKey(sourceChain, destChain, 0), host.PacketAcknowledgementKey(sourceChain, destChain, sequence + 1))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
+func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.ReverseIterator(host.PacketReceiptKey(sourceChain, destChain,0), host.PacketReceiptKey(sourceChain, destChain, sequence + 1))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
 	}
 }
