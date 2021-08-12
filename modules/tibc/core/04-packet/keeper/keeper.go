@@ -330,22 +330,21 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
-func (k Keeper) cleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+func (k Keeper) cleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	//TODO
 }
 
-func (k Keeper) cleanPacketAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+func (k Keeper) cleanPacketAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 
 	//TODO
 }
 
-func (k Keeper) cleanacketReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
-	//TODO
-
-}
-
-func (k Keeper) cleanCleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64){
+func (k Keeper) cleanacketReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	//TODO
 
 }
 
+func (k Keeper) cleanCleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	//TODO
+
+}
