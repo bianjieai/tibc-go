@@ -10,6 +10,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	ibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
 
 var (
@@ -160,7 +161,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
 
 			// setup testing conditions
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", ibctesting.MockPort)
 
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
@@ -212,11 +213,6 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			"successful verification", func() {}, true,
 		},
 		{
-			"ApplyPrefix failed", func() {
-				prefix = commitmenttypes.MerklePrefix{}
-			}, false,
-		},
-		{
 			"latest client height < height", func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
@@ -238,7 +234,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", "")
+			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", ibctesting.MockPort)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)
@@ -267,7 +263,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			err = clientState.VerifyPacketAcknowledgement(
 				ctx, store, suite.chainA.Codec, proofHeight, proof,
-				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibctesting.TestHash,
+				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibcmock.MockAcknowledgement,
 			)
 
 			if tc.expPass {
