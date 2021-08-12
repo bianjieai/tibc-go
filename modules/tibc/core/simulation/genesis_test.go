@@ -45,6 +45,4 @@ func TestRandomizedGenState(t *testing.T) {
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[host.ModuleName], &ibcGenesis)
 
 	require.NotNil(t, ibcGenesis.ClientGenesis)
-	require.NotNil(t, ibcGenesis.ConnectionGenesis)
-	require.NotNil(t, ibcGenesis.ChannelGenesis)
 }

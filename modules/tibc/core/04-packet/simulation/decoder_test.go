@@ -12,7 +12,6 @@ import (
 	"github.com/bianjieai/tibc-go/simapp"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/simulation"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
@@ -23,29 +22,12 @@ func TestDecodeStore(t *testing.T) {
 	channelID := "channelidone"
 	portID := "portidone"
 
-	channel := types.Channel{
-		State:   types.OPEN,
-		Version: "1.0",
-	}
-
 	bz := []byte{0x1, 0x2, 0x3}
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{
-				Key:   host.ChannelKey(portID, channelID),
-				Value: cdc.MustMarshalBinaryBare(&channel),
-			},
-			{
 				Key:   host.NextSequenceSendKey(portID, channelID),
-				Value: sdk.Uint64ToBigEndian(1),
-			},
-			{
-				Key:   host.NextSequenceRecvKey(portID, channelID),
-				Value: sdk.Uint64ToBigEndian(1),
-			},
-			{
-				Key:   host.NextSequenceAckKey(portID, channelID),
 				Value: sdk.Uint64ToBigEndian(1),
 			},
 			{
@@ -66,7 +48,6 @@ func TestDecodeStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"Channel", fmt.Sprintf("Channel A: %v\nChannel B: %v", channel, channel)},
 		{"NextSeqSend", "NextSeqSend A: 1\nNextSeqSend B: 1"},
 		{"NextSeqRecv", "NextSeqRecv A: 1\nNextSeqRecv B: 1"},
 		{"NextSeqAck", "NextSeqAck A: 1\nNextSeqAck B: 1"},

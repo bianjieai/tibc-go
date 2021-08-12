@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
@@ -73,14 +72,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	scopedKeeper capabilitykeeper.ScopedKeeper
 }
 
 // NewAppModule returns a mock AppModule instance.
-func NewAppModule(sk capabilitykeeper.ScopedKeeper) AppModule {
-	return AppModule{
-		scopedKeeper: sk,
-	}
+func NewAppModule() AppModule {
+	return AppModule{}
 }
 
 // RegisterInvariants implements the AppModule interface.
