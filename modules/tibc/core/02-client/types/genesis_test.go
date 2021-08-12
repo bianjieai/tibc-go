@@ -205,7 +205,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			expPass: false,
 		},
 		{
-			name: "metadata client-id does not match a genesis client",
+			name: "metadata chain-name does not match a genesis client",
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(

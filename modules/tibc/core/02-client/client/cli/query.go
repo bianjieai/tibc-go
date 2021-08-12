@@ -63,10 +63,10 @@ func GetCmdQueryClientStates() *cobra.Command {
 // a given id as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#query
 func GetCmdQueryClientState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "state [client-id]",
+		Use:     "state [chain-name]",
 		Short:   "Query a client state",
 		Long:    "Query stored client state",
-		Example: fmt.Sprintf("%s query %s %s state [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s state [chain-name]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -98,7 +98,7 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 		Use:     "consensus-states [chain-name]",
 		Short:   "Query all the consensus states of a client.",
 		Long:    "Query all the consensus states from a given client state.",
-		Example: fmt.Sprintf("%s query %s %s consensus-states [client-id]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s consensus-states [chain-name]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -137,11 +137,11 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 // the chain as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#query
 func GetCmdQueryConsensusState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "consensus-state [client-id] [height]",
+		Use:   "consensus-state [chain-name] [height]",
 		Short: "Query the consensus state of a client at a given height",
 		Long: `Query the consensus state for a particular light client at a given height.
 If the '--latest' flag is included, the query returns the latest consensus state, overriding the height argument.`,
-		Example: fmt.Sprintf("%s query %s %s  consensus-state [client-id] [height]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s  consensus-state [chain-name] [height]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
