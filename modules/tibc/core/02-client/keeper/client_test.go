@@ -13,29 +13,6 @@ import (
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
-func (suite *KeeperTestSuite) TestCreateClient() {
-	// cases := []struct {
-	// 	msg         string
-	// 	clientState exported.ClientState
-	// 	expPass     bool
-	// }{
-	// 	{"success", ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, false, false), true},
-	// 	{"client type not supported", localhosttypes.NewClientState(testChainID, clienttypes.NewHeight(0, 1)), false},
-	// }
-
-	// for i, tc := range cases {
-
-	// 	clientID, err := suite.keeper.CreateClient(suite.ctx, tc.clientState, suite.consensusState)
-	// 	if tc.expPass {
-	// 		suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.msg)
-	// 		suite.Require().NotNil(clientID, "valid test case %d failed: %s", i, tc.msg)
-	// 	} else {
-	// 		suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.msg)
-	// 		suite.Require().Equal("", clientID, "invalid test case %d passed: %s", i, tc.msg)
-	// 	}
-	// }
-}
-
 func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 	// Must create header creation functions since suite.header gets recreated on each test case
 	createFutureUpdateFn := func(s *KeeperTestSuite) *ibctmtypes.Header {
@@ -196,8 +173,4 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestUpgradeClient() {
-
 }
