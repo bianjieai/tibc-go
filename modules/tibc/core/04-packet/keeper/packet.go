@@ -35,7 +35,7 @@ func (k Keeper) SendPacket(
 		}
 	}
 
-	nextSequenceSend := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
+	nextSequenceSend, _ := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 
 	if packet.GetSequence() != nextSequenceSend {
 		return sdkerrors.Wrapf(
