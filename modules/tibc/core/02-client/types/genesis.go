@@ -143,7 +143,7 @@ func (gs GenesisState) Validate() error {
 			}
 
 			if err := cs.ValidateBasic(); err != nil {
-				return fmt.Errorf("invalid client consensus state %v clientID %s index %d: %w", cs, cc.ChainName, i, err)
+				return fmt.Errorf("invalid client consensus state %v chainName %s index %d: %w", cs, cc.ChainName, i, err)
 			}
 
 			// ensure consensus state type matches client state type
@@ -163,7 +163,7 @@ func (gs GenesisState) Validate() error {
 
 		for i, gm := range clientMetadata.Metadata {
 			if err := gm.Validate(); err != nil {
-				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ChainName, i, err)
+				return fmt.Errorf("invalid client metadata %v chainName %s index %d: %w", gm, clientMetadata.ChainName, i, err)
 			}
 
 		}

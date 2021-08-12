@@ -90,9 +90,9 @@ func QueryConsensusState(
 // QueryConsensusStateABCI queries the store to get the consensus state of a light client and a
 // merkle proof of its existence or non-existence.
 func QueryConsensusStateABCI(
-	clientCtx client.Context, clientID string, height exported.Height,
+	clientCtx client.Context, chainName string, height exported.Height,
 ) (*types.QueryConsensusStateResponse, error) {
-	key := host.FullConsensusStateKey(clientID, height)
+	key := host.FullConsensusStateKey(chainName, height)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
 	if err != nil {
@@ -101,7 +101,7 @@ func QueryConsensusStateABCI(
 
 	// check if consensus state exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, clientID)
+		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, chainName)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)

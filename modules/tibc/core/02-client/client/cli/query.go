@@ -73,10 +73,10 @@ func GetCmdQueryClientState() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			clientID := args[0]
+			chainName := args[0]
 			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
 
-			clientStateRes, err := utils.QueryClientState(clientCtx, clientID, prove)
+			clientStateRes, err := utils.QueryClientState(clientCtx, chainName, prove)
 			if err != nil {
 				return err
 			}
@@ -148,7 +148,7 @@ If the '--latest' flag is included, the query returns the latest consensus state
 			if err != nil {
 				return err
 			}
-			clientID := args[0]
+			chainName := args[0]
 			queryLatestHeight, _ := cmd.Flags().GetBool(flagLatestHeight)
 			var height types.Height
 
@@ -165,7 +165,7 @@ If the '--latest' flag is included, the query returns the latest consensus state
 
 			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
 
-			csRes, err := utils.QueryConsensusState(clientCtx, clientID, height, prove, queryLatestHeight)
+			csRes, err := utils.QueryConsensusState(clientCtx, chainName, height, prove, queryLatestHeight)
 			if err != nil {
 				return err
 			}

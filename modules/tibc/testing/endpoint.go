@@ -67,7 +67,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 }
 
 // CreateClient creates an IBC client on the endpoint. It will update the
-// clientID for the endpoint if the message is successfully executed.
+// chainName for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state

@@ -69,7 +69,7 @@ var (
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
 // header and the validators of the TestChain. It also contains a field called ChainID. This
-// is the clientID that *other* chains use to refer to this TestChain. The SenderAccount
+// is the chainName that *other* chains use to refer to this TestChain. The SenderAccount
 // is used for delivering transactions through the application state.
 // NOTE: the actual application uses an empty chain-id for ease of testing.
 type TestChain struct {
@@ -210,25 +210,25 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 }
 
 // QueryClientStateProof performs and abci query for a client state
-// stored with a given clientID and returns the ClientState along with the proof
-func (chain *TestChain) QueryClientStateProof(clientID string) (exported.ClientState, []byte) {
+// stored with a given chainName and returns the ClientState along with the proof
+func (chain *TestChain) QueryClientStateProof(chainName string) (exported.ClientState, []byte) {
 	// retrieve client state to provide proof for
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), clientID)
+	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
 	require.True(chain.t, found)
 
-	clientKey := host.FullClientStateKey(clientID)
+	clientKey := host.FullClientStateKey(chainName)
 	proofClient, _ := chain.QueryProof(clientKey)
 
 	return clientState, proofClient
 }
 
 // QueryConsensusStateProof performs an abci query for a consensus state
-// stored on the given clientID. The proof and consensusHeight are returned.
-func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clienttypes.Height) {
-	clientState := chain.GetClientState(clientID)
+// stored on the given chainName. The proof and consensusHeight are returned.
+func (chain *TestChain) QueryConsensusStateProof(chainName string) ([]byte, clienttypes.Height) {
+	clientState := chain.GetClientState(chainName)
 
 	consensusHeight := clientState.GetLatestHeight().(clienttypes.Height)
-	consensusKey := host.FullConsensusStateKey(clientID, consensusHeight)
+	consensusKey := host.FullConsensusStateKey(chainName, consensusHeight)
 	proofConsensus, _ := chain.QueryProof(consensusKey)
 
 	return proofConsensus, consensusHeight
@@ -297,19 +297,19 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	return r, nil
 }
 
-// GetClientState retrieves the client state for the provided clientID. The client is
+// GetClientState retrieves the client state for the provided chainName. The client is
 // expected to exist otherwise testing will fail.
-func (chain *TestChain) GetClientState(clientID string) exported.ClientState {
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), clientID)
+func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
+	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
 	require.True(chain.t, found)
 
 	return clientState
 }
 
-// GetConsensusState retrieves the consensus state for the provided clientID and height.
+// GetConsensusState retrieves the consensus state for the provided chainName and height.
 // It will return a success boolean depending on if consensus state exists or not.
-func (chain *TestChain) GetConsensusState(clientID string, height exported.Height) (exported.ConsensusState, bool) {
-	return chain.App.IBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
+func (chain *TestChain) GetConsensusState(chainName string, height exported.Height) (exported.ConsensusState, bool) {
+	return chain.App.IBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), chainName, height)
 }
 
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
@@ -343,17 +343,17 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix([]byte(""))
 }
 
-// NewClientID appends a new clientID string in the format:
+// NewClientID appends a new chainName string in the format:
 // ClientFor<counterparty-chain-id><index>
 //func (chain *TestChain) NewClientID(clientType string) string {
-//	clientID := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
-//	chain.ClientIDs = append(chain.ClientIDs, clientID)
-//	return clientID
+//	chainName := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ClientIDs)))
+//	chain.ClientIDs = append(chain.ClientIDs, chainName)
+//	return chainName
 //}
 
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, clientID string, clientType string) error {
+func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainName string, clientType string) error {
 	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -373,7 +373,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 
 	err := chain.App.IBCKeeper.ClientKeeper.CreateClient(
 		chain.GetContext(),
-		clientID,
+		chainName,
 		clientState, consensusState,
 	)
 
@@ -383,20 +383,20 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, client
 
 // CreateTMClient will construct and execute a 07-tendermint MsgCreateClient. A counterparty
 // client will be created on the (target) chain.
-func (chain *TestChain) CreateTMClient(counterparty *TestChain, clientID string) error {
+func (chain *TestChain) CreateTMClient(counterparty *TestChain, chainName string) error {
 	// construct MsgCreateClient using counterparty
-	return chain.ConstructMsgCreateClient(counterparty, clientID, exported.Tendermint)
+	return chain.ConstructMsgCreateClient(counterparty, chainName, exported.Tendermint)
 }
 
 // UpdateTMClient will construct and execute a 07-tendermint MsgUpdateClient. The counterparty
 // client will be updated on the (target) chain. UpdateTMClient mocks the relayer flow
 // necessary for updating a Tendermint client.
-func (chain *TestChain) UpdateTMClient(counterparty *TestChain, clientID string) error {
-	header, err := chain.ConstructUpdateTMClientHeader(counterparty, clientID)
+func (chain *TestChain) UpdateTMClient(counterparty *TestChain, chainName string) error {
+	header, err := chain.ConstructUpdateTMClientHeader(counterparty, chainName)
 	require.NoError(chain.t, err)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
-		clientID, header,
+		chainName, header,
 		chain.SenderAccount.GetAddress(),
 	)
 	require.NoError(chain.t, err)
