@@ -23,16 +23,14 @@ func (k Keeper) SendPacket(
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
-	if len(packet.GetRelayChain()) > 0 {
-		_, found := k.clientKeeper.GetClientState(ctx, packet.GetRelayChain())
-		if !found {
-			return clienttypes.ErrConsensusStateNotFound
-		}
-	} else {
-		_, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
-		if !found {
-			return clienttypes.ErrConsensusStateNotFound
-		}
+	targetChain := packet.GetDestChain()
+	if len(packet.GetRelayChain()) > 0{
+		targetChain = packet.GetRelayChain()
+	}
+
+	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
+	if !found {
+		return clienttypes.ErrConsensusStateNotFound
 	}
 
 	nextSequenceSend := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
@@ -351,7 +349,6 @@ func (k Keeper) CleanPacket(
 	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanCleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()-1)
 
 	// Emit Event with Packet data along with other packet information for relayer to pick up
 	// and relay to other chain
@@ -410,7 +407,6 @@ func (k Keeper) RecvCleanPacket(
 	k.cleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanPacketAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.cleanCleanPacketCommitmentBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()-1)
 
 	// emit an event that the relayer can query for
 	ctx.EventManager().EmitEvents(sdk.Events{

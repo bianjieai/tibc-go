@@ -131,25 +131,14 @@ func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain s
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
+	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain))
 	return bz
-}
-
-// HasPacketCommitment returns true if the packet commitment exists
-func (k Keeper) HasCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
-	store := ctx.KVStore(k.storeKey)
-	return store.Has(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
 }
 
 // SetPacketCommitment sets the packet commitment hash to the store
 func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence), []byte{byte(1)})
-}
-
-func (k Keeper) deleteCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(host.CleanPacketCommitmentKey(sourceChain, destChain, sequence))
+	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), []byte{byte(sequence)})
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store
@@ -332,13 +321,16 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
-func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error{
+func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if seq <= sequence && !k.HasPacketCommitment(ctx, sourceChain, destChain, seq){
+		if sequence < seq{
+			break
+		}
+		if !k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
 			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
 		}
 	}
@@ -351,9 +343,10 @@ func (k Keeper) cleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destCha
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if seq <= sequence {
-			k.deletePacketCommitment(ctx, sourceChain, destChain, seq)
+		if sequence < seq{
+			break
 		}
+		k.deletePacketCommitment(ctx, sourceChain, destChain, seq)
 	}
 }
 
@@ -363,9 +356,10 @@ func (k Keeper) cleanPacketAcknowledgementBySeq(ctx sdk.Context, sourceChain, de
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if seq <= sequence {
-			k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
+		if sequence < seq{
+			break
 		}
+		k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
 	}
 }
 
@@ -375,20 +369,9 @@ func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if seq <= sequence {
-			k.deletePacketReceipt(ctx, sourceChain, destChain, seq)
+		if sequence < seq{
+			break
 		}
-	}
-}
-
-func (k Keeper) cleanCleanPacketCommitmentBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.CleanPacketCommitmentPrefixPath(sourceChain, destChain)))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		seq := binary.BigEndian.Uint64(iterator.Key())
-		if seq <= sequence {
-			k.deleteCleanPacketCommitment(ctx, sourceChain, destChain, seq)
-		}
+		k.deletePacketReceipt(ctx, sourceChain, destChain, seq)
 	}
 }

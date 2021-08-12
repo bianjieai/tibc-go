@@ -176,18 +176,13 @@ func PortPath(portID string) string {
 	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
 
-// CleanPacketCommitmentPath defines the commitments to clean packet data fields store path
-func CleanPacketCommitmentPath(sourceChain, destinationChain string, sequence uint64) string {
-	return fmt.Sprintf("%s/%d", CleanPacketCommitmentPrefixPath(sourceChain, destinationChain), sequence)
-}
-
 // CleanPacketCommitmentKey returns the store key of under which a clean packet commitment
 // is stored
-func CleanPacketCommitmentKey(sourceChain, destinationChain string, sequence uint64) []byte {
-	return []byte(CleanPacketCommitmentPath(sourceChain, destinationChain, sequence))
+func CleanPacketCommitmentKey(sourceChain, destinationChain string) []byte {
+	return []byte(CleanPacketCommitmentPath(sourceChain, destinationChain))
 }
 
 // CleanPacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
-func CleanPacketCommitmentPrefixPath(sourceChain, destinationChain string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyCleanPacketCommitmentPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
+func CleanPacketCommitmentPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyCleanPacketCommitmentPrefix, packetPath(sourceChain, destinationChain))
 }
