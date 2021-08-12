@@ -3,10 +3,11 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/libs/log"
 	"regexp"
 	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/tendermint/tendermint/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -51,7 +52,7 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	}
 	routingBz, err := json.Marshal(rules)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %w", err)
+		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %s", err.Error())
 	}
 	store := ctx.KVStore(k.storeKey)
 	store.Set(RoutingRulesKey(), routingBz)
