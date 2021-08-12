@@ -3,6 +3,8 @@ package types
 import (
 	"crypto/sha256"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -70,4 +72,29 @@ func (p Packet) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
 	return nil
+}
+
+// NewResultAcknowledgement returns a new instance of Acknowledgement using an Acknowledgement_Result
+// type in the Response field.
+func NewResultAcknowledgement(result []byte) Acknowledgement {
+	return Acknowledgement{
+		Response: &Acknowledgement_Result{
+			Result: result,
+		},
+	}
+}
+
+// NewErrorAcknowledgement returns a new instance of Acknowledgement using an Acknowledgement_Error
+// type in the Response field.
+func NewErrorAcknowledgement(err string) Acknowledgement {
+	return Acknowledgement{
+		Response: &Acknowledgement_Error{
+			Error: err,
+		},
+	}
+}
+
+// GetBytes is a helper for serialising acknowledgements
+func (ack Acknowledgement) GetBytes() []byte {
+	return sdk.MustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
 }

@@ -50,19 +50,28 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client %s", chainName)
 	}
 
-	clientState, consensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, chainName), header)
+	clientStore := k.ClientStore(ctx, chainName)
+	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
+		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", chainName, status)
+	}
+
+	// Any writes made in CheckHeaderAndUpdateState are persisted on both valid updates
+	// Light client implementations are responsible for writing the correct metadata (if any) in either case.
+	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, chainName), header)
 	if err != nil {
 		return sdkerrors.Wrapf(err, "cannot update client %s", chainName)
 	}
 
-	k.SetClientState(ctx, chainName, clientState)
+	// set new client state regardless of if update is valid update
+	k.SetClientState(ctx, chainName, newClientState)
 
-	var consensusHeight exported.Height
-
-	k.SetClientConsensusState(ctx, chainName, header.GetHeight(), consensusState)
-	consensusHeight = header.GetHeight()
-
-	k.Logger(ctx).Info("client state updated", "client-name", chainName, "height", consensusHeight.String())
+	// set new consensus state regardless of if update is valid update
+	var consensusHeight = header.GetHeight()
+	k.SetClientConsensusState(ctx, chainName, header.GetHeight(), newConsensusState)
+	k.Logger(ctx).Info("client state updated",
+		"chain-name", chainName,
+		"height", consensusHeight.String(),
+	)
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
@@ -76,15 +85,10 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 		)
 	}()
 
-	// emit the full header in events
-	var headerStr string
-	if header != nil {
-		// Marshal the Header as an Any and encode the resulting bytes to hex.
-		// This prevents the event value from containing invalid UTF-8 characters
-		// which may cause data to be lost when JSON encoding/decoding.
-		headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
-
-	}
+	// Marshal the Header as an Any and encode the resulting bytes to hex.
+	// This prevents the event value from containing invalid UTF-8 characters
+	// which may cause data to be lost when JSON encoding/decoding.
+	var headerStr = hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
 
 	// emitting events in the keeper emits for both begin block and handler client updates
 	ctx.EventManager().EmitEvent(

@@ -1,0 +1,10 @@
+ syntax = "proto3";
+ package tibc.apps.nft_transfer.v1;
+
+ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types";
+
+ import "gogoproto/gogo.proto";
+ // GenesisState defines the ibc-transfer genesis state
+ message GenesisState {
+  string              port_id      = 1 ;
+ }

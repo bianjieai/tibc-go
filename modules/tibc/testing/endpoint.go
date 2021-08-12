@@ -110,6 +110,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 	// set relayers
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
+	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
 	endpoint.Chain.App.IBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
 
 	// create counterparty chain light client

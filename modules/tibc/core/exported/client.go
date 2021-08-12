@@ -7,6 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Status represents the status of a client
+type Status string
+
 const (
 	// TypeClientMisbehaviour is the shared evidence misbehaviour type
 	TypeClientMisbehaviour string = "client_misbehaviour"
@@ -19,6 +22,15 @@ const (
 
 	// Fabric is the client type for a hyperledge fabric client.
 	Fabric string = "009-fabric"
+
+	// Active is a status type of a client. An active client is allowed to be used.
+	Active Status = "Active"
+
+	// Expired is a status type of a client. An expired client is not allowed to be used.
+	Expired Status = "Expired"
+
+	// Unknown indicates there was an error in determining the status of a client.
+	Unknown Status = "Unknown"
 )
 
 // ClientState defines the required common functions for light clients.
@@ -36,6 +48,10 @@ type ClientState interface {
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
 	Initialize(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, ConsensusState) error
+
+	// Status function
+	// Clients must return their status. Only Active clients are allowed to process packets.
+	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) Status
 
 	// ExportMetadata function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
