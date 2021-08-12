@@ -343,14 +343,6 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix([]byte(""))
 }
 
-// NewChainName appends a new chainName string in the format:
-// ClientFor<counterparty-chain-id><index>
-//func (chain *TestChain) NewChainName(clientType string) string {
-//	chainName := fmt.Sprintf("%s-%s", clientType, strconv.Itoa(len(chain.ChainNames)))
-//	chain.ChainNames = append(chain.ChainNames, chainName)
-//	return chainName
-//}
-
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainName string, clientType string) error {
