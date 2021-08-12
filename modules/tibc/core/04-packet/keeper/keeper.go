@@ -345,7 +345,7 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain stri
 
 func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := store.ReverseIterator(host.PacketAcknowledgementKey(sourceChain, destChain, 0), host.PacketAcknowledgementKey(sourceChain, destChain, sequence + 1))
+	iterator := store.ReverseIterator(host.PacketAcknowledgementKey(sourceChain, destChain, 0), host.PacketAcknowledgementKey(sourceChain, destChain, sequence+1))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
@@ -354,7 +354,7 @@ func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChai
 
 func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := store.ReverseIterator(host.PacketReceiptKey(sourceChain, destChain,0), host.PacketReceiptKey(sourceChain, destChain, sequence + 1))
+	iterator := store.ReverseIterator(host.PacketReceiptKey(sourceChain, destChain, 0), host.PacketReceiptKey(sourceChain, destChain, sequence+1))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
