@@ -135,7 +135,7 @@ func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain s
 }
 
 // GetPacketCommitment gets the packet commitment hash from the store
-func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) []byte {
+func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string) []byte {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain))
 	return bz
@@ -144,7 +144,7 @@ func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 // SetPacketCommitment sets the packet commitment hash to the store
 func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), []byte{byte(sequence)})
+	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), sdk.Uint64ToBigEndian(sequence))
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store
@@ -329,6 +329,10 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 
 func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error {
 	store := ctx.KVStore(k.storeKey)
+	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	if sequence <= currentCleanSeq {
+		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
+	}
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
