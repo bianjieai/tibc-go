@@ -127,7 +127,7 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "client-id: %s, height: %s", req.ChainName, height).Error(),
+			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "chain-name: %s, height: %s", req.ChainName, height).Error(),
 		)
 	}
 

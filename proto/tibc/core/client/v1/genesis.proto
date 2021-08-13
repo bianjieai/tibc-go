@@ -34,7 +34,7 @@ message GenesisState {
 message GenesisMetadata {
   option (gogoproto.goproto_getters) = false;
 
-  // store key of metadata without clientID-prefix
+  // store key of metadata without chainName-prefix
   bytes key = 1;
   // metadata value
   bytes value = 2;

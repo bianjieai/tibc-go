@@ -121,7 +121,7 @@ func (gs GenesisState) Validate() error {
 		if err := clientState.Validate(); err != nil {
 			return fmt.Errorf("invalid client %v index %d: %w", client, i, err)
 		}
-		// add client id to validClients map
+		// add chain name to validClients map
 		validClients[client.ChainName] = clientState.ClientType()
 	}
 
@@ -129,7 +129,7 @@ func (gs GenesisState) Validate() error {
 		// check that consensus state is for a client in the genesis clients list
 		clientType, ok := validClients[cc.ChainName]
 		if !ok {
-			return fmt.Errorf("consensus state in genesis has a client id %s that does not map to a genesis client", cc.ChainName)
+			return fmt.Errorf("consensus state in genesis has a chain name %s that does not map to a genesis client", cc.ChainName)
 		}
 
 		for i, consensusState := range cc.ConsensusStates {
@@ -143,7 +143,7 @@ func (gs GenesisState) Validate() error {
 			}
 
 			if err := cs.ValidateBasic(); err != nil {
-				return fmt.Errorf("invalid client consensus state %v clientID %s index %d: %w", cs, cc.ChainName, i, err)
+				return fmt.Errorf("invalid client consensus state %v chainName %s index %d: %w", cs, cc.ChainName, i, err)
 			}
 
 			// ensure consensus state type matches client state type
@@ -158,12 +158,12 @@ func (gs GenesisState) Validate() error {
 		// check that metadata is for a client in the genesis clients list
 		_, ok := validClients[clientMetadata.ChainName]
 		if !ok {
-			return fmt.Errorf("metadata in genesis has a client id %s that does not map to a genesis client", clientMetadata.ChainName)
+			return fmt.Errorf("metadata in genesis has a chain name %s that does not map to a genesis client", clientMetadata.ChainName)
 		}
 
 		for i, gm := range clientMetadata.Metadata {
 			if err := gm.Validate(); err != nil {
-				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ChainName, i, err)
+				return fmt.Errorf("invalid client metadata %v chainName %s index %d: %w", gm, clientMetadata.ChainName, i, err)
 			}
 
 		}
