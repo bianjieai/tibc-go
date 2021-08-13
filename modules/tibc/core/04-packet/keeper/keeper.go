@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"encoding/binary"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
 	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"

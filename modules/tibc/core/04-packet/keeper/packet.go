@@ -265,16 +265,16 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	var isRelay bool
-	var targetClientID string
+	var targetChainName string
 	if packet.GetSourceChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
-			targetClientID = packet.GetRelayChain()
+			targetChainName = packet.GetRelayChain()
 		} else {
-			targetClientID = packet.GetDestChain()
+			targetChainName = packet.GetDestChain()
 		}
 	} else {
 		isRelay = true
-		targetClientID = packet.GetDestChain()
+		targetChainName = packet.GetDestChain()
 	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, targetChainName)
@@ -385,25 +385,25 @@ func (k Keeper) RecvCleanPacket(
 	proofHeight exported.Height,
 ) error {
 	var isRelay bool
-	var targetClientID string
+	var targetChainName string
 	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
-			targetClientID = packet.GetRelayChain()
+			targetChainName = packet.GetRelayChain()
 		} else {
-			targetClientID = packet.GetSourceChain()
+			targetChainName = packet.GetSourceChain()
 		}
 	} else {
 		isRelay = true
-		targetClientID = packet.GetSourceChain()
+		targetChainName = packet.GetSourceChain()
 	}
-	targetClient, found := k.clientKeeper.GetClientState(ctx, targetClientID)
+	targetClient, found := k.clientKeeper.GetClientState(ctx, targetChainName)
 
 	if !found {
 		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 	}
 
 	if err := targetClient.VerifyPacketCleanCommitment(ctx,
-		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(),
 	); err != nil {
