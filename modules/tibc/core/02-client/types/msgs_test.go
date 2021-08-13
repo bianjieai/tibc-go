@@ -87,7 +87,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		expPass  bool
 	}{
 		{
-			"invalid client-id",
+			"invalid chain-name",
 			func() {
 				msg.ChainName = ""
 			},

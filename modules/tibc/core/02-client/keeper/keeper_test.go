@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 }
 
 func (suite KeeperTestSuite) TestGetAllGenesisClients() {
-	clientIDs := []string{
+	chainNames := []string{
 		testChainName2, testChainName3, testChainName,
 	}
 	expClients := []exported.ClientState{
@@ -154,8 +154,8 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	expGenClients := make(types.IdentifiedClientStates, len(expClients))
 
 	for i := range expClients {
-		suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), clientIDs[i], expClients[i])
-		expGenClients[i] = types.NewIdentifiedClientState(clientIDs[i], expClients[i])
+		suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), chainNames[i], expClients[i])
+		expGenClients[i] = types.NewIdentifiedClientState(chainNames[i], expClients[i])
 	}
 
 	genClients := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())

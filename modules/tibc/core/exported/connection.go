@@ -2,7 +2,7 @@ package exported
 
 // ConnectionI describes the required methods for a connection.
 type ConnectionI interface {
-	GetClientID() string
+	GetChainName() string
 	GetState() int32
 	GetCounterparty() CounterpartyConnectionI
 	GetVersions() []Version
@@ -12,7 +12,7 @@ type ConnectionI interface {
 
 // CounterpartyConnectionI describes the required methods for a counterparty connection.
 type CounterpartyConnectionI interface {
-	GetClientID() string
+	GetChainName() string
 	GetConnectionID() string
 	GetPrefix() Prefix
 	ValidateBasic() error

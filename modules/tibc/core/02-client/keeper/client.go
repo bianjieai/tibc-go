@@ -30,7 +30,7 @@ func (k Keeper) CreateClient(
 	// check if consensus state is nil in case the created client is Localhost
 	k.SetClientConsensusState(ctx, chainName, clientState.GetLatestHeight(), consensusState)
 
-	k.Logger(ctx).Info("client created at height", "client-id", chainName, "height", clientState.GetLatestHeight().String())
+	k.Logger(ctx).Info("client created at height", "chain-name", chainName, "height", clientState.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(

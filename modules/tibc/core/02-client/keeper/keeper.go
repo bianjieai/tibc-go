@@ -101,7 +101,7 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(chainName string
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
-		// consensus key is in the format "clients/<clientID>/consensusStates/<height>"
+		// consensus key is in the format "clients/<chainName>/consensusStates/<height>"
 		if len(keySplit) != 4 || keySplit[2] != string(host.KeyConsensusStatePrefix) {
 			continue
 		}
@@ -120,8 +120,8 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(chainName string
 // GetAllGenesisClients returns all the clients in state with their client ids returned as IdentifiedClientState
 func (k Keeper) GetAllGenesisClients(ctx sdk.Context) types.IdentifiedClientStates {
 	var genClients types.IdentifiedClientStates
-	k.IterateClients(ctx, func(clientID string, cs exported.ClientState) bool {
-		genClients = append(genClients, types.NewIdentifiedClientState(clientID, cs))
+	k.IterateClients(ctx, func(chainName string, cs exported.ClientState) bool {
+		genClients = append(genClients, types.NewIdentifiedClientState(chainName, cs))
 		return false
 	})
 
@@ -174,10 +174,10 @@ func (k Keeper) SetAllClientMetadata(ctx sdk.Context, genMetadata []types.Identi
 // GetAllConsensusStates returns all stored client consensus states.
 func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusStates {
 	clientConsStates := make(types.ClientsConsensusStates, 0)
-	mapClientIDToConsStateIdx := make(map[string]int)
+	mapChainNameToConsStateIdx := make(map[string]int)
 
 	k.IterateConsensusStates(ctx, func(clientName string, cs types.ConsensusStateWithHeight) bool {
-		idx, ok := mapClientIDToConsStateIdx[clientName]
+		idx, ok := mapChainNameToConsStateIdx[clientName]
 		if ok {
 			clientConsStates[idx].ConsensusStates = append(clientConsStates[idx].ConsensusStates, cs)
 			return false
@@ -189,7 +189,7 @@ func (k Keeper) GetAllConsensusStates(ctx sdk.Context) types.ClientsConsensusSta
 		}
 
 		clientConsStates = append(clientConsStates, clientConsState)
-		mapClientIDToConsStateIdx[clientName] = len(clientConsStates) - 1
+		mapChainNameToConsStateIdx[clientName] = len(clientConsStates) - 1
 		return false
 	})
 
@@ -228,7 +228,7 @@ func (k Keeper) IterateClients(ctx sdk.Context, cb func(chainName string, cs exp
 		clientState := k.MustUnmarshalClientState(iterator.Value())
 
 		// key is ibc/{clientid}/clientState
-		// Thus, keySplit[1] is clientID
+		// Thus, keySplit[1] is chainName
 		if cb(keySplit[1], clientState) {
 			break
 		}

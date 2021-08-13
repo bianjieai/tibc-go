@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 		malleate func()
 		expPass  bool
 	}{
-		{"invalid clientID",
+		{"invalid chainName",
 			func() {
 				req = &types.QueryClientStateRequest{}
 			},
@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 		expPass  bool
 	}{
 		{
-			"invalid clientID",
+			"invalid chainName",
 			func() {
 				req = &types.QueryConsensusStateRequest{}
 			},
