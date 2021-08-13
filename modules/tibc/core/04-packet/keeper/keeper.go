@@ -135,7 +135,7 @@ func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain s
 	store.Delete(host.PacketCommitmentKey(sourceChain, destChain, sequence))
 }
 
-// GetPacketCommitment gets the packet commitment hash from the store
+// GetCleanPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string) []byte {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain))
