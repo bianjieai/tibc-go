@@ -21,11 +21,24 @@ func (k Keeper) SendNftTransfer(
 	sender sdk.AccAddress,
 	receiver, destChain, relayChain string,
 ) error {
+	// class must be existed
+	_, found := k.nk.GetDenom(ctx, class)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
+	}
 	// get nft
 	nft, err := k.nk.GetNFT(ctx, class, id)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrUnknownNFT, "invalid NFT %s from collection %s", id, class)
 	}
+
+	// decode the sender address
+	sender, err = sdk.AccAddressFromBech32(sender.String())
+	if err != nil {
+		return err
+	}
+
+	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
 
 	// sourceChain cannot be equal to destChain
 	sourceChain := k.ck.GetChainName(ctx)
@@ -37,13 +50,7 @@ func (k Keeper) SendNftTransfer(
 	awayFromOrigin := k.determineAwayFromOrigin(class, destChain)
 
 	// get the next sequence
-	sequence, _ := k.pk.GetNextSequenceSend(ctx, k.ck.GetChainName(ctx), destChain)
-
-	// class must be existed
-	_, found := k.nk.GetDenom(ctx, class)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
-	}
+	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	if awayFromOrigin {
 		// Two conversion scenarios
@@ -53,14 +60,12 @@ func (k Keeper) SendNftTransfer(
 		// Two things need to be done
 		// 1. lock nft  |send to moduleAccount
 		// 2. send packet
-		if err := k.nk.TransferOwner(ctx, class, id, "", nft.GetURI(), "",
-			sender, k.GetNftTransferModuleAddr(types.ModuleName)); err != nil {
+		if err := k.nk.TransferOwner(ctx, class, id, "", nft.GetURI(), "", sender, moudleAddr); err != nil {
 			return err
 		}
 	} else {
 		// burn nft
-		if err := k.nk.BurnNFT(ctx, class, id,
-			k.GetNftTransferModuleAddr(types.ModuleName)); err != nil {
+		if err := k.nk.BurnNFT(ctx, class, id, sender); err != nil {
 			return err
 		}
 	}
@@ -75,7 +80,7 @@ func (k Keeper) SendNftTransfer(
 		awayFromOrigin,
 	)
 
-	packet := packetType.NewPacket(packetData.GetBytes(), sequence, "", destChain, relayChain, string(routingtypes.NFT))
+	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.NFT))
 
 	// send packet
 	if err := k.pk.SendPacket(ctx, packet); err != nil {
@@ -143,8 +148,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 			}
 
 			// burn nft
-			if err := k.nk.BurnNFT(ctx, newClass, data.Id,
-				k.GetNftTransferModuleAddr(types.ModuleName)); err != nil {
+			if err := k.nk.BurnNFT(ctx, newClass, data.Id, receiver); err != nil {
 				return err
 			}
 		} else {
