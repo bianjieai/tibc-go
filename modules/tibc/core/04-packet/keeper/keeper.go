@@ -142,7 +142,7 @@ func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 	return bz
 }
 
-// SetPacketCommitment sets the packet commitment hash to the store
+// SetCleanPacketCommitment sets the packet commitment hash to the store
 func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), sdk.Uint64ToBigEndian(sequence))
