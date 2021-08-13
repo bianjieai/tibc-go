@@ -29,4 +29,5 @@ var (
 	ErrPacketReceived            = sdkerrors.Register(moduleName, 18, "packet already received")
 	ErrAcknowledgementExists     = sdkerrors.Register(moduleName, 19, "acknowledgement for packet already exists")
 	ErrInvalidChannelIdentifier  = sdkerrors.Register(moduleName, 20, "invalid channel identifier")
+	ErrInvalidCleanPacket        = sdkerrors.Register(moduleName, 21, "invalid clean packet")
 )

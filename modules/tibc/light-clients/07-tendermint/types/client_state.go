@@ -235,7 +235,6 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 	sourceChain string,
 	destChain string,
 	sequence uint64,
-	commitmentBytes []byte,
 ) error {
 	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
 	if err != nil {
@@ -247,13 +246,13 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 		return err
 	}
 
-	ackPath := commitmenttypes.NewMerklePath(host.PacketCleanPath(sourceChain, destChain, sequence))
-	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), ackPath)
+	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain))
+	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), cleanCommitmentPath)
 	if err != nil {
 		return err
 	}
 
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, packettypes.CommitAcknowledgement(commitmentBytes)); err != nil {
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, []byte{byte(sequence)}); err != nil {
 		return err
 	}
 
