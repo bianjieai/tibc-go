@@ -229,7 +229,7 @@ func (endpoint *Endpoint) CleanPacket(packet packettypes.Packet) error {
 // AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
 func (endpoint *Endpoint) RecvCleanPacket(packet packettypes.Packet) error {
 	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketCleanKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	packetKey := host.CleanPacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain())
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	recvCleanMsg := packettypes.NewMsgRecvCleanPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress())

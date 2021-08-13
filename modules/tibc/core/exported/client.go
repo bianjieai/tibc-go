@@ -95,7 +95,6 @@ type ClientState interface {
 		sourceChain string,
 		destChain string,
 		sequence uint64,
-		cleanCommitmentBytes []byte,
 	) error
 }
 

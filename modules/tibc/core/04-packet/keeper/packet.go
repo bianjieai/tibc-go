@@ -23,16 +23,14 @@ func (k Keeper) SendPacket(
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
+	targetChain := packet.GetDestChain()
 	if len(packet.GetRelayChain()) > 0 {
-		_, found := k.clientKeeper.GetClientState(ctx, packet.GetRelayChain())
-		if !found {
-			return clienttypes.ErrConsensusStateNotFound
-		}
-	} else {
-		_, found := k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
-		if !found {
-			return clienttypes.ErrConsensusStateNotFound
-		}
+		targetChain = packet.GetRelayChain()
+	}
+
+	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
+	if !found {
+		return clienttypes.ErrConsensusStateNotFound
 	}
 
 	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
@@ -152,6 +150,7 @@ func (k Keeper) RecvPacket(
 	})
 
 	if isRelay {
+		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain
 		ctx.EventManager().EmitEvents(sdk.Events{
@@ -201,6 +200,16 @@ func (k Keeper) WriteAcknowledgement(
 
 	if len(acknowledgement) == 0 {
 		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
+	targetChain := packet.GetSourceChain()
+	if len(packet.GetRelayChain()) > 0 {
+		targetChain = packet.GetRelayChain()
+	}
+
+	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
+	if !found {
+		return clienttypes.ErrConsensusStateNotFound
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
@@ -255,7 +264,18 @@ func (k Keeper) AcknowledgePacket(
 		return sdkerrors.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	targetChainName := packet.GetDestChain()
+	var isRelay bool
+	var targetChainName string
+	if packet.GetSourceChain() == k.clientKeeper.GetChainName(ctx) {
+		if len(packet.GetRelayChain()) > 0 {
+			targetChainName = packet.GetRelayChain()
+		} else {
+			targetChainName = packet.GetDestChain()
+		}
+	} else {
+		isRelay = true
+		targetChainName = packet.GetDestChain()
+	}
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, targetChainName)
 	if !found {
@@ -292,6 +312,30 @@ func (k Keeper) AcknowledgePacket(
 		),
 	})
 
+	if isRelay {
+		// set the acknowledgement so that it can be verified on the other side
+		k.SetPacketAcknowledgement(
+			ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
+			types.CommitAcknowledgement(acknowledgement),
+		)
+		// emit an event that the relayer can query for
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeWriteAck,
+				sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+				sdk.NewAttribute(types.AttributeKeyPort, packet.GetPort()),
+				sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
+				sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
+				sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
+				sdk.NewAttribute(types.AttributeKeyAck, string(acknowledgement)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			),
+		})
+	}
 	return nil
 }
 
@@ -303,36 +347,20 @@ func (k Keeper) CleanPacket(
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrSequenceSendNotFound,
-			"source chain: %s, dest chain: %s", packet.GetSourceChain(), packet.GetDestChain(),
-		)
+	if err := k.ValidateCleanPacket(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()); err != nil {
+		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
-	if packet.GetSequence() != nextSequenceSend {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence ≠ next send sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceSend,
-		)
-	}
-
-	commitment := types.CommitPacket(k.cdc, packet)
-
-	nextSequenceSend++
-	k.SetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain(), nextSequenceSend)
-	k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
+	k.SetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 	// Emit Event with Packet data along with other packet information for relayer to pick up
 	// and relay to other chain
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeSendPacket,
-			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
+			types.EventTypeSendCleanPacket,
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
-			sdk.NewAttribute(types.AttributeKeyPort, packet.GetPort()),
 			sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
 			sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
 			sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
@@ -345,7 +373,7 @@ func (k Keeper) CleanPacket(
 		),
 	})
 
-	k.Logger(ctx).Info("packet sent", "packet", fmt.Sprintf("%v", packet))
+	k.Logger(ctx).Info("clean packet sent", "packet", fmt.Sprintf("%v", packet))
 	return nil
 }
 
@@ -356,37 +384,69 @@ func (k Keeper) RecvCleanPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	commitment := types.CommitPacket(k.cdc, packet)
-	targetChainName := packet.GetSourceChain()
+	var isRelay bool
+	var targetChainName string
+	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
+		if len(packet.GetRelayChain()) > 0 {
+			targetChainName = packet.GetRelayChain()
+		} else {
+			targetChainName = packet.GetSourceChain()
+		}
+	} else {
+		isRelay = true
+		targetChainName = packet.GetSourceChain()
+	}
 	targetClient, found := k.clientKeeper.GetClientState(ctx, targetChainName)
+
 	if !found {
 		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 	}
 
-	if err := targetClient.VerifyPacketCommitment(ctx,
+	if err := targetClient.VerifyPacketCleanCommitment(ctx,
 		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
-		packet.GetSequence(), commitment,
+		packet.GetSequence(),
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
 	}
 
-	_, found = k.GetPacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence (%d) does not exist!", packet.GetSequence(),
-		)
-	}
-	found = k.HasPacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence (%d) does not exist!", packet.GetSequence(),
-		)
-	}
+	k.cleanAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.cleanReceiptBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
-	k.deletePacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	k.deletePacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	// emit an event that the relayer can query for
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRecvCleanPacket,
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+			sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
+			sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
+			sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
+	if isRelay {
+		k.SetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+		// Emit Event with Packet data along with other packet information for relayer to pick up
+		// and relay to other chain
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeSendCleanPacket,
+				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+				sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
+				sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
+				sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
+				// we only support 1-hop packets now, and that is the most important hop for a relayer
+				// (is it going to a chain I am connected to)
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			),
+		})
+	}
 	return nil
 }

@@ -1,8 +1,11 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"strconv"
 	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
@@ -102,6 +105,12 @@ func (k Keeper) deletePacketReceipt(ctx sdk.Context, sourceChain, destChain stri
 	store.Delete(host.PacketReceiptKey(sourceChain, destChain, sequence))
 }
 
+// HasPacketAcknowledgement check if the packet ack hash is already on the store
+func (k Keeper) HasPacketReceipt(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(host.PacketReceiptKey(sourceChain, destChain, sequence))
+}
+
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k Keeper) GetPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
@@ -124,6 +133,19 @@ func (k Keeper) SetPacketCommitment(ctx sdk.Context, sourceChain, destChain stri
 func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketCommitmentKey(sourceChain, destChain, sequence))
+}
+
+// GetCleanPacketCommitment gets the packet commitment hash from the store
+func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string) []byte {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(host.CleanPacketCommitmentKey(sourceChain, destChain))
+	return bz
+}
+
+// SetCleanPacketCommitment sets the packet commitment hash to the store
+func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), sdk.Uint64ToBigEndian(sequence))
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store
@@ -303,5 +325,43 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 		if cb(sourceChain, destChain, sequence, iterator.Value()) {
 			break
 		}
+	}
+}
+
+func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error {
+	store := ctx.KVStore(k.storeKey)
+	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	if sequence <= currentCleanSeq {
+		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
+	}
+	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		seq := binary.BigEndian.Uint64(iterator.Key())
+		if sequence < seq {
+			break
+		}
+		if !k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
+			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
+		}
+	}
+	return nil
+}
+
+func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.ReverseIterator(host.PacketAcknowledgementKey(sourceChain, destChain, 0), host.PacketAcknowledgementKey(sourceChain, destChain, sequence+1))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
+func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.ReverseIterator(host.PacketReceiptKey(sourceChain, destChain, 0), host.PacketReceiptKey(sourceChain, destChain, sequence+1))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
 	}
 }

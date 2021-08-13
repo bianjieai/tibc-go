@@ -27,21 +27,21 @@ var (
 
 // KVStore key prefixes for IBC
 const (
-	KeyClientState             = "clientState"
-	KeyConsensusStatePrefix    = "consensusStates"
-	KeyConnectionPrefix        = "connections"
-	KeyChannelEndPrefix        = "channelEnds"
-	KeyChannelPrefix           = "channels"
-	KeyPortPrefix              = "ports"
-	KeySequencePrefix          = "sequences"
-	KeyChannelCapabilityPrefix = "capabilities"
-	KeyNextSeqSendPrefix       = "nextSequenceSend"
-	KeyNextSeqRecvPrefix       = "nextSequenceRecv"
-	KeyNextSeqAckPrefix        = "nextSequenceAck"
-	KeyPacketCommitmentPrefix  = "commitments"
-	KeyPacketAckPrefix         = "acks"
-	KeyPacketReceiptPrefix     = "receipts"
-	KeyPacketCleanPrefix       = "cleans"
+	KeyClientState                 = "clientState"
+	KeyConsensusStatePrefix        = "consensusStates"
+	KeyConnectionPrefix            = "connections"
+	KeyChannelEndPrefix            = "channelEnds"
+	KeyChannelPrefix               = "channels"
+	KeyPortPrefix                  = "ports"
+	KeySequencePrefix              = "sequences"
+	KeyChannelCapabilityPrefix     = "capabilities"
+	KeyNextSeqSendPrefix           = "nextSequenceSend"
+	KeyNextSeqRecvPrefix           = "nextSequenceRecv"
+	KeyNextSeqAckPrefix            = "nextSequenceAck"
+	KeyPacketCommitmentPrefix      = "commitments"
+	KeyPacketAckPrefix             = "acks"
+	KeyPacketReceiptPrefix         = "receipts"
+	KeyCleanPacketCommitmentPrefix = "cleans"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
@@ -149,7 +149,7 @@ func PacketAcknowledgementPrefixPath(sourceChain, destinationChain string) strin
 
 // PacketReceiptPath defines the packet receipt store path
 func PacketReceiptPath(sourceChain, destinationChain string, sequence uint64) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, packetPath(sourceChain, destinationChain), sequencePath(sequence))
+	return fmt.Sprintf("%s/%d", PacketReceiptPrefixPath(sourceChain, destinationChain), sequence)
 }
 
 // PacketReceiptKey returns the store key of under which a packet
@@ -158,12 +158,14 @@ func PacketReceiptKey(sourceChain, destinationChain string, sequence uint64) []b
 	return []byte(PacketReceiptPath(sourceChain, destinationChain, sequence))
 }
 
-func packetPath(sourceChain, destinationChain string) string {
-	return fmt.Sprintf("%s/%s", sourceChain, destinationChain)
+// PacketReceiptKey returns the store key of under which a packet
+// receipt is stored
+func PacketReceiptPrefixPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
 }
 
-func sequencePath(sequence uint64) string {
-	return fmt.Sprintf("%s/%d", KeySequencePrefix, sequence)
+func packetPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", sourceChain, destinationChain)
 }
 
 // ICS05
@@ -174,18 +176,13 @@ func PortPath(portID string) string {
 	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
 
-// PacketCleanPath defines the packet clean store path
-func PacketCleanPath(sourceChain, destinationChain string, sequence uint64) string {
-	return fmt.Sprintf("%s/%d", PacketCleanPrefixPath(sourceChain, destinationChain), sequence)
+// CleanPacketCommitmentKey returns the store key of under which a clean packet commitment
+// is stored
+func CleanPacketCommitmentKey(sourceChain, destinationChain string) []byte {
+	return []byte(CleanPacketCommitmentPath(sourceChain, destinationChain))
 }
 
-// PacketAcknowledgementKey returns the store key of under which a packet
-// acknowledgement is stored
-func PacketCleanKey(sourceChain, destinationChain string, sequence uint64) []byte {
-	return []byte(PacketCleanPath(sourceChain, destinationChain, sequence))
-}
-
-// PacketAcknowledgementPrefixPath defines the prefix for commitments to packet data fields store path.
-func PacketCleanPrefixPath(sourceChain, destinationChain string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyPacketCleanPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
+// CleanPacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
+func CleanPacketCommitmentPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyCleanPacketCommitmentPrefix, packetPath(sourceChain, destinationChain))
 }
