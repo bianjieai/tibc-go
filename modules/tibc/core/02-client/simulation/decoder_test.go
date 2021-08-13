@@ -19,7 +19,7 @@ import (
 
 func TestDecodeStore(t *testing.T) {
 	app := simapp.Setup(false)
-	clientID := "clientidone"
+	chainName := "clientidone"
 
 	height := types.NewHeight(0, 10)
 
@@ -31,11 +31,11 @@ func TestDecodeStore(t *testing.T) {
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{
-				Key:   host.FullClientStateKey(clientID),
+				Key:   host.FullClientStateKey(chainName),
 				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
 			},
 			{
-				Key:   host.FullConsensusStateKey(clientID, height),
+				Key:   host.FullConsensusStateKey(chainName, height),
 				Value: app.IBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
 			},
 			{

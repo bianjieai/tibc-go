@@ -88,30 +88,30 @@ func (k Keeper) RecvPacket(
 ) error {
 	commitment := types.CommitPacket(k.cdc, packet)
 	var isRelay bool
-	var targetClientID string
+	var targetChainName string
 	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
-			targetClientID = packet.GetRelayChain()
+			targetChainName = packet.GetRelayChain()
 		} else {
-			targetClientID = packet.GetSourceChain()
+			targetChainName = packet.GetSourceChain()
 		}
 	} else {
 		isRelay = true
-		targetClientID = packet.GetSourceChain()
+		targetChainName = packet.GetSourceChain()
 	}
 
-	targetClient, found := k.clientKeeper.GetClientState(ctx, targetClientID)
+	targetClient, found := k.clientKeeper.GetClientState(ctx, targetChainName)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetClientID)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 	}
 
 	// verify that the counterparty did commit to sending this packet
 	if err := targetClient.VerifyPacketCommitment(ctx,
-		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), commitment,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
 	}
 
 	// check if the packet receipt has been received already for unordered channels
@@ -277,17 +277,17 @@ func (k Keeper) AcknowledgePacket(
 		targetClientID = packet.GetDestChain()
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, targetClientID)
+	clientState, found := k.clientKeeper.GetClientState(ctx, targetChainName)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetClientID)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 	}
 
 	if err := clientState.VerifyPacketAcknowledgement(ctx,
-		k.clientKeeper.ClientStore(ctx, targetClientID), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), acknowledgement,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", targetClientID)
+		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", targetChainName)
 	}
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
@@ -397,8 +397,9 @@ func (k Keeper) RecvCleanPacket(
 		targetClientID = packet.GetSourceChain()
 	}
 	targetClient, found := k.clientKeeper.GetClientState(ctx, targetClientID)
+
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetClientID)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 	}
 
 	if err := targetClient.VerifyPacketCleanCommitment(ctx,
@@ -406,7 +407,7 @@ func (k Keeper) RecvCleanPacket(
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetClientID)
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
 	}
 
 	k.cleanAcknowledgementBySeq(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
