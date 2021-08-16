@@ -142,7 +142,7 @@ type Height interface {
 // GenesisMetadata is a wrapper interface over clienttypes.GenesisMetadata
 // all clients must use the concrete implementation in types
 type GenesisMetadata interface {
-	// return store key that contains metadata without clientID-prefix
+	// return store key that contains metadata without chainName-prefix
 	GetKey() []byte
 	// returns metadata value
 	GetValue() []byte

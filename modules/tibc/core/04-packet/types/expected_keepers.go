@@ -8,9 +8,9 @@ import (
 
 // ClientKeeper expected account IBC client keeper
 type ClientKeeper interface {
-	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
-	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
+	GetClientState(ctx sdk.Context, chainName string) (exported.ClientState, bool)
+	GetClientConsensusState(ctx sdk.Context, chainName string, height exported.Height) (exported.ConsensusState, bool)
+	ClientStore(ctx sdk.Context, chainName string) sdk.KVStore
 	GetChainName(ctx sdk.Context) string
 }
 

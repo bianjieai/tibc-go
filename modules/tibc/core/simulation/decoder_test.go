@@ -19,14 +19,14 @@ func TestDecodeStore(t *testing.T) {
 	app := simapp.Setup(false)
 	dec := simulation.NewDecodeStore(*app.IBCKeeper)
 
-	clientID := "clientidone"
+	chainName := "clientidone"
 
 	clientState := &ibctmtypes.ClientState{}
 
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{
-				Key:   host.FullClientStateKey(clientID),
+				Key:   host.FullClientStateKey(chainName),
 				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
 			},
 			{

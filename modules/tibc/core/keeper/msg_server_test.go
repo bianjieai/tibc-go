@@ -450,7 +450,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// create packet commitment
@@ -471,7 +471,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// create packet commitment
@@ -492,7 +492,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// attempts to timeout the last packet sent without timing out the first packet
@@ -516,7 +516,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// attempts to timeout the last packet sent without timing out the first packet
@@ -548,7 +548,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// close counterparty channel
@@ -560,7 +560,7 @@ package keeper_test
 // 			counterpartyChannel = ibctesting.TestChannel{
 // 				PortID:               channelB.PortID,
 // 				ID:                   channelB.ID,
-// 				CounterpartyClientID: clientA,
+// 				CounterpartyChainName: clientA,
 // 			}
 
 // 			// create packet commitment
