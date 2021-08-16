@@ -35,11 +35,11 @@ var (
 type AppModuleBasic struct{}
 
 func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return nil
 }
 
 func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
-	panic("implement me")
+	return nil
 }
 
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
@@ -47,7 +47,6 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	panic("implement me")
 }
 
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -56,8 +55,6 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns no root query command for the ibc module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	//todo
-	//return cli.GetQueryCmd()
 	return nil
 }
 
@@ -108,13 +105,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-func (a AppModule) InitGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler, message json.RawMessage) []abci.ValidatorUpdate {
-	// TODO
-	return []abci.ValidatorUpdate{}
+func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	return nil
 }
 
 func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler) json.RawMessage {
-	// TODO
 	return nil
 }
 
@@ -136,9 +131,7 @@ func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	//todo
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	//types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
