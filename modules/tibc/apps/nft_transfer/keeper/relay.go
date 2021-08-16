@@ -111,13 +111,15 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		return err
 	}
 
+	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
+
 	var newClass string
 	if data.AwayFromOrigin {
 		if strings.HasPrefix(data.Class, PREFIX) {
 			// tibc/nft/A/class -> tibc/nft/A/B/class
 			// [tibc][nft][A][class] -> [tibc][nft][A][B][class]
 			classSplit := strings.Split(data.Class, "/")
-			classSplit = append(classSplit[:len(classSplit)-2], packet.SourceChain)
+			classSplit = append(classSplit[:len(classSplit)-1], append([]string{packet.SourceChain}, classSplit[len(classSplit)-1:]...)...)
 			newClass = strings.Join(classSplit, "/")
 		} else {
 			// class -> tibc/nft/A/classs
@@ -143,12 +145,12 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 				newClass = classSplit[len(classSplit)-1]
 			} else {
 				// tibc/nft/A/B/class -> tibc/nft/A/class
-				classSplit = append(classSplit[:len(classSplit)-3], classSplit[len(classSplit)-1])
+				classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
 				newClass = strings.Join(classSplit, "/")
 			}
 
-			// burn nft
-			if err := k.nk.BurnNFT(ctx, newClass, data.Id, receiver); err != nil {
+			// unlock
+			if err := k.nk.TransferOwner(ctx, newClass, data.Id, "", data.Uri, "", moudleAddr, receiver); err != nil {
 				return err
 			}
 		} else {
