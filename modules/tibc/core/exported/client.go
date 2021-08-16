@@ -95,7 +95,6 @@ type ClientState interface {
 		sourceChain string,
 		destChain string,
 		sequence uint64,
-		cleanCommitmentBytes []byte,
 	) error
 }
 
@@ -143,7 +142,7 @@ type Height interface {
 // GenesisMetadata is a wrapper interface over clienttypes.GenesisMetadata
 // all clients must use the concrete implementation in types
 type GenesisMetadata interface {
-	// return store key that contains metadata without clientID-prefix
+	// return store key that contains metadata without chainName-prefix
 	GetKey() []byte
 	// returns metadata value
 	GetValue() []byte

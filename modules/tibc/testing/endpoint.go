@@ -67,7 +67,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 }
 
 // CreateClient creates an IBC client on the endpoint. It will update the
-// clientID for the endpoint if the message is successfully executed.
+// chainName for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
 	// ensure counterparty has committed state
@@ -229,7 +229,7 @@ func (endpoint *Endpoint) CleanPacket(packet packettypes.Packet) error {
 // AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
 func (endpoint *Endpoint) RecvCleanPacket(packet packettypes.Packet) error {
 	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketCleanKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	packetKey := host.CleanPacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain())
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	recvCleanMsg := packettypes.NewMsgRecvCleanPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress())

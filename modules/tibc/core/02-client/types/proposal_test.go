@@ -29,7 +29,7 @@ func (suite *TypesTestSuite) TestMarshalCreateClientProposalProposal() {
 	clientState := path.EndpointA.GetClientState()
 	consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 	// create proposal
-	proposal, err := types.NewCreateClientProposal("update IBC client", "description", "client-id", clientState, consensusState)
+	proposal, err := types.NewCreateClientProposal("update IBC client", "description", "chain-name", clientState, consensusState)
 	suite.Require().NoError(err)
 
 	// create codec
