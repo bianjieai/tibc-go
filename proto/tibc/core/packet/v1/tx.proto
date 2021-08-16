@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 import "tibc/core/client/v1/client.proto";
 import "tibc/core/packet/v1/packet.proto";
 
-// Msg defines the ibc/channel Msg service.
+// Msg defines the tibc/packet Msg service.
 service Msg {
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);

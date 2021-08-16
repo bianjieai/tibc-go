@@ -111,7 +111,7 @@ func queryPacketAcknowledgementABCI(clientCtx client.Context, sourceChain, destC
 	}
 
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidAcknowledgement, "portID (%s), channelID (%s), sequence (%d)", sourceChain, destChain, sequence)
+		return nil, sdkerrors.Wrapf(types.ErrInvalidAcknowledgement, "source chain name  (%s), dest chain name (%s), sequence (%d)", sourceChain, destChain, sequence)
 	}
 
 	return types.NewQueryPacketAcknowledgementResponse(value, proofBz, proofHeight), nil

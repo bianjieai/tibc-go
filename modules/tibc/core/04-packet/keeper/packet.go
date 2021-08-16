@@ -12,7 +12,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// SendPacket is called by a module in order to send an IBC packet on a channel
+// SendPacket is called by a module in order to send an TIBC packet on a channel
 // end owned by the calling module to the corresponding module on the counterparty
 // chain.
 func (k Keeper) SendPacket(
@@ -78,7 +78,7 @@ func (k Keeper) SendPacket(
 	return nil
 }
 
-// RecvPacket is called by a module in order to receive & process an IBC packet
+// RecvPacket is called by a module in order to receive & process an TIBC packet
 // sent on the corresponding channel end on the counterparty chain.
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
@@ -180,7 +180,7 @@ func (k Keeper) RecvPacket(
 //
 // CONTRACT:
 //
-// 1) For synchronous execution, this function is be called in the IBC handler .
+// 1) For synchronous execution, this function is be called in the TIBC handler .
 // For async handling, it needs to be called directly by the module which originally
 // processed the packet.
 //
@@ -191,7 +191,7 @@ func (k Keeper) WriteAcknowledgement(
 	packet exported.PacketI,
 	acknowledgement []byte,
 ) error {
-	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// NOTE: TIBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
 	if k.HasPacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()) {

@@ -9,7 +9,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// RegisterInterfaces register the ibc channel submodule interfaces to protobuf
+// RegisterInterfaces register the tibc packet submodule interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(

@@ -48,7 +48,7 @@ func (msg MsgRecvPacket) ValidateBasic() error {
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which IBC does not support.
+// for amino transaction verification which TIBC does not support.
 func (msg MsgRecvPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }
@@ -117,7 +117,7 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which IBC does not support.
+// for amino transaction verification which TIBC does not support.
 func (msg MsgAcknowledgement) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }
@@ -165,7 +165,7 @@ func (msg MsgCleanPacket) ValidateBasic() error {
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which IBC does not support.
+// for amino transaction verification which TIBC does not support.
 func (msg MsgCleanPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }
@@ -224,7 +224,7 @@ func (msg MsgRecvCleanPacket) ValidateBasic() error {
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which IBC does not support.
+// for amino transaction verification which TIBC does not support.
 func (msg MsgRecvCleanPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }

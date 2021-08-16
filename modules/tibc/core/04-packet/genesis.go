@@ -1,4 +1,4 @@
-package channel
+package packet
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -7,7 +7,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
-// InitGenesis initializes the ibc channel submodule's state from a provided genesis
+// InitGenesis initializes the tibc packet submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	for _, ack := range gs.Acknowledgements {
@@ -22,18 +22,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	for _, ss := range gs.SendSequences {
 		k.SetNextSequenceSend(ctx, ss.SourceChain, ss.DestinationChain, ss.Sequence)
 	}
-	k.SetNextChannelSequence(ctx, gs.NextChannelSequence)
 }
 
-// ExportGenesis returns the ibc channel submodule's exported genesis.
+// ExportGenesis returns the tibc packet submodule's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	return types.GenesisState{
-		Acknowledgements:    k.GetAllPacketAcks(ctx),
-		Commitments:         k.GetAllPacketCommitments(ctx),
-		Receipts:            k.GetAllPacketReceipts(ctx),
-		SendSequences:       k.GetAllPacketSendSeqs(ctx),
-		RecvSequences:       k.GetAllPacketRecvSeqs(ctx),
-		AckSequences:        k.GetAllPacketAckSeqs(ctx),
-		NextChannelSequence: k.GetNextChannelSequence(ctx),
+		Acknowledgements: k.GetAllPacketAcks(ctx),
+		Commitments:      k.GetAllPacketCommitments(ctx),
+		Receipts:         k.GetAllPacketReceipts(ctx),
+		SendSequences:    k.GetAllPacketSendSeqs(ctx),
+		RecvSequences:    k.GetAllPacketRecvSeqs(ctx),
+		AckSequences:     k.GetAllPacketAckSeqs(ctx),
 	}
 }

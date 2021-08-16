@@ -8,7 +8,7 @@ import (
 
 const moduleName = host.ModuleName + "-" + SubModuleName
 
-// IBC channel sentinel errors
+// TIBC packet sentinel errors
 var (
 	ErrChannelExists             = sdkerrors.Register(moduleName, 2, "channel already exists")
 	ErrChannelNotFound           = sdkerrors.Register(moduleName, 3, "channel not found")

@@ -56,7 +56,7 @@ func NewGenesisState(
 	}
 }
 
-// DefaultGenesisState returns the ibc channel submodule's default genesis state.
+// DefaultGenesisState returns the tibc packet submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Acknowledgements:    []PacketState{},

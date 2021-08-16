@@ -34,9 +34,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // QueryPacketCommitmentRequest is the request type for the
 // Query/PacketCommitment RPC method
 type QueryPacketCommitmentRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// packet sequence
 	Sequence uint64 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -165,9 +165,9 @@ func (m *QueryPacketCommitmentResponse) GetProofHeight() types.Height {
 // QueryPacketCommitmentsRequest is the request type for the
 // Query/QueryPacketCommitments RPC method
 type QueryPacketCommitmentsRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// pagination request
 	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -294,9 +294,9 @@ func (m *QueryPacketCommitmentsResponse) GetHeight() types.Height {
 // QueryPacketReceiptRequest is the request type for the
 // Query/PacketReceipt RPC method
 type QueryPacketReceiptRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// packet sequence
 	Sequence uint64 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -425,9 +425,9 @@ func (m *QueryPacketReceiptResponse) GetProofHeight() types.Height {
 // QueryPacketAcknowledgementRequest is the request type for the
 // Query/PacketAcknowledgement RPC method
 type QueryPacketAcknowledgementRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// packet sequence
 	Sequence uint64 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -556,9 +556,9 @@ func (m *QueryPacketAcknowledgementResponse) GetProofHeight() types.Height {
 // QueryPacketAcknowledgementsRequest is the request type for the
 // Query/QueryPacketCommitments RPC method
 type QueryPacketAcknowledgementsRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// pagination request
 	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -685,9 +685,9 @@ func (m *QueryPacketAcknowledgementsResponse) GetHeight() types.Height {
 // QueryUnreceivedPacketsRequest is the request type for the
 // Query/UnreceivedPackets RPC method
 type QueryUnreceivedPacketsRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// list of packet sequences
 	PacketCommitmentSequences []uint64 `protobuf:"varint,3,rep,packed,name=packet_commitment_sequences,json=packetCommitmentSequences,proto3" json:"packet_commitment_sequences,omitempty"`
@@ -806,9 +806,9 @@ func (m *QueryUnreceivedPacketsResponse) GetHeight() types.Height {
 // QueryUnreceivedAcks is the request type for the
 // Query/UnreceivedAcks RPC method
 type QueryUnreceivedAcksRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 	// list of acknowledgement sequences
 	PacketAckSequences []uint64 `protobuf:"varint,3,rep,packed,name=packet_ack_sequences,json=packetAckSequences,proto3" json:"packet_ack_sequences,omitempty"`
@@ -927,9 +927,9 @@ func (m *QueryUnreceivedAcksResponse) GetHeight() types.Height {
 // QueryNextSequenceReceiveRequest is the request type for the
 // Query/QueryNextSequenceReceiveRequest RPC method
 type QueryNextSequenceReceiveRequest struct {
-	// port unique identifier
+	// dest chain name
 	DestChain string `protobuf:"bytes,1,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
-	// channel unique identifier
+	// source chain name
 	SourceChain string `protobuf:"bytes,2,opt,name=source_chain,json=sourceChain,proto3" json:"source_chain,omitempty"`
 }
 
@@ -1152,22 +1152,18 @@ type QueryClient interface {
 	// PacketCommitment queries a stored packet commitment hash.
 	PacketCommitment(ctx context.Context, in *QueryPacketCommitmentRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentResponse, error)
 	// PacketCommitments returns all the packet commitments hashes associated
-	// with a channel.
 	PacketCommitments(ctx context.Context, in *QueryPacketCommitmentsRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentsResponse, error)
 	// PacketReceipt queries if a given packet sequence has been received on the queried chain
 	PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error)
 	// PacketAcknowledgements returns all the packet acknowledgements associated
-	// with a channel.
 	PacketAcknowledgements(ctx context.Context, in *QueryPacketAcknowledgementsRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementsResponse, error)
-	// UnreceivedPackets returns all the unreceived IBC packets associated with a
-	// channel and sequences.
+	// UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
 	UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-	// channel and sequences.
+	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
 	UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error)
-	// NextSequenceReceive returns the next receive sequence for a given channel.
+	// NextSequenceReceive returns the next receive sequence.
 	NextSequenceReceive(ctx context.Context, in *QueryNextSequenceReceiveRequest, opts ...grpc.CallOption) (*QueryNextSequenceReceiveResponse, error)
 }
 
@@ -1256,22 +1252,18 @@ type QueryServer interface {
 	// PacketCommitment queries a stored packet commitment hash.
 	PacketCommitment(context.Context, *QueryPacketCommitmentRequest) (*QueryPacketCommitmentResponse, error)
 	// PacketCommitments returns all the packet commitments hashes associated
-	// with a channel.
 	PacketCommitments(context.Context, *QueryPacketCommitmentsRequest) (*QueryPacketCommitmentsResponse, error)
 	// PacketReceipt queries if a given packet sequence has been received on the queried chain
 	PacketReceipt(context.Context, *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(context.Context, *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error)
 	// PacketAcknowledgements returns all the packet acknowledgements associated
-	// with a channel.
 	PacketAcknowledgements(context.Context, *QueryPacketAcknowledgementsRequest) (*QueryPacketAcknowledgementsResponse, error)
-	// UnreceivedPackets returns all the unreceived IBC packets associated with a
-	// channel and sequences.
+	// UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
 	UnreceivedPackets(context.Context, *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-	// channel and sequences.
+	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
 	UnreceivedAcks(context.Context, *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error)
-	// NextSequenceReceive returns the next receive sequence for a given channel.
+	// NextSequenceReceive returns the next receive sequence.
 	NextSequenceReceive(context.Context, *QueryNextSequenceReceiveRequest) (*QueryNextSequenceReceiveResponse, error)
 }
 

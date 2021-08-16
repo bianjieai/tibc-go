@@ -10,16 +10,16 @@ import (
 )
 
 const (
-	// SubModuleName defines the IBC channels name
+	// SubModuleName defines the TIBC packets name
 	SubModuleName = "packet"
 
-	// StoreKey is the store key string for IBC channels
+	// StoreKey is the store key string for TIBC packets
 	StoreKey = SubModuleName
 
-	// RouterKey is the message route for IBC channels
+	// RouterKey is the message route for TIBC packets
 	RouterKey = SubModuleName
 
-	// QuerierRoute is the querier route for IBC channels
+	// QuerierRoute is the querier route for TIBC packets
 	QuerierRoute = SubModuleName
 
 	// KeyNextChannelSequence is the key used to store the next channel sequence in
@@ -31,7 +31,7 @@ const (
 )
 
 // FormatChannelIdentifier returns the channel identifier with the sequence appended.
-// This is a SDK specific format not enforced by IBC protocol.
+// This is a SDK specific format not enforced by TIBC protocol.
 func FormatChannelIdentifier(sequence uint64) string {
 	return fmt.Sprintf("%s%d", ChannelPrefix, sequence)
 }
