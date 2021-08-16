@@ -15,10 +15,10 @@ service Msg {
   // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
   rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
 
-  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  // CleanPacket defines a rpc handler method for MsgCleanPacket.
   rpc CleanPacket(MsgCleanPacket) returns (MsgCleanPacketResponse);
 
-  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  // RecvCleanPacket defines a rpc handler method for MsgRecvCleanPacket.
   rpc RecvCleanPacket(MsgRecvCleanPacket) returns (MsgRecvCleanPacketResponse);
 }
 

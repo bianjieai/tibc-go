@@ -29,23 +29,23 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			false,
 		},
 		{
-			"invalid port ID",
+			"invalid source chain name",
 			func() {
 				req = &types.QueryPacketCommitmentRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
-					Sequence:  0,
+					SourceChain: "",
+					DestChain:   "dest-chain",
+					Sequence:    0,
 				}
 			},
 			false,
 		},
 		{
-			"invalid channel ID",
+			"invalid destination chain name",
 			func() {
 				req = &types.QueryPacketCommitmentRequest{
-					PortId:    "test-port-id",
-					ChannelId: "",
-					Sequence:  0,
+					SourceChain: "source-chain",
+					DestChain:   "",
+					Sequence:    0,
 				}
 			},
 			false,
@@ -53,19 +53,19 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 		{"invalid sequence",
 			func() {
 				req = &types.QueryPacketCommitmentRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
-					Sequence:  0,
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+					Sequence:    0,
 				}
 			},
 			false,
 		},
-		{"channel not found",
+		{"dest chain not found",
 			func() {
 				req = &types.QueryPacketCommitmentRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
-					Sequence:  1,
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+					Sequence:    1,
 				}
 			},
 			false,
@@ -80,9 +80,9 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 				suite.chainA.App.IBCKeeper.Packetkeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expCommitment)
 
 				req = &types.QueryPacketCommitmentRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
-					Sequence:  1,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
+					Sequence:    1,
 				}
 			},
 			true,
@@ -131,8 +131,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 			"invalid ID",
 			func() {
 				req = &types.QueryPacketCommitmentsRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
+					SourceChain: "",
+					DestChain:   "dest-chain",
 				}
 			},
 			false,
@@ -143,8 +143,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 				expCommitments = []*types.PacketState{}
 
 				req = &types.QueryPacketCommitmentsRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
 					Pagination: &query.PageRequest{
 						Key:        nil,
 						Limit:      2,
@@ -169,8 +169,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 				}
 
 				req = &types.QueryPacketCommitmentsRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
 					Pagination: &query.PageRequest{
 						Key:        nil,
 						Limit:      11,
@@ -221,23 +221,23 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 			false,
 		},
 		{
-			"invalid port ID",
+			"invalid source chain name",
 			func() {
 				req = &types.QueryPacketReceiptRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
-					Sequence:  1,
+					SourceChain: "",
+					DestChain:   "dest-chain",
+					Sequence:    1,
 				}
 			},
 			false,
 		},
 		{
-			"invalid channel ID",
+			"invalid destination chain name",
 			func() {
 				req = &types.QueryPacketReceiptRequest{
-					PortId:    "test-port-id",
-					ChannelId: "",
-					Sequence:  1,
+					SourceChain: "source-chain",
+					DestChain:   "",
+					Sequence:    1,
 				}
 			},
 			false,
@@ -245,9 +245,9 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 		{"invalid sequence",
 			func() {
 				req = &types.QueryPacketReceiptRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
-					Sequence:  0,
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+					Sequence:    0,
 				}
 			},
 			false,
@@ -260,9 +260,9 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 				suite.chainA.App.IBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				req = &types.QueryPacketReceiptRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
-					Sequence:  3,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
+					Sequence:    3,
 				}
 				expReceived = false
 			},
@@ -277,9 +277,9 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 				suite.chainA.App.IBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				req = &types.QueryPacketReceiptRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
-					Sequence:  1,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
+					Sequence:    1,
 				}
 				expReceived = true
 			},
@@ -326,23 +326,23 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			false,
 		},
 		{
-			"invalid port ID",
+			"invalid source chain name",
 			func() {
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
-					Sequence:  0,
+					SourceChain: "",
+					DestChain:   "dest-chain",
+					Sequence:    0,
 				}
 			},
 			false,
 		},
 		{
-			"invalid channel ID",
+			"invalid destination chain name",
 			func() {
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    "test-port-id",
-					ChannelId: "",
-					Sequence:  0,
+					SourceChain: "source-chain",
+					DestChain:   "",
+					Sequence:    0,
 				}
 			},
 			false,
@@ -350,19 +350,19 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 		{"invalid sequence",
 			func() {
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
-					Sequence:  0,
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+					Sequence:    0,
 				}
 			},
 			false,
 		},
-		{"channel not found",
+		{"dest chain not found",
 			func() {
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
-					Sequence:  1,
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+					Sequence:    1,
 				}
 			},
 			false,
@@ -377,9 +377,9 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 				suite.chainA.App.IBCKeeper.Packetkeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expAck)
 
 				req = &types.QueryPacketAcknowledgementRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
-					Sequence:  1,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
+					Sequence:    1,
 				}
 			},
 			true,
@@ -428,8 +428,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 			"invalid ID",
 			func() {
 				req = &types.QueryPacketAcknowledgementsRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
+					SourceChain: "",
+					DestChain:   "dest-chain",
 				}
 			},
 			false,
@@ -440,8 +440,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				expAcknowledgements = []*types.PacketState{}
 
 				req = &types.QueryPacketAcknowledgementsRequest{
-					PortId:    "test-port-id",
-					ChannelId: "test-channel-id",
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
 					Pagination: &query.PageRequest{
 						Key:        nil,
 						Limit:      2,
@@ -466,8 +466,8 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				}
 
 				req = &types.QueryPacketAcknowledgementsRequest{
-					PortId:    path.EndpointA.ChainName,
-					ChannelId: path.EndpointB.ChainName,
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
 					Pagination: &query.PageRequest{
 						Key:        nil,
 						Limit:      11,
@@ -518,21 +518,21 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			false,
 		},
 		{
-			"invalid port ID",
+			"invalid source chain name",
 			func() {
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
+					SourceChain: "",
+					DestChain:   "dest-chain",
 				}
 			},
 			false,
 		},
 		{
-			"invalid channel ID",
+			"invalid destination chain name",
 			func() {
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:    "test-port-id",
-					ChannelId: "",
+					SourceChain: "source-chain",
+					DestChain:   "",
 				}
 			},
 			false,
@@ -541,8 +541,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			"invalid seq",
 			func() {
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:                    "test-port-id",
-					ChannelId:                 "test-channel-id",
+					SourceChain:               "source-chain",
+					DestChain:                 "dest-chain",
 					PacketCommitmentSequences: []uint64{0},
 				}
 			},
@@ -558,8 +558,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 
 				expSeq = []uint64{1}
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:                    path.EndpointA.ChainName,
-					ChannelId:                 path.EndpointB.ChainName,
+					SourceChain:               path.EndpointA.ChainName,
+					DestChain:                 path.EndpointB.ChainName,
 					PacketCommitmentSequences: []uint64{1},
 				}
 			},
@@ -575,8 +575,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 
 				expSeq = []uint64{}
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:                    path.EndpointA.ChainName,
-					ChannelId:                 path.EndpointB.ChainName,
+					SourceChain:               path.EndpointA.ChainName,
+					DestChain:                 path.EndpointB.ChainName,
 					PacketCommitmentSequences: []uint64{1},
 				}
 			},
@@ -603,8 +603,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 				}
 
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:                    path.EndpointA.ChainName,
-					ChannelId:                 path.EndpointB.ChainName,
+					SourceChain:               path.EndpointA.ChainName,
+					DestChain:                 path.EndpointB.ChainName,
 					PacketCommitmentSequences: packetCommitments,
 				}
 			},
@@ -651,21 +651,21 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 			false,
 		},
 		{
-			"invalid port ID",
+			"invalid source chain name",
 			func() {
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:    "",
-					ChannelId: "test-channel-id",
+					SourceChain: "",
+					DestChain:   "dest-chain",
 				}
 			},
 			false,
 		},
 		{
-			"invalid channel ID",
+			"invalid destination chain name",
 			func() {
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:    "test-port-id",
-					ChannelId: "",
+					SourceChain: "source-chain",
+					DestChain:   "",
 				}
 			},
 			false,
@@ -674,8 +674,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 			"invalid seq",
 			func() {
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:             "test-port-id",
-					ChannelId:          "test-channel-id",
+					SourceChain:        "source-chain",
+					DestChain:          "dest-chain",
 					PacketAckSequences: []uint64{0},
 				}
 			},
@@ -691,8 +691,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 
 				expSeq = []uint64{1}
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:             path.EndpointA.ChainName,
-					ChannelId:          path.EndpointB.ChainName,
+					SourceChain:        path.EndpointA.ChainName,
+					DestChain:          path.EndpointB.ChainName,
 					PacketAckSequences: []uint64{1},
 				}
 			},
@@ -706,8 +706,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 
 				expSeq = []uint64{}
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:             path.EndpointA.ChainName,
-					ChannelId:          path.EndpointB.ChainName,
+					SourceChain:        path.EndpointA.ChainName,
+					DestChain:          path.EndpointB.ChainName,
 					PacketAckSequences: []uint64{1},
 				}
 			},
@@ -733,8 +733,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 				}
 
 				req = &types.QueryUnreceivedAcksRequest{
-					PortId:             path.EndpointA.ChainName,
-					ChannelId:          path.EndpointB.ChainName,
+					SourceChain:        path.EndpointA.ChainName,
+					DestChain:          path.EndpointB.ChainName,
 					PacketAckSequences: packetAcks,
 				}
 			},

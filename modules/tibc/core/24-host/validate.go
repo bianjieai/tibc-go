@@ -72,14 +72,14 @@ func ConnectionIdentifierValidator(id string) error {
 // ChannelIdentifierValidator is the default validator function for Channel identifiers.
 // A valid Identifier must be between 8-64 characters and only contain alphanumeric and some allowed
 // special characters (see IsValidID).
-func ChannelIdentifierValidator(id string) error {
+func DestChainValidator(id string) error {
 	return defaultIdentifierValidator(id, 8, DefaultMaxCharacterLength)
 }
 
-// PortIdentifierValidator is the default validator function for Port identifiers.
+// SourceChainValidator is the default validator function for SourceChain name.
 // A valid Identifier must be between 2-64 characters and only contain alphanumeric and some allowed
 // special characters (see IsValidID).
-func PortIdentifierValidator(id string) error {
+func SourceChainValidator(id string) error {
 	return defaultIdentifierValidator(id, 2, DefaultMaxCharacterLength)
 }
 

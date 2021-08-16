@@ -41,9 +41,9 @@ func GetCmdQueryPacketCommitments() *cobra.Command {
 			}
 
 			req := &types.QueryPacketCommitmentsRequest{
-				PortId:     args[0],
-				ChannelId:  args[1],
-				Pagination: pageReq,
+				SourceChain: args[0],
+				DestChain:   args[1],
+				Pagination:  pageReq,
 			}
 
 			res, err := queryClient.PacketCommitments(context.Background(), req)
@@ -209,8 +209,8 @@ The return value represents:
 			}
 
 			req := &types.QueryUnreceivedPacketsRequest{
-				PortId:                    args[0],
-				ChannelId:                 args[1],
+				SourceChain:               args[0],
+				DestChain:                 args[1],
 				PacketCommitmentSequences: seqs,
 			}
 
@@ -259,8 +259,8 @@ The return value represents:
 			}
 
 			req := &types.QueryUnreceivedAcksRequest{
-				PortId:             args[0],
-				ChannelId:          args[1],
+				SourceChain:        args[0],
+				DestChain:          args[1],
 				PacketAckSequences: seqs,
 			}
 
