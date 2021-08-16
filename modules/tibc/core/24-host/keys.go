@@ -29,7 +29,6 @@ var (
 const (
 	KeyClientState                 = "clientState"
 	KeyConsensusStatePrefix        = "consensusStates"
-	KeyChannelEndPrefix            = "channelEnds"
 	KeyPortPrefix                  = "ports"
 	KeySequencePrefix              = "sequences"
 	KeyNextSeqSendPrefix           = "nextSequenceSend"
