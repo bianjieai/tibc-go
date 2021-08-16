@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
@@ -16,12 +15,6 @@ import (
 // Value to the corresponding channel type.
 func NewDecodeStore(cdc codec.BinaryMarshaler, kvA, kvB kv.Pair) (string, bool) {
 	switch {
-	case bytes.HasPrefix(kvA.Key, []byte(host.KeyChannelEndPrefix)):
-		var channelA, channelB types.Packet
-		cdc.MustUnmarshalBinaryBare(kvA.Value, &channelA)
-		cdc.MustUnmarshalBinaryBare(kvB.Value, &channelB)
-		return fmt.Sprintf("Channel A: %v\nChannel B: %v", channelA, channelB), true
-
 	case bytes.HasPrefix(kvA.Key, []byte(host.KeyNextSeqSendPrefix)):
 		seqA := sdk.BigEndianToUint64(kvA.Value)
 		seqB := sdk.BigEndianToUint64(kvB.Value)

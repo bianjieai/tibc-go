@@ -6,7 +6,7 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
-// IBC channel events
+// TIBC packet events
 const (
 	AttributeKeyConnectionID       = "connection_id"
 	AttributeKeyPortID             = "port_id"
@@ -34,7 +34,7 @@ const (
 	AttributeKeyConnection       = "packet_connection"
 )
 
-// IBC channel events vars
+// tibc packet events vars
 var (
 	AttributeValueCategory = fmt.Sprintf("%s_%s", host.ModuleName, SubModuleName)
 )

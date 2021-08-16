@@ -56,7 +56,7 @@ func NewGenesisState(
 	}
 }
 
-// DefaultGenesisState returns the ibc channel submodule's default genesis state.
+// DefaultGenesisState returns the tibc packet submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Acknowledgements:    []PacketState{},
@@ -125,11 +125,11 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
-func validateGenFields(portID, channelID string, sequence uint64) error {
-	if err := host.PortIdentifierValidator(portID); err != nil {
+func validateGenFields(sourceChain, destChain string, sequence uint64) error {
+	if err := host.SourceChainValidator(sourceChain); err != nil {
 		return fmt.Errorf("invalid port Id: %w", err)
 	}
-	if err := host.ChannelIdentifierValidator(channelID); err != nil {
+	if err := host.DestChainValidator(destChain); err != nil {
 		return fmt.Errorf("invalid channel Id: %w", err)
 	}
 	if sequence == 0 {

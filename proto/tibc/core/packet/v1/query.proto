@@ -14,61 +14,57 @@ service Query {
   // PacketCommitment queries a stored packet commitment hash.
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get =
-        "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}";
+        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/{sequence}";
   }
 
   // PacketCommitments returns all the packet commitments hashes associated
-  // with a channel.
   rpc PacketCommitments(QueryPacketCommitmentsRequest) returns (QueryPacketCommitmentsResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments";
+    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments";
   }
 
   // PacketReceipt queries if a given packet sequence has been received on the queried chain
   rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
     option (google.api.http).get =
-        "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}";
+        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_receipts/{sequence}";
   }
 
   // PacketAcknowledgement queries a stored packet acknowledgement hash.
   rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest) returns (QueryPacketAcknowledgementResponse) {
     option (google.api.http).get =
-        "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}";
+        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acks/{sequence}";
   }
 
   // PacketAcknowledgements returns all the packet acknowledgements associated
-  // with a channel.
   rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest) returns (QueryPacketAcknowledgementsResponse) {
     option (google.api.http).get =
-        "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements";
+        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acknowledgements";
   }
 
-  // UnreceivedPackets returns all the unreceived IBC packets associated with a
-  // channel and sequences.
+  // UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/"
+    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
                                    "{packet_commitment_sequences}/unreceived_packets";
   }
 
-  // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
-  // channel and sequences.
+  // UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/"
+    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
                                    "{packet_ack_sequences}/unreceived_acks";
   }
 
-  // NextSequenceReceive returns the next receive sequence for a given channel.
+  // NextSequenceReceive returns the next receive sequence.
   rpc NextSequenceReceive(QueryNextSequenceReceiveRequest) returns (QueryNextSequenceReceiveResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/next_sequence";
+    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/next_sequence";
   }
 }
 
 // QueryPacketCommitmentRequest is the request type for the
 // Query/PacketCommitment RPC method
 message QueryPacketCommitmentRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // packet sequence
   uint64 sequence = 3;
 }
@@ -88,10 +84,10 @@ message QueryPacketCommitmentResponse {
 // QueryPacketCommitmentsRequest is the request type for the
 // Query/QueryPacketCommitments RPC method
 message QueryPacketCommitmentsRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
@@ -109,10 +105,10 @@ message QueryPacketCommitmentsResponse {
 // QueryPacketReceiptRequest is the request type for the
 // Query/PacketReceipt RPC method
 message QueryPacketReceiptRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // packet sequence
   uint64 sequence = 3;
 }
@@ -132,10 +128,10 @@ message QueryPacketReceiptResponse {
 // QueryPacketAcknowledgementRequest is the request type for the
 // Query/PacketAcknowledgement RPC method
 message QueryPacketAcknowledgementRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // packet sequence
   uint64 sequence = 3;
 }
@@ -155,10 +151,10 @@ message QueryPacketAcknowledgementResponse {
 // QueryPacketAcknowledgementsRequest is the request type for the
 // Query/QueryPacketCommitments RPC method
 message QueryPacketAcknowledgementsRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
@@ -176,10 +172,10 @@ message QueryPacketAcknowledgementsResponse {
 // QueryUnreceivedPacketsRequest is the request type for the
 // Query/UnreceivedPackets RPC method
 message QueryUnreceivedPacketsRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // list of packet sequences
   repeated uint64 packet_commitment_sequences = 3;
 }
@@ -196,10 +192,10 @@ message QueryUnreceivedPacketsResponse {
 // QueryUnreceivedAcks is the request type for the
 // Query/UnreceivedAcks RPC method
 message QueryUnreceivedAcksRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
   // list of acknowledgement sequences
   repeated uint64 packet_ack_sequences = 3;
 }
@@ -216,10 +212,10 @@ message QueryUnreceivedAcksResponse {
 // QueryNextSequenceReceiveRequest is the request type for the
 // Query/QueryNextSequenceReceiveRequest RPC method
 message QueryNextSequenceReceiveRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // dest chain name
+  string dest_chain = 1;
+  // source chain name
+  string source_chain = 2;
 }
 
 // QuerySequenceResponse is the request type for the
