@@ -17,7 +17,7 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
-// Keeper defines the IBC channel keeper
+// Keeper defines the TIBC packet keeper
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
@@ -28,7 +28,7 @@ type Keeper struct {
 	routingKeeper types.RoutingKeeper
 }
 
-// NewKeeper creates a new IBC channel Keeper instance
+// NewKeeper creates a new tibc packet Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey,
 	clientKeeper types.ClientKeeper,
@@ -45,24 +45,6 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
-}
-
-// GetNextChannelSequence gets the next channel sequence from the store.
-func (k Keeper) GetNextChannelSequence(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get([]byte(types.KeyNextChannelSequence))
-	if bz == nil {
-		panic("next channel sequence is nil")
-	}
-
-	return sdk.BigEndianToUint64(bz)
-}
-
-// SetNextChannelSequence sets the next channel sequence to the store.
-func (k Keeper) SetNextChannelSequence(ctx sdk.Context, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	bz := sdk.Uint64ToBigEndian(sequence)
-	store.Set([]byte(types.KeyNextChannelSequence), bz)
 }
 
 // GetNextSequenceSend gets a channel's next send sequence from the store

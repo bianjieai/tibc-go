@@ -409,9 +409,9 @@ type MsgClient interface {
 	RecvPacket(ctx context.Context, in *MsgRecvPacket, opts ...grpc.CallOption) (*MsgRecvPacketResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(ctx context.Context, in *MsgAcknowledgement, opts ...grpc.CallOption) (*MsgAcknowledgementResponse, error)
-	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+	// CleanPacket defines a rpc handler method for MsgCleanPacket.
 	CleanPacket(ctx context.Context, in *MsgCleanPacket, opts ...grpc.CallOption) (*MsgCleanPacketResponse, error)
-	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+	// RecvCleanPacket defines a rpc handler method for MsgRecvCleanPacket.
 	RecvCleanPacket(ctx context.Context, in *MsgRecvCleanPacket, opts ...grpc.CallOption) (*MsgRecvCleanPacketResponse, error)
 }
 
@@ -465,9 +465,9 @@ type MsgServer interface {
 	RecvPacket(context.Context, *MsgRecvPacket) (*MsgRecvPacketResponse, error)
 	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 	Acknowledgement(context.Context, *MsgAcknowledgement) (*MsgAcknowledgementResponse, error)
-	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+	// CleanPacket defines a rpc handler method for MsgCleanPacket.
 	CleanPacket(context.Context, *MsgCleanPacket) (*MsgCleanPacketResponse, error)
-	// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+	// RecvCleanPacket defines a rpc handler method for MsgRecvCleanPacket.
 	RecvCleanPacket(context.Context, *MsgRecvCleanPacket) (*MsgRecvCleanPacketResponse, error)
 }
 

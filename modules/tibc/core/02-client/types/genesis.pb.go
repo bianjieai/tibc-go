@@ -109,7 +109,7 @@ func (m *GenesisState) GetRelayers() []IdentifiedRelayers {
 // GenesisMetadata defines the genesis type for metadata that clients may return
 // with ExportMetadata
 type GenesisMetadata struct {
-	// store key of metadata without clientID-prefix
+	// store key of metadata without chainName-prefix
 	Key []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// metadata value
 	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`

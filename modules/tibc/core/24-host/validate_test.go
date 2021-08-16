@@ -34,8 +34,8 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 
 		err := ClientIdentifierValidator(tc.id)
 		err1 := ConnectionIdentifierValidator(tc.id)
-		err2 := ChannelIdentifierValidator(tc.id)
-		err3 := PortIdentifierValidator(tc.id)
+		err2 := DestChainValidator(tc.id)
+		err3 := SourceChainValidator(tc.id)
 		if tc.expPass {
 			require.NoError(t, err, tc.msg)
 			require.NoError(t, err1, tc.msg)

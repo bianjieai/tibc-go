@@ -6,7 +6,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// ClientKeeper expected account IBC client keeper
+// ClientKeeper expected account TIBC client keeper
 type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, chainName string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, chainName string, height exported.Height) (exported.ConsensusState, bool)
@@ -14,7 +14,7 @@ type ClientKeeper interface {
 	GetChainName(ctx sdk.Context) string
 }
 
-// PortKeeper expected account IBC port keeper
+// PortKeeper expected account TIBC port keeper
 type RoutingKeeper interface {
 	Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool
 }
