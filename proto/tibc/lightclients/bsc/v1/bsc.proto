@@ -4,6 +4,7 @@ package tibc.lightclients.bsc.v1;
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/light-clients/08-bsc/types";
 
 import "gogoproto/gogo.proto";
+import "tibc/core/client/v1/client.proto";
 
 // Header defines the bsc client consensus Header.
 message Header {
@@ -17,7 +18,7 @@ message Header {
   bytes receipt_hash = 6;
   bytes bloom = 7;
   uint64 difficulty = 8;
-  uint64 number = 9;
+  tibc.core.client.v1.Height height = 9;
   uint64 gas_limit = 10;
   uint64 has_used = 11;
   uint64 time = 12;
@@ -36,7 +37,7 @@ message ClientState {
   uint64 epoch = 3;
   uint64 period = 4;
   repeated bytes validators = 5;
-  repeated uint64 recent_heights = 6;
+  repeated tibc.core.client.v1.Height recent_heights = 6;
   bytes contract_address = 7;
   uint64 trusting_period = 8;
 }
@@ -48,7 +49,7 @@ message ConsensusState {
   // timestamp that corresponds to the block height in which the ConsensusState
   // was stored.
   uint64 timestamp = 1;
-  uint64 number = 2;
+  tibc.core.client.v1.Height number = 2;
   bytes root = 3;
 }
 
