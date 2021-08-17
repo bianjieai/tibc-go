@@ -16,7 +16,7 @@ type KeeperTestSuite struct {
 	suite.Suite
 
 	coordinator *ibctesting.Coordinator
-	chain *ibctesting.TestChain
+	chain       *ibctesting.TestChain
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

@@ -279,7 +279,6 @@ The return value represents:
 	return cmd
 }
 
-
 // GetCmdQueryCleanPacketCommitment defines the command to query a packet commitment
 func GetCmdQueryCleanPacketCommitment() *cobra.Command {
 	cmd := &cobra.Command{

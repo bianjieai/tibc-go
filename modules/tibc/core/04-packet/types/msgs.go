@@ -146,7 +146,7 @@ func NewMsgCleanPacket(
 ) *MsgCleanPacket {
 	return &MsgCleanPacket{
 		CleanPacket: packet,
-		Signer: signer.String(),
+		Signer:      signer.String(),
 	}
 }
 
@@ -195,7 +195,7 @@ func NewMsgRecvCleanPacket(
 	signer sdk.AccAddress,
 ) *MsgRecvCleanPacket {
 	return &MsgRecvCleanPacket{
-		CleanPacket:          cleanPacket,
+		CleanPacket:     cleanPacket,
 		ProofCommitment: proofCommitment,
 		ProofHeight:     proofHeight,
 		Signer:          signer.String(),

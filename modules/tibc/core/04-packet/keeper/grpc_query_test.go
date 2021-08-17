@@ -762,10 +762,9 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 }
 
-
 func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
 	var (
-		req           *types.QueryCleanPacketCommitmentRequest
+		req *types.QueryCleanPacketCommitmentRequest
 	)
 
 	testCases := []struct {
@@ -844,4 +843,3 @@ func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
 		})
 	}
 }
-
