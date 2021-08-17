@@ -18,9 +18,9 @@ message Header {
   bytes receipt_hash = 6;
   bytes bloom = 7;
   uint64 difficulty = 8;
-  tibc.core.client.v1.Height height = 9;
+  tibc.core.client.v1.Height height = 9 [ (gogoproto.nullable) = false ];
   uint64 gas_limit = 10;
-  uint64 has_used = 11;
+  uint64 gas_used = 11;
   uint64 time = 12;
   bytes extra = 13;
   bytes mix_digest = 14;
@@ -34,13 +34,20 @@ message ClientState {
 
   Header header = 1 [ (gogoproto.nullable) = false ];
   uint64 chain_id = 2;
-  uint64 epoch = 3;
-  uint64 period = 4;
+  uint64 epoch_period = 3;
+  uint64 block_inteval = 4;
   repeated bytes validators = 5;
-  repeated tibc.core.client.v1.Height recent_heights = 6;
+  repeated Singer recent_singers = 6 [ (gogoproto.nullable) = false ];
   bytes contract_address = 7;
   uint64 trusting_period = 8;
 }
+
+message Singer {
+  tibc.core.client.v1.Height height = 1 [ (gogoproto.nullable) = false ];
+  bytes validator = 2;
+}
+
+message ValidatorSet { repeated bytes validators = 1; }
 
 // ConsensusState defines the consensus state from bsc.
 message ConsensusState {
@@ -49,7 +56,7 @@ message ConsensusState {
   // timestamp that corresponds to the block height in which the ConsensusState
   // was stored.
   uint64 timestamp = 1;
-  tibc.core.client.v1.Height number = 2;
+  tibc.core.client.v1.Height number = 2 [ (gogoproto.nullable) = false ];
   bytes root = 3;
 }
 

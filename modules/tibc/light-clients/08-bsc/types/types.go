@@ -1,23 +1,14 @@
 package types
 
 import (
+	"bytes"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
-
-const (
-	// Fixed number of extra-data prefix bytes reserved for signer vanity
-	extraVanity = 32
-
-	// Fixed number of extra-data suffix bytes reserved for signer seal
-	extraSeal = 65
-
-	// AddressLength is the expected length of the address
-	AddressLength = 20
 )
 
 func ParseValidators(validatorsBytes []byte) ([][]byte, error) {
 	if len(validatorsBytes)%AddressLength != 0 {
-		return nil, sdkerrors.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) == 0")
+		return nil, sdkerrors.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) should bz zero")
 	}
 	n := len(validatorsBytes) / AddressLength
 	result := make([][]byte, n)
@@ -27,4 +18,19 @@ func ParseValidators(validatorsBytes []byte) ([][]byte, error) {
 		result[i] = address
 	}
 	return result, nil
+}
+
+func (vs ValidatorSet) Has(validator []byte) bool {
+	for _, v := range vs.Validators {
+		if bytes.Equal(v, validator) {
+			return true
+		}
+	}
+	return false
+}
+
+func (vs ValidatorSet) inturn(height uint64, validator []byte) bool {
+	validators := vs.Validators
+	offset := (height + 1) % uint64(len(validators))
+	return bytes.Equal(validators[offset], validator)
 }
