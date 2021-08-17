@@ -5,6 +5,7 @@ import (
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // ClientState implements the IBC QueryServer interface
@@ -62,7 +63,12 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *packettypes.QueryUnreceiv
 	return q.Packetkeeper.UnreceivedAcks(c, req)
 }
 
-// NextSequenceReceive implements the IBC QueryServer interface
-func (q Keeper) NextSequenceReceive(c context.Context, req *packettypes.QueryNextSequenceReceiveRequest) (*packettypes.QueryNextSequenceReceiveResponse, error) {
-	return q.Packetkeeper.NextSequenceReceive(c, req)
+// CleanPacketCommitment implements the IBC QueryServer interface
+func (q Keeper) CleanPacketCommitment(c context.Context, req *packettypes.QueryCleanPacketCommitmentRequest) (*packettypes.QueryCleanPacketCommitmentResponse, error) {
+	return q.Packetkeeper.CleanPacketCommitment(c, req)
+}
+
+// RoutingRules implements the IBC QueryServer interface
+func (q Keeper) RoutingRules(c context.Context, req *routingtypes.QueryRoutingRulesRequest) (*routingtypes.QueryRoutingRulesResponse, error) {
+	return q.RoutingKeeper.RoutingRules(c, req)
 }

@@ -58,7 +58,7 @@ message MsgCleanPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  Packet packet = 1 [(gogoproto.nullable) = false];
+  CleanPacket clean_packet = 1 [(gogoproto.nullable) = false];
   string signer = 2;
 }
 
@@ -71,7 +71,7 @@ message MsgRecvCleanPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  Packet packet = 1 [(gogoproto.nullable) = false];
+  CleanPacket clean_packet = 1 [(gogoproto.nullable) = false];
   bytes  proof_commitment = 2 [(gogoproto.moretags) = "yaml:\"proof_commitment\""];
   tibc.core.client.v1.Height proof_height = 3
   [(gogoproto.moretags) = "yaml:\"proof_height\"", (gogoproto.nullable) = false];

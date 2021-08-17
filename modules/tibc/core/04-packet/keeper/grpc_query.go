@@ -19,7 +19,7 @@ import (
 
 var _ types.QueryServer = (*Keeper)(nil)
 
-// PacketCommitment implements the Query/PacketCommitment gRPC method
+//PacketCommitment implements the Query/PacketCommitment gRPC method
 func (q Keeper) PacketCommitment(c context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -267,6 +267,27 @@ func (q Keeper) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcks
 		Sequences: unreceivedSequences,
 		Height:    selfHeight,
 	}, nil
+}
+
+//CleanPacketCommitment implements the Query/PacketCommitment gRPC method
+func (q Keeper) CleanPacketCommitment(c context.Context, req *types.QueryCleanPacketCommitmentRequest) (*types.QueryCleanPacketCommitmentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := validategRPCRequest(req.SourceChain, req.DestChain); err != nil {
+		return nil, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	commitmentBz := q.GetCleanPacketCommitment(ctx, req.SourceChain, req.DestChain)
+	if len(commitmentBz) == 0 {
+		return nil, status.Error(codes.NotFound, "packet commitment hash not found")
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	return types.NewQueryCleanPacketCommitmentResponse(commitmentBz, nil, selfHeight), nil
 }
 
 func validategRPCRequest(sourceChain, destChain string) error {

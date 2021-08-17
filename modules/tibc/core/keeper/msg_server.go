@@ -134,7 +134,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPacket) (*packettypes.MsgCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := k.Packetkeeper.CleanPacket(ctx, msg.Packet); err != nil {
+	if err := k.Packetkeeper.CleanPacket(ctx, msg.CleanPacket); err != nil {
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
@@ -143,10 +143,9 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 			[]string{"tx", "msg", "ibc", msg.Type()},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
-				telemetry.NewLabel(coretypes.LabelSourceChain, msg.Packet.SourceChain),
-				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.Packet.DestinationChain),
-				telemetry.NewLabel(coretypes.LabelRelayChain, msg.Packet.RelayChain),
+				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
+				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.CleanPacket.DestinationChain),
+				telemetry.NewLabel(coretypes.LabelRelayChain, msg.CleanPacket.RelayChain),
 			},
 		)
 	}()
@@ -154,10 +153,10 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 	return &packettypes.MsgCleanPacketResponse{}, nil
 }
 
-// Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+// RecvCleanPacket defines a rpc handler method for MsgAcknowledgement.
 func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvCleanPacket) (*packettypes.MsgRecvCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := k.Packetkeeper.RecvCleanPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
+	if err := k.Packetkeeper.RecvCleanPacket(ctx, msg.CleanPacket, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 	}
 
@@ -166,10 +165,9 @@ func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvC
 			[]string{"tx", "msg", "ibc", msg.Type()},
 			1,
 			[]metrics.Label{
-				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
-				telemetry.NewLabel(coretypes.LabelSourceChain, msg.Packet.SourceChain),
-				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.Packet.DestinationChain),
-				telemetry.NewLabel(coretypes.LabelRelayChain, msg.Packet.RelayChain),
+				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
+				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.CleanPacket.DestinationChain),
+				telemetry.NewLabel(coretypes.LabelRelayChain, msg.CleanPacket.RelayChain),
 			},
 		)
 	}()

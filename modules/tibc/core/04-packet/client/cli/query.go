@@ -278,3 +278,37 @@ The return value represents:
 
 	return cmd
 }
+
+// GetCmdQueryCleanPacketCommitment defines the command to query a packet commitment
+func GetCmdQueryCleanPacketCommitment() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "clean-packet-commitment [source-chain] [dest-chain]",
+		Short: "Query the clean packet commitment",
+		Long:  "Query the clean packet commitment",
+		Example: fmt.Sprintf(
+			"%s query %s %s clean-packet-commitment [source-chain] [dest-chain]", version.AppName, host.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			sourceChain := args[0]
+			destChain := args[1]
+			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
+
+			res, err := utils.QueryCleanPacketCommitment(clientCtx, sourceChain, destChain, prove)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}

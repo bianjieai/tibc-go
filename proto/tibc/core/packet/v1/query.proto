@@ -14,52 +14,53 @@ service Query {
   // PacketCommitment queries a stored packet commitment hash.
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get =
-        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/{sequence}";
   }
 
   // PacketCommitments returns all the packet commitments hashes associated
   rpc PacketCommitments(QueryPacketCommitmentsRequest) returns (QueryPacketCommitmentsResponse) {
-    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments";
+    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments";
   }
 
   // PacketReceipt queries if a given packet sequence has been received on the queried chain
   rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
     option (google.api.http).get =
-        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_receipts/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_receipts/{sequence}";
   }
 
   // PacketAcknowledgement queries a stored packet acknowledgement hash.
   rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest) returns (QueryPacketAcknowledgementResponse) {
     option (google.api.http).get =
-        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acks/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acks/{sequence}";
   }
 
   // PacketAcknowledgements returns all the packet acknowledgements associated
   rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest) returns (QueryPacketAcknowledgementsResponse) {
     option (google.api.http).get =
-        "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acknowledgements";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acknowledgements";
   }
 
   // UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
-    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
+    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
                                    "{packet_commitment_sequences}/unreceived_packets";
   }
 
   // UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
-    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
+    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
                                    "{packet_ack_sequences}/unreceived_acks";
   }
 
-  // NextSequenceReceive returns the next receive sequence.
-  rpc NextSequenceReceive(QueryNextSequenceReceiveRequest) returns (QueryNextSequenceReceiveResponse) {
-    option (google.api.http).get = "/ibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/next_sequence";
+  // CleanPacketCommitment queries a stored packet commitment hash.
+  rpc CleanPacketCommitment(QueryCleanPacketCommitmentRequest) returns (QueryCleanPacketCommitmentResponse) {
+    option (google.api.http).get =
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/clean_packet_commitments";
   }
 }
 
 // QueryPacketCommitmentRequest is the request type for the
-// Query/PacketCommitment RPC method
+// QueryPacketCommitment RPC method
 message QueryPacketCommitmentRequest {
   // dest chain name
   string dest_chain = 1;
@@ -209,20 +210,21 @@ message QueryUnreceivedAcksResponse {
   tibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
 }
 
-// QueryNextSequenceReceiveRequest is the request type for the
-// Query/QueryNextSequenceReceiveRequest RPC method
-message QueryNextSequenceReceiveRequest {
+// QueryCleanPacketCommitmentRequest is the request type for the
+// QueryCleanPacketCommitment RPC method
+message QueryCleanPacketCommitmentRequest {
   // dest chain name
   string dest_chain = 1;
   // source chain name
   string source_chain = 2;
 }
 
-// QuerySequenceResponse is the request type for the
-// Query/QueryNextSequenceReceiveResponse RPC method
-message QueryNextSequenceReceiveResponse {
-  // next sequence receive number
-  uint64 next_sequence_receive = 1;
+// QueryCleanPacketCommitmentResponse defines the client query response for a packet
+// which also includes a proof and the height from which the proof was
+// retrieved
+message QueryCleanPacketCommitmentResponse {
+  // packet associated with the request fields
+  bytes commitment = 1;
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
