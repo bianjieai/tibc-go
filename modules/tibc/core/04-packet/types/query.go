@@ -47,3 +47,14 @@ func NewQueryNextSequenceReceiveResponse(
 		ProofHeight:         height,
 	}
 }
+
+// NewQueryCleanPacketCommitmentResponse creates a new NewQueryCleanPacketCommitmentResponse instance
+func NewQueryCleanPacketCommitmentResponse(
+	commitment []byte, proof []byte, height clienttypes.Height,
+) *QueryCleanPacketCommitmentResponse {
+	return &QueryCleanPacketCommitmentResponse{
+		Commitment:  commitment,
+		Proof:       proof,
+		ProofHeight: height,
+	}
+}

@@ -785,6 +785,82 @@ func local_request_Query_NextSequenceReceive_0(ctx context.Context, marshaler ru
 
 }
 
+func request_Query_CleanPacketCommitment_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryCleanPacketCommitmentRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["source_chain"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "source_chain")
+	}
+
+	protoReq.SourceChain, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "source_chain", err)
+	}
+
+	val, ok = pathParams["dest_chain"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "dest_chain")
+	}
+
+	protoReq.DestChain, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "dest_chain", err)
+	}
+
+	msg, err := client.CleanPacketCommitment(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Query_CleanPacketCommitment_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryCleanPacketCommitmentRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["source_chain"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "source_chain")
+	}
+
+	protoReq.SourceChain, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "source_chain", err)
+	}
+
+	val, ok = pathParams["dest_chain"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "dest_chain")
+	}
+
+	protoReq.DestChain, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "dest_chain", err)
+	}
+
+	msg, err := server.CleanPacketCommitment(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterQueryHandlerServer registers the http handlers for service Query to "mux".
 // UnaryRPC     :call QueryServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -948,6 +1024,26 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_Query_NextSequenceReceive_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Query_CleanPacketCommitment_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Query_CleanPacketCommitment_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_CleanPacketCommitment_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1152,25 +1248,47 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
+	mux.Handle("GET", pattern_Query_CleanPacketCommitment_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Query_CleanPacketCommitment_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Query_CleanPacketCommitment_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
 var (
-	pattern_Query_PacketCommitment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PacketCommitment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PacketCommitments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PacketCommitments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PacketReceipt_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_receipts", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PacketReceipt_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_receipts", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PacketAcknowledgement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_acks", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PacketAcknowledgement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_acks", "sequence"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PacketAcknowledgements_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_acknowledgements"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PacketAcknowledgements_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_acknowledgements"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UnreceivedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "packet_commitment_sequences", "unreceived_packets"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnreceivedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "packet_commitment_sequences", "unreceived_packets"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UnreceivedAcks_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "packet_ack_sequences", "unreceived_acks"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnreceivedAcks_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8, 1, 0, 4, 1, 5, 9, 2, 10}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "packet_commitments", "packet_ack_sequences", "unreceived_acks"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_NextSequenceReceive_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "next_sequence"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_NextSequenceReceive_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "next_sequence"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Query_CleanPacketCommitment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"tibc", "core", "packet", "v1beta1", "source_chains", "source_chain", "dest_chains", "dest_chain", "clean_packet_commitments"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -1189,4 +1307,6 @@ var (
 	forward_Query_UnreceivedAcks_0 = runtime.ForwardResponseMessage
 
 	forward_Query_NextSequenceReceive_0 = runtime.ForwardResponseMessage
+
+	forward_Query_CleanPacketCommitment_0 = runtime.ForwardResponseMessage
 )
