@@ -37,17 +37,6 @@ func NewQueryPacketAcknowledgementResponse(
 	}
 }
 
-// NewQueryNextSequenceReceiveResponse creates a new QueryNextSequenceReceiveResponse instance
-func NewQueryNextSequenceReceiveResponse(
-	sequence uint64, proof []byte, height clienttypes.Height,
-) *QueryNextSequenceReceiveResponse {
-	return &QueryNextSequenceReceiveResponse{
-		NextSequenceReceive: sequence,
-		Proof:               proof,
-		ProofHeight:         height,
-	}
-}
-
 // NewQueryCleanPacketCommitmentResponse creates a new NewQueryCleanPacketCommitmentResponse instance
 func NewQueryCleanPacketCommitmentResponse(
 	commitment []byte, proof []byte, height clienttypes.Height,

@@ -1,7 +1,6 @@
 syntax = "proto3";
 package tibc.core.routing.v1;
 
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types";
@@ -18,8 +17,6 @@ service Query {
 // QueryRoutingRulesRequest is the request type for the
 // RoutingRules RPC method
 message QueryRoutingRulesRequest {
-  // pagination request
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryRoutingRulesResponse defines the routing rules query response

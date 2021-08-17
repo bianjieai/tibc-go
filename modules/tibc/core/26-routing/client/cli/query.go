@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // GetCmdQueryRoutingRulesCommitment defines the command to query a packet commitment
@@ -30,13 +30,10 @@ func GetCmdQueryRoutingRulesCommitment() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
 			}
-			req := &types.QueryRoutingRulesRequest{
-				Pagination: pageReq,
-			}
+			req := &types.QueryRoutingRulesRequest{}
 
 			res, err := queryClient.RoutingRules(context.Background(), req)
 			if err != nil {
@@ -48,6 +45,5 @@ func GetCmdQueryRoutingRulesCommitment() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "routing rules")
 	return cmd
 }

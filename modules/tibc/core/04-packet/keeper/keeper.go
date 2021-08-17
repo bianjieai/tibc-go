@@ -19,9 +19,6 @@ import (
 
 // Keeper defines the TIBC packet keeper
 type Keeper struct {
-	// implements gRPC QueryServer interface
-	types.QueryServer
-
 	storeKey      sdk.StoreKey
 	cdc           codec.BinaryMarshaler
 	clientKeeper  types.ClientKeeper

@@ -141,11 +141,11 @@ var _ sdk.Msg = &MsgCleanPacket{}
 // NewMsgCleanPacket constructs new MsgCleanPacket
 // nolint:interfacer
 func NewMsgCleanPacket(
-	packet Packet,
+	packet CleanPacket,
 	signer sdk.AccAddress,
 ) *MsgCleanPacket {
 	return &MsgCleanPacket{
-		Packet: packet,
+		CleanPacket: packet,
 		Signer: signer.String(),
 	}
 }
@@ -161,20 +161,13 @@ func (msg MsgCleanPacket) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	return msg.Packet.ValidateBasic()
+	return msg.CleanPacket.ValidateBasic()
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
 // for amino transaction verification which TIBC does not support.
 func (msg MsgCleanPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
-}
-
-// GetDataSignBytes returns the base64-encoded bytes used for the
-// data field when signing the packet.
-func (msg MsgCleanPacket) GetDataSignBytes() []byte {
-	s := "\"" + base64.StdEncoding.EncodeToString(msg.Packet.Data) + "\""
-	return []byte(s)
 }
 
 // GetSigners implements sdk.Msg
@@ -196,13 +189,13 @@ var _ sdk.Msg = &MsgRecvCleanPacket{}
 // NewMsgCleanPacket constructs new MsgCleanPacket
 // nolint:interfacer
 func NewMsgRecvCleanPacket(
-	packet Packet,
+	cleanPacket CleanPacket,
 	proofCommitment []byte,
 	proofHeight clienttypes.Height,
 	signer sdk.AccAddress,
 ) *MsgRecvCleanPacket {
 	return &MsgRecvCleanPacket{
-		Packet:          packet,
+		CleanPacket:          cleanPacket,
 		ProofCommitment: proofCommitment,
 		ProofHeight:     proofHeight,
 		Signer:          signer.String(),
@@ -220,20 +213,13 @@ func (msg MsgRecvCleanPacket) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	return msg.Packet.ValidateBasic()
+	return msg.CleanPacket.ValidateBasic()
 }
 
 // GetSignBytes implements sdk.Msg. The function will panic since it is used
 // for amino transaction verification which TIBC does not support.
 func (msg MsgRecvCleanPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
-}
-
-// GetDataSignBytes returns the base64-encoded bytes used for the
-// data field when signing the packet.
-func (msg MsgRecvCleanPacket) GetDataSignBytes() []byte {
-	s := "\"" + base64.StdEncoding.EncodeToString(msg.Packet.Data) + "\""
-	return []byte(s)
 }
 
 // GetSigners implements sdk.Msg

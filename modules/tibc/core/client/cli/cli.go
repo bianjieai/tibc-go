@@ -1,6 +1,7 @@
 package cli
 
 import (
+	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -41,6 +42,7 @@ func GetQueryCmd() *cobra.Command {
 	ibcQueryCmd.AddCommand(
 		ibcclient.GetQueryCmd(),
 		packet.GetQueryCmd(),
+		routing.GetQueryCmd(),
 	)
 
 	return ibcQueryCmd
