@@ -13,25 +13,26 @@ import (
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
-		"ibc.core.channel.v1.ChannelI",
-		(*exported.ChannelI)(nil),
-	)
-	registry.RegisterInterface(
-		"ibc.core.channel.v1.CounterpartyChannelI",
-		(*exported.CounterpartyChannelI)(nil),
-	)
-	registry.RegisterInterface(
-		"ibc.core.channel.v1.PacketI",
+		"tibc.core.packet.v1.PacketI",
 		(*exported.PacketI)(nil),
+	)
+	registry.RegisterInterface(
+		"tibc.core.packet.v1.CleanPacketI",
+		(*exported.CleanPacketI)(nil),
 	)
 	registry.RegisterImplementations(
 		(*exported.PacketI)(nil),
 		&Packet{},
 	)
 	registry.RegisterImplementations(
+		(*exported.CleanPacketI)(nil),
+		&CleanPacket{},
+	)
+	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgRecvPacket{},
 		&MsgAcknowledgement{},
+		&MsgCleanPacket{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

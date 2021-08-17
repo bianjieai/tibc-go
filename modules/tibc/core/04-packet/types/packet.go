@@ -74,6 +74,28 @@ func (p Packet) ValidateBasic() error {
 	return nil
 }
 
+var _ exported.CleanPacketI = (*CleanPacket)(nil)
+
+// GetSequence implements PacketI interface
+func (p CleanPacket) GetSequence() uint64 { return p.Sequence }
+
+// GetSourceChain implements PacketI interface
+func (p CleanPacket) GetSourceChain() string { return p.SourceChain }
+
+// GetDestinationChain implements PacketI interface
+func (p CleanPacket) GetDestChain() string { return p.DestinationChain }
+
+// GetRelayChain implements PacketI interface
+func (p CleanPacket) GetRelayChain() string { return p.RelayChain }
+
+// ValidateBasic implements PacketI interface
+func (p CleanPacket) ValidateBasic() error {
+	if p.Sequence == 0 {
+		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+	}
+	return nil
+}
+
 // NewResultAcknowledgement returns a new instance of Acknowledgement using an Acknowledgement_Result
 // type in the Response field.
 func NewResultAcknowledgement(result []byte) Acknowledgement {
