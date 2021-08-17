@@ -86,6 +86,9 @@ func (k Keeper) RecvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
+	if err := k.ValidatePacketSeq(ctx, packet); err != nil {
+		return sdkerrors.Wrap(err, "packet failed basic validation")
+	}
 	commitment := types.CommitPacket(k.cdc, packet)
 	var isRelay bool
 	var targetChainName string
@@ -347,7 +350,7 @@ func (k Keeper) CleanPacket(
 	if err := cleanPacket.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	if err := k.ValidateCleanPacket(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence()); err != nil {
+	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
@@ -386,6 +389,9 @@ func (k Keeper) RecvCleanPacket(
 ) error {
 	var isRelay bool
 	var targetChainName string
+	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
+		return sdkerrors.Wrap(err, "packet failed basic validation")
+	}
 	if cleanPacket.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(cleanPacket.GetRelayChain()) > 0 {
 			targetChainName = cleanPacket.GetRelayChain()

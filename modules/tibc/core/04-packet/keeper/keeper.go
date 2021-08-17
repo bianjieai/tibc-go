@@ -15,6 +15,7 @@ import (
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 // Keeper defines the TIBC packet keeper
@@ -307,17 +308,28 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
-func (k Keeper) ValidateCleanPacket(ctx sdk.Context, sourceChain, destChain string, sequence uint64) error {
+func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) error {
+	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()))
+	if packet.GetSequence() <= currentCleanSeq {
+		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
+	}
+	return nil
+}
+
+func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
 	store := ctx.KVStore(k.storeKey)
+	paccketSeq := cleanPacket.GetSequence()
+	sourceChain := cleanPacket.GetSourceChain()
+	destChain := cleanPacket.GetDestChain()
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	if sequence <= currentCleanSeq {
+	if paccketSeq <= currentCleanSeq {
 		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		seq := binary.BigEndian.Uint64(iterator.Key())
-		if sequence < seq {
+		if paccketSeq < seq {
 			break
 		}
 		if !k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
