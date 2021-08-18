@@ -15,7 +15,7 @@ import (
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "nft transfer [dest-chain] [receiver] [class] [id] ",
+		Use:   "transfer [dest-chain] [receiver] [class] [id] ",
 		Short: "Transfer a non fungible token through TIBC",
 		Example: fmt.Sprintf("%s tx tibc-nft-transfer transfer <dest-chain> <receiver> <class> <id> "+
 			"--relay-chain=<relay-chain>",
