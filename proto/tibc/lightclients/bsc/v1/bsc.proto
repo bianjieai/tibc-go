@@ -34,7 +34,7 @@ message ClientState {
 
   Header header = 1 [ (gogoproto.nullable) = false ];
   uint64 chain_id = 2;
-  uint64 epoch_period = 3;
+  uint64 epoch = 3;
   uint64 block_inteval = 4;
   repeated bytes validators = 5;
   repeated Singer recent_singers = 6 [ (gogoproto.nullable) = false ];

@@ -42,10 +42,10 @@ func (h Header) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrFutureBlock, "header Height")
 	}
 	// Check that the extra-data contains the vanity, validators and signature.
-	if len(h.Extra) < ExtraVanity {
+	if len(h.Extra) < extraVanity {
 		return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
 	}
-	if len(h.Extra) < ExtraVanity+ExtraSeal {
+	if len(h.Extra) < extraVanity+extraSeal {
 		return sdkerrors.Wrap(ErrMissingSignature, "header Extra")
 	}
 
@@ -95,6 +95,20 @@ func verifyHeader(
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
+
+	number := header.Height.RevisionHeight
+	// check extra data
+	isEpoch := number%clientState.Epoch == 0
+	// Ensure that the extra-data contains a signer list on checkpoint, but none otherwise
+	signersBytes := len(header.Extra) - extraVanity - extraSeal
+	if !isEpoch && signersBytes != 0 {
+		return sdkerrors.Wrap(ErrExtraValidators, "header.Extra")
+	}
+
+	if isEpoch && signersBytes%addressLength != 0 {
+		return sdkerrors.Wrap(ErrInvalidSpanValidators, "header.Extra")
+	}
+
 	return verifyCascadingFields(cdc, store, clientState, header)
 }
 
@@ -129,7 +143,7 @@ func verifyCascadingFields(
 	if diff < 0 {
 		diff *= -1
 	}
-	limit := parent.GasLimit / GasLimitBoundDivisor
+	limit := parent.GasLimit / gasLimitBoundDivisor
 
 	if uint64(diff) >= limit || header.GasLimit < params.MinGasLimit {
 		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.GasLimit, limit)
@@ -190,10 +204,10 @@ func verifySeal(
 // ecrecover extracts the Ethereum account address from a signed header.
 func ecrecover(header Header, chainId *big.Int) (common.Address, error) {
 	// Retrieve the signature from the header extra-data
-	if len(header.Extra) < ExtraSeal {
+	if len(header.Extra) < extraSeal {
 		return common.Address{}, sdkerrors.Wrap(ErrMissingSignature, "header.Extra")
 	}
-	signature := header.Extra[len(header.Extra)-ExtraSeal:]
+	signature := header.Extra[len(header.Extra)-extraSeal:]
 
 	// Recover the public key and the Ethereum address
 	pubkey, err := crypto.Ecrecover(sealHash(header, chainId).Bytes(), signature)

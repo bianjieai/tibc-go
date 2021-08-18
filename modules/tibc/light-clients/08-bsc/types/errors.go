@@ -48,4 +48,10 @@ var (
 	// ErrWrongDifficulty is returned if the difficulty of a block doesn't match the
 	// turn of the signer.
 	ErrWrongDifficulty = sdkerrors.Register(moduleName, 15, "wrong difficulty")
+	// ErrExtraValidators is returned if non-sprint-end block contain validator data in
+	// their extra-data fields.
+	ErrExtraValidators = sdkerrors.Register(moduleName, 16, "non-sprint-end block contains extra validator list")
+	// ErrInvalidSpanValidators is returned if a block contains an
+	// invalid list of validators (i.e. non divisible by 20 bytes).
+	ErrInvalidSpanValidators = sdkerrors.Register(moduleName, 16, "invalid validator list on sprint end block")
 )

@@ -17,7 +17,6 @@
 package types
 
 import (
-	"bytes"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -29,11 +28,6 @@ import (
 // hasherPool holds LegacyKeccak256 hashers for rlpHash.
 var hasherPool = sync.Pool{
 	New: func() interface{} { return sha3.NewLegacyKeccak256() },
-}
-
-// deriveBufferPool holds temporary encoder buffers for DeriveSha and TX encoding.
-var encodeBufferPool = sync.Pool{
-	New: func() interface{} { return new(bytes.Buffer) },
 }
 
 // rlpHash encodes x and hashes the encoded bytes.

@@ -4,31 +4,29 @@ import (
 	fmt "fmt"
 	"math/big"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 const (
 	// Fixed number of extra-data prefix bytes reserved for signer vanity
-	ExtraVanity = 32
+	extraVanity = 32
 
 	// Fixed number of extra-data suffix bytes reserved for signer seal
-	ExtraSeal = 65
+	extraSeal = 65
 
 	// AddressLength is the expected length of the address
-	AddressLength = 20
-
-	// HashLength is the expected length of the hash
-	HashLength = 32
+	addressLength = 20
 
 	// BloomByteLength represents the number of bytes used in a header log bloom.
-	BloomByteLength = 256
+	bloomByteLength = 256
 
 	// NonceByteLength represents the number of bytes used in a header log nonce.
-	NonceByteLength = 8
+	nonceByteLength = 8
 
 	// The bound divisor of the gas limit, used in update calculations.
-	GasLimitBoundDivisor uint64 = 256
+	gasLimitBoundDivisor uint64 = 256
 )
 
 var (
@@ -43,7 +41,7 @@ var (
 )
 
 // Bloom represents a 2048 bit bloom filter.
-type Bloom [BloomByteLength]byte
+type Bloom [bloomByteLength]byte
 
 // BytesToBloom converts a byte slice to a bloom filter.
 // It panics if b is not of suitable size.
@@ -59,13 +57,13 @@ func (b *Bloom) SetBytes(d []byte) {
 	if len(b) < len(d) {
 		panic(fmt.Sprintf("bloom bytes too big %d %d", len(b), len(d)))
 	}
-	copy(b[BloomByteLength-len(d):], d)
+	copy(b[bloomByteLength-len(d):], d)
 }
 
 // A BlockNonce is a 64-bit hash which proves (combined with the
 // mix-hash) that a sufficient amount of computation has been carried
 // out on a block.
-type BlockNonce [NonceByteLength]byte
+type BlockNonce [nonceByteLength]byte
 
 // BlockNonce converts a byte slice to a bloom filter.
 // It panics if b is not of suitable size.
@@ -81,7 +79,7 @@ func (b *BlockNonce) SetBytes(d []byte) {
 	if len(b) < len(d) {
 		panic(fmt.Sprintf("bloom bytes too big %d %d", len(b), len(d)))
 	}
-	copy(b[NonceByteLength-len(d):], d)
+	copy(b[nonceByteLength-len(d):], d)
 }
 
 // bscHeader represents a block header in the Ethereum blockchain.
@@ -101,4 +99,18 @@ type bscHeader struct {
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"`
 	Nonce       BlockNonce     `json:"nonce"`
+}
+
+func ParseValidators(validatorsBytes []byte) ([][]byte, error) {
+	if len(validatorsBytes)%addressLength != 0 {
+		return nil, sdkerrors.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) should bz zero")
+	}
+	n := len(validatorsBytes) / addressLength
+	result := make([][]byte, n)
+	for i := 0; i < n; i++ {
+		address := make([]byte, addressLength)
+		copy(address, validatorsBytes[i*addressLength:(i+1)*addressLength])
+		result[i] = address
+	}
+	return result, nil
 }
