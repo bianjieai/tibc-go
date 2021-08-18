@@ -53,8 +53,7 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ChainName)
-
+	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.ChainName)
 	// query proof on the counterparty using the latest height of the IBC client
 	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
 }
