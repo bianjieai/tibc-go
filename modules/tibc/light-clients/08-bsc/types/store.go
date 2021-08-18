@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	PrefixKeyRecentSingers   = "recentSingers"
-	PrefixPenddingValidators = "penddingValidators"
+	PrefixKeyRecentSingers  = "recentSingers"
+	PrefixPendingValidators = "pendingValidators"
 )
 
 // GetConsensusState retrieves the consensus state from the client prefixed
@@ -82,8 +82,8 @@ func GetRecentSigners(store sdk.KVStore) (recentSingers []Signer, err error) {
 	return
 }
 
-// SetPenddingValidators sets the validators to be updated in the client prefixed store
-func SetPenddingValidators(store sdk.KVStore,
+// SetPendingValidators sets the validators to be updated in the client prefixed store
+func SetPendingValidators(store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
 	validators [][]byte,
 ) {
@@ -91,15 +91,15 @@ func SetPenddingValidators(store sdk.KVStore,
 		Validators: validators,
 	}
 	bz := cdc.MustMarshalBinaryBare(&validatorSet)
-	store.Set(keyPenddingValidators(), bz)
+	store.Set([]byte(PrefixPendingValidators), bz)
 }
 
-// GetPenddingValidators retrieves the validators to be updated from the client prefixed store
-func GetPenddingValidators(
+// GetPendingValidators retrieves the validators to be updated from the client prefixed store
+func GetPendingValidators(
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
 ) ValidatorSet {
-	bz := store.Get(keyPenddingValidators())
+	bz := store.Get([]byte(PrefixPendingValidators))
 
 	var validatorSet ValidatorSet
 	cdc.MustUnmarshalBinaryBare(bz, &validatorSet)
@@ -108,8 +108,4 @@ func GetPenddingValidators(
 
 func keyRecentSinger(singer Signer) []byte {
 	return []byte(fmt.Sprintf("%s/%s", PrefixKeyRecentSingers, singer.Height))
-}
-
-func keyPenddingValidators() []byte {
-	return []byte(PrefixPenddingValidators)
 }

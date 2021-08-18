@@ -70,12 +70,12 @@ func update(cdc codec.BinaryMarshaler,
 		if err != nil {
 			return nil, nil, err
 		}
-		SetPenddingValidators(store, cdc, validators)
+		SetPendingValidators(store, cdc, validators)
 	}
 
 	// change validator set
 	if number%clientState.Epoch == uint64(len(clientState.Validators)/2) {
-		validators := GetPenddingValidators(cdc, store).Validators
+		validators := GetPendingValidators(cdc, store).Validators
 		newVals := make(map[common.Address]struct{}, len(validators))
 		for _, val := range validators {
 			newVals[common.BytesToAddress(val)] = struct{}{}

@@ -1,8 +1,20 @@
 package types
 
 import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	fmt "fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/light"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -39,12 +51,16 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
+	if m.Header.Height.RevisionHeight%m.Epoch != 0 {
+		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "header")
+	}
+
 	SetRecentSigners(store, m.RecentSigners)
-	penddingValidators, err := ParseValidators(m.Header.Extra)
+	validators, err := ParseValidators(m.Header.Extra)
 	if err != nil {
 		return err
 	}
-	SetPenddingValidators(store, cdc, penddingValidators)
+	SetPendingValidators(store, cdc, validators)
 	return nil
 }
 
@@ -64,6 +80,7 @@ func (m ClientState) Status(
 }
 
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
+	//TODO
 	return nil
 }
 
@@ -75,9 +92,24 @@ func (m ClientState) VerifyPacketCommitment(
 	proof []byte,
 	sourceChain, destChain string,
 	sequence uint64,
-	commitmentBytes []byte,
+	commitment []byte,
 ) error {
-	panic("implement me")
+	bscProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	// check delay period has passed
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	// verify that the provided commitment has been stored
+	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment)
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -103,4 +135,125 @@ func (m ClientState) VerifyPacketCleanCommitment(
 	sequence uint64,
 ) error {
 	panic("implement me")
+}
+
+// produceVerificationArgs performs the basic checks on the arguments that are
+// shared between the verification functions and returns the unmarshal
+// merkle proof, the consensus state and an error if one occurred.
+func produceVerificationArgs(
+	store sdk.KVStore,
+	cdc codec.BinaryMarshaler,
+	cs ClientState,
+	height exported.Height,
+	proof []byte,
+) (merkleProof Proof, consensusState *ConsensusState, err error) {
+	if cs.GetLatestHeight().LT(height) {
+		return Proof{}, nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
+		)
+	}
+
+	if proof == nil {
+		return Proof{}, nil, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
+	}
+
+	if err = json.Unmarshal(proof, &merkleProof); err != nil {
+		return Proof{}, nil, sdkerrors.Wrap(ErrInvalidProof, "failed to unmarshal proof into proof")
+	}
+
+	consensusState, err = GetConsensusState(store, cdc, height)
+	if err != nil {
+		return Proof{}, nil, err
+	}
+	return merkleProof, consensusState, nil
+}
+
+func verifyMerkleProof(bscProof Proof,
+	consensusState *ConsensusState,
+	contractAddr []byte,
+	commitment []byte,
+) error {
+	//1. prepare verify account
+	nodeList := new(light.NodeList)
+
+	for _, s := range bscProof.AccountProof {
+		_ = nodeList.Put(nil, common.FromHex(s))
+	}
+	ns := nodeList.NodeSet()
+
+	addr := common.FromHex(bscProof.Address)
+	if !bytes.Equal(addr, contractAddr) {
+		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", bscProof.Address, hex.EncodeToString(contractAddr))
+	}
+	acctKey := crypto.Keccak256(addr)
+
+	//2. verify account proof
+	root := common.BytesToHash(consensusState.Root)
+	acctVal, err := trie.VerifyProof(root, acctKey, ns)
+	if err != nil {
+		return fmt.Errorf("verifyMerkleProof, verify account proof error:%s", err)
+	}
+
+	storageHash := common.HexToHash(bscProof.StorageHash)
+	codeHash := common.HexToHash(bscProof.CodeHash)
+	nonce := common.HexToHash(bscProof.Nonce).Big()
+	balance := common.HexToHash(bscProof.Balance).Big()
+
+	acct := &ProofAccount{
+		Nonce:    nonce,
+		Balance:  balance,
+		Storage:  storageHash,
+		Codehash: codeHash,
+	}
+
+	accRlp, err := rlp.EncodeToBytes(acct)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(accRlp, acctVal) {
+		return fmt.Errorf("verifyMerkleProof, verify account proof failed, wanted:%v, get:%v", accRlp, acctVal)
+	}
+
+	//3.verify storage proof
+	nodeList = new(light.NodeList)
+	if len(bscProof.StorageProof) != 1 {
+		return fmt.Errorf("verifyMerkleProof, invalid storage proof format")
+	}
+
+	sp := bscProof.StorageProof[0]
+	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
+
+	for _, prf := range sp.Proof {
+		_ = nodeList.Put(nil, common.FromHex(prf))
+	}
+
+	ns = nodeList.NodeSet()
+	val, err := trie.VerifyProof(storageHash, storageKey, ns)
+	if err != nil {
+		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
+	}
+
+	if !checkProofResult(val, commitment) {
+		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
+	}
+	return nil
+}
+
+func checkProofResult(result, value []byte) bool {
+	var tempBytes []byte
+	err := rlp.DecodeBytes(result, &tempBytes)
+	if err != nil {
+		return false
+	}
+	//
+	var s []byte
+	for i := len(tempBytes); i < 32; i++ {
+		s = append(s, 0)
+	}
+	s = append(s, tempBytes...)
+	// TODO
+	//hash := crypto.Keccak256(value)
+	return bytes.Equal(s, value)
 }

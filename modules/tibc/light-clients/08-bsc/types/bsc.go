@@ -101,6 +101,14 @@ type bscHeader struct {
 	Nonce       BlockNonce     `json:"nonce"`
 }
 
+// ProofAccount ...
+type ProofAccount struct {
+	Nonce    *big.Int
+	Balance  *big.Int
+	Storage  common.Hash
+	Codehash common.Hash
+}
+
 func ParseValidators(extra []byte) ([][]byte, error) {
 	validatorBytes := extra[extraVanity : len(extra)-extraSeal]
 	if len(validatorBytes)%addressLength != 0 {

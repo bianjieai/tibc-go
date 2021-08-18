@@ -13,7 +13,7 @@ const (
 
 // IBC bsc client sentinel errors
 var (
-	ErrInvalidGenesisBlock   = sdkerrors.Register(moduleName, 2, "invalid chain-id")
+	ErrInvalidGenesisBlock   = sdkerrors.Register(moduleName, 2, "invalid genesis block")
 	ErrInvalidValidatorBytes = sdkerrors.Register(moduleName, 3, "invalid validators bytes length")
 
 	// ErrUnknownBlock is returned when the list of validators is requested for a block
@@ -53,5 +53,7 @@ var (
 	ErrExtraValidators = sdkerrors.Register(moduleName, 16, "non-sprint-end block contains extra validator list")
 	// ErrInvalidSpanValidators is returned if a block contains an
 	// invalid list of validators (i.e. non divisible by 20 bytes).
-	ErrInvalidSpanValidators = sdkerrors.Register(moduleName, 16, "invalid validator list on sprint end block")
+	ErrInvalidSpanValidators = sdkerrors.Register(moduleName, 17, "invalid validator list on sprint end block")
+
+	ErrInvalidProof = sdkerrors.Register(moduleName, 18, "invalid proof")
 )

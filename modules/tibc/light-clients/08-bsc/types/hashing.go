@@ -35,7 +35,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 	sha := hasherPool.Get().(crypto.KeccakState)
 	defer hasherPool.Put(sha)
 	sha.Reset()
-	rlp.Encode(sha, x)
-	sha.Read(h[:])
+	_ = rlp.Encode(sha, x)
+	_, _ = sha.Read(h[:])
 	return h
 }

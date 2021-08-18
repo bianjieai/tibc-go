@@ -109,6 +109,7 @@ func verifyHeader(
 		return sdkerrors.Wrap(ErrInvalidSpanValidators, "header.Extra")
 	}
 
+	// All basic checks passed, verify cascading fields
 	return verifyCascadingFields(cdc, store, clientState, header)
 }
 
@@ -149,6 +150,7 @@ func verifyCascadingFields(
 		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.GasLimit, limit)
 
 	}
+	// All basic checks passed, verify the seal and return
 	return verifySeal(cdc, store, clientState, header)
 }
 
@@ -175,7 +177,7 @@ func verifySeal(
 	})
 
 	// Retrieve the snapshot needed to verify this header and cache it
-	snap, err := clientState.getSnapshot(cdc, store)
+	snap, err := clientState.snapshot(cdc, store)
 	if err != nil {
 		return err
 	}

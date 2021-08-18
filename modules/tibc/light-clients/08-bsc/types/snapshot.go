@@ -26,7 +26,7 @@ type snapshot struct {
 	Recents    map[uint64]common.Address
 }
 
-func (m ClientState) getSnapshot(
+func (m ClientState) snapshot(
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
 ) (*snapshot, error) {
