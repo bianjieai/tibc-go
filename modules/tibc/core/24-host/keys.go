@@ -37,7 +37,7 @@ const (
 	KeyPacketCommitmentPrefix      = "commitments"
 	KeyPacketAckPrefix             = "acks"
 	KeyPacketReceiptPrefix         = "receipts"
-	KeyCleanPacketCommitmentPrefix = "cleans"
+	KeyCleanPacketCommitmentPrefix = "clean"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:

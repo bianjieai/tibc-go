@@ -44,7 +44,7 @@ func queryPacketCommitmentABCI(
 
 	// check if packet commitment exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "portID (%s), channelID (%s), sequence (%d)", sourceChain, destChain, sequence)
+		return nil, sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "source chain name  (%s), dest chain name (%s), sequence (%d)", sourceChain, destChain, sequence)
 	}
 
 	return types.NewQueryPacketCommitmentResponse(value, proofBz, proofHeight), nil
@@ -115,4 +115,42 @@ func queryPacketAcknowledgementABCI(clientCtx client.Context, sourceChain, destC
 	}
 
 	return types.NewQueryPacketAcknowledgementResponse(value, proofBz, proofHeight), nil
+}
+
+// QueryCleanPacketCommitment returns the clean packet commitment.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryCleanPacketCommitment(
+	clientCtx client.Context, sourceChain, destChain string,
+	prove bool,
+) (*types.QueryCleanPacketCommitmentResponse, error) {
+	if prove {
+		return queryCleanPacketCommitmentABCI(clientCtx, sourceChain, destChain)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryCleanPacketCommitmentRequest{
+		SourceChain: sourceChain,
+		DestChain:   destChain,
+	}
+
+	return queryClient.CleanPacketCommitment(context.Background(), req)
+}
+
+func queryCleanPacketCommitmentABCI(
+	clientCtx client.Context, sourceChain, destChain string,
+) (*types.QueryCleanPacketCommitmentResponse, error) {
+	key := host.CleanPacketCommitmentKey(sourceChain, destChain)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if packet commitment exists
+	if len(value) == 0 {
+		return nil, sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "source chain name  (%s), dest chain name (%s)", sourceChain, destChain)
+	}
+
+	return types.NewQueryCleanPacketCommitmentResponse(value, proofBz, proofHeight), nil
 }
