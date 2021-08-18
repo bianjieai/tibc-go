@@ -22,6 +22,7 @@ const DefaultMaxCharacterLength = 64
 // - `.`, `_`, `+`, `-`, `#`
 // - `[`, `]`, `<`, `>`
 var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchString
+var IsValidRule = regexp.MustCompile(`^([^.]{1,50}\.){2}[^.]{1,50}$`).MatchString
 
 // ICS 024 Identifier and Path Validation Implementation
 //
@@ -55,6 +56,18 @@ func defaultIdentifierValidator(id string, min, max int) error { //nolint:unpara
 	return nil
 }
 
+func defaultRuleValidator(rule string) error {
+	// valid rule must contain two dot
+	if !IsValidRule(rule) {
+		return sdkerrors.Wrapf(
+			ErrInvalidRule,
+			"rule %s must contain two '.'",
+			rule,
+		)
+	}
+	return nil
+}
+
 // ClientIdentifierValidator is the default validator function for Client identifiers.
 // A valid Identifier must be between 9-64 characters and only contain alphanumeric and some allowed
 // special characters (see IsValidID).
@@ -62,11 +75,15 @@ func ClientIdentifierValidator(id string) error {
 	return defaultIdentifierValidator(id, 9, DefaultMaxCharacterLength)
 }
 
-// ConnectionIdentifierValidator is the default validator function for Connection identifiers.
-// A valid Identifier must be between 10-64 characters and only contain alphanumeric and some allowed
-// special characters (see IsValidID).
-func ConnectionIdentifierValidator(id string) error {
-	return defaultIdentifierValidator(id, 10, DefaultMaxCharacterLength)
+// RoutingRulesValidator is the default validator function for routing rules.
+// A valid rule must contain two dot.
+func RoutingRulesValidator(rules []string) error {
+	for _, rule := range rules {
+		if err := defaultRuleValidator(rule); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ChannelIdentifierValidator is the default validator function for Channel identifiers.
