@@ -2,8 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryPacketCommitment() {

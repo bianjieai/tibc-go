@@ -33,17 +33,14 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 	for _, tc := range testCases {
 
 		err := ClientIdentifierValidator(tc.id)
-		err1 := ConnectionIdentifierValidator(tc.id)
 		err2 := DestChainValidator(tc.id)
 		err3 := SourceChainValidator(tc.id)
 		if tc.expPass {
 			require.NoError(t, err, tc.msg)
-			require.NoError(t, err1, tc.msg)
 			require.NoError(t, err2, tc.msg)
 			require.NoError(t, err3, tc.msg)
 		} else {
 			require.Error(t, err, tc.msg)
-			require.Error(t, err1, tc.msg)
 			require.Error(t, err2, tc.msg)
 			require.Error(t, err3, tc.msg)
 		}

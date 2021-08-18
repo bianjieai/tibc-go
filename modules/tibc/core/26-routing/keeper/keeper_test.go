@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	"github.com/stretchr/testify/suite"
+
+	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 var (
@@ -20,7 +21,7 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(0))
 }
 
