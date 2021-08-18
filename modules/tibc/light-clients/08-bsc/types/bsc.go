@@ -101,15 +101,16 @@ type bscHeader struct {
 	Nonce       BlockNonce     `json:"nonce"`
 }
 
-func ParseValidators(validatorsBytes []byte) ([][]byte, error) {
-	if len(validatorsBytes)%addressLength != 0 {
+func ParseValidators(extra []byte) ([][]byte, error) {
+	validatorBytes := extra[extraVanity : len(extra)-extraSeal]
+	if len(validatorBytes)%addressLength != 0 {
 		return nil, sdkerrors.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) should bz zero")
 	}
-	n := len(validatorsBytes) / addressLength
+	n := len(validatorBytes) / addressLength
 	result := make([][]byte, n)
 	for i := 0; i < n; i++ {
 		address := make([]byte, addressLength)
-		copy(address, validatorsBytes[i*addressLength:(i+1)*addressLength])
+		copy(address, validatorBytes[i*addressLength:(i+1)*addressLength])
 		result[i] = address
 	}
 	return result, nil

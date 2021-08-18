@@ -37,12 +37,12 @@ message ClientState {
   uint64 epoch = 3;
   uint64 block_inteval = 4;
   repeated bytes validators = 5;
-  repeated Singer recent_singers = 6 [ (gogoproto.nullable) = false ];
+  repeated Signer recent_signers = 6 [ (gogoproto.nullable) = false ];
   bytes contract_address = 7;
   uint64 trusting_period = 8;
 }
 
-message Singer {
+message Signer {
   tibc.core.client.v1.Height height = 1 [ (gogoproto.nullable) = false ];
   bytes validator = 2;
 }

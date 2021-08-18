@@ -84,7 +84,7 @@ type ClientState struct {
 	Epoch           uint64   `protobuf:"varint,3,opt,name=epoch,proto3" json:"epoch,omitempty"`
 	BlockInteval    uint64   `protobuf:"varint,4,opt,name=block_inteval,json=blockInteval,proto3" json:"block_inteval,omitempty"`
 	Validators      [][]byte `protobuf:"bytes,5,rep,name=validators,proto3" json:"validators,omitempty"`
-	RecentSingers   []Singer `protobuf:"bytes,6,rep,name=recent_singers,json=recentSingers,proto3" json:"recent_singers"`
+	RecentSigners   []Signer `protobuf:"bytes,6,rep,name=recent_signers,json=recentSigners,proto3" json:"recent_signers"`
 	ContractAddress []byte   `protobuf:"bytes,7,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
 	TrustingPeriod  uint64   `protobuf:"varint,8,opt,name=trusting_period,json=trustingPeriod,proto3" json:"trusting_period,omitempty"`
 }
@@ -122,23 +122,23 @@ func (m *ClientState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
 
-type Singer struct {
+type Signer struct {
 	Height    types.Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
 	Validator []byte       `protobuf:"bytes,2,opt,name=validator,proto3" json:"validator,omitempty"`
 }
 
-func (m *Singer) Reset()         { *m = Singer{} }
-func (m *Singer) String() string { return proto.CompactTextString(m) }
-func (*Singer) ProtoMessage()    {}
-func (*Singer) Descriptor() ([]byte, []int) {
+func (m *Signer) Reset()         { *m = Signer{} }
+func (m *Signer) String() string { return proto.CompactTextString(m) }
+func (*Signer) ProtoMessage()    {}
+func (*Signer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1304259fbeedea63, []int{2}
 }
-func (m *Singer) XXX_Unmarshal(b []byte) error {
+func (m *Signer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *Singer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Signer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_Singer.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Signer.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -148,26 +148,26 @@ func (m *Singer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *Singer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Singer.Merge(m, src)
+func (m *Signer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Signer.Merge(m, src)
 }
-func (m *Singer) XXX_Size() int {
+func (m *Signer) XXX_Size() int {
 	return m.Size()
 }
-func (m *Singer) XXX_DiscardUnknown() {
-	xxx_messageInfo_Singer.DiscardUnknown(m)
+func (m *Signer) XXX_DiscardUnknown() {
+	xxx_messageInfo_Signer.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Singer proto.InternalMessageInfo
+var xxx_messageInfo_Signer proto.InternalMessageInfo
 
-func (m *Singer) GetHeight() types.Height {
+func (m *Signer) GetHeight() types.Height {
 	if m != nil {
 		return m.Height
 	}
 	return types.Height{}
 }
 
-func (m *Singer) GetValidator() []byte {
+func (m *Signer) GetValidator() []byte {
 	if m != nil {
 		return m.Validator
 	}
@@ -345,7 +345,7 @@ var xxx_messageInfo_Proof proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*Header)(nil), "tibc.lightclients.bsc.v1.Header")
 	proto.RegisterType((*ClientState)(nil), "tibc.lightclients.bsc.v1.ClientState")
-	proto.RegisterType((*Singer)(nil), "tibc.lightclients.bsc.v1.Singer")
+	proto.RegisterType((*Signer)(nil), "tibc.lightclients.bsc.v1.Signer")
 	proto.RegisterType((*ValidatorSet)(nil), "tibc.lightclients.bsc.v1.ValidatorSet")
 	proto.RegisterType((*ConsensusState)(nil), "tibc.lightclients.bsc.v1.ConsensusState")
 	proto.RegisterType((*StorageResult)(nil), "tibc.lightclients.bsc.v1.StorageResult")
@@ -389,7 +389,7 @@ var fileDescriptor_1304259fbeedea63 = []byte{
 	0x2b, 0x1c, 0x24, 0x0e, 0x84, 0x8f, 0x61, 0x9a, 0x95, 0x8a, 0xbd, 0x4e, 0x85, 0x34, 0x7c, 0x43,
 	0x4b, 0xac, 0x73, 0x90, 0x4c, 0x90, 0x7c, 0xe9, 0x38, 0x5b, 0x9d, 0x0d, 0x2d, 0x45, 0x4e, 0x8d,
 	0xaa, 0x35, 0xd9, 0x9f, 0xfb, 0xb6, 0xbd, 0x76, 0x4c, 0xf8, 0x2d, 0x1c, 0xd8, 0x12, 0x4b, 0x93,
-	0x6a, 0x21, 0x0b, 0x5e, 0x6b, 0xd2, 0x9f, 0xfb, 0xef, 0x57, 0xbf, 0x44, 0xc7, 0x56, 0xfd, 0xd4,
+	0x6a, 0x51, 0x48, 0x5e, 0x6b, 0xd2, 0x9f, 0xfb, 0xef, 0x57, 0xbf, 0x44, 0xc7, 0x56, 0xfd, 0xd4,
 	0xed, 0x76, 0x9c, 0x0e, 0x3f, 0x85, 0x7b, 0x4c, 0x49, 0x53, 0x53, 0x66, 0x52, 0x9a, 0xe7, 0x35,
 	0xd7, 0xba, 0xed, 0x96, 0xc3, 0x8e, 0xff, 0xc6, 0xd1, 0xe1, 0x13, 0x38, 0x34, 0x75, 0xa3, 0x8d,
 	0x90, 0x45, 0xba, 0xe6, 0xb5, 0x50, 0x79, 0xdb, 0x3c, 0x07, 0x1d, 0x7d, 0x81, 0x6c, 0x9b, 0x6e,
@@ -411,7 +411,7 @@ var fileDescriptor_1304259fbeedea63 = []byte{
 	0x33, 0xeb, 0xfd, 0xf0, 0xa2, 0x10, 0x66, 0xd5, 0x64, 0x11, 0x53, 0x55, 0x9c, 0x09, 0x2a, 0x7f,
 	0x12, 0x9c, 0x8a, 0xd8, 0x1e, 0x75, 0x5a, 0xa8, 0xb8, 0x52, 0x79, 0x53, 0x72, 0x1d, 0xef, 0xde,
 	0x98, 0xd3, 0xee, 0x91, 0xf9, 0xec, 0x8b, 0x53, 0xfb, 0xce, 0x98, 0xab, 0x35, 0xd7, 0x59, 0x1f,
-	0x5f, 0x85, 0xcf, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0xf7, 0xc1, 0xa2, 0xf2, 0x8d, 0x06, 0x00,
+	0x5f, 0x85, 0xcf, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x14, 0x30, 0xe7, 0x5f, 0x8d, 0x06, 0x00,
 	0x00,
 }
 
@@ -570,10 +570,10 @@ func (m *ClientState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x3a
 	}
-	if len(m.RecentSingers) > 0 {
-		for iNdEx := len(m.RecentSingers) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.RecentSigners) > 0 {
+		for iNdEx := len(m.RecentSigners) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.RecentSingers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.RecentSigners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -621,7 +621,7 @@ func (m *ClientState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Singer) Marshal() (dAtA []byte, err error) {
+func (m *Signer) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -631,12 +631,12 @@ func (m *Singer) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Singer) MarshalTo(dAtA []byte) (int, error) {
+func (m *Signer) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Singer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Signer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -962,8 +962,8 @@ func (m *ClientState) Size() (n int) {
 			n += 1 + l + sovBsc(uint64(l))
 		}
 	}
-	if len(m.RecentSingers) > 0 {
-		for _, e := range m.RecentSingers {
+	if len(m.RecentSigners) > 0 {
+		for _, e := range m.RecentSigners {
 			l = e.Size()
 			n += 1 + l + sovBsc(uint64(l))
 		}
@@ -978,7 +978,7 @@ func (m *ClientState) Size() (n int) {
 	return n
 }
 
-func (m *Singer) Size() (n int) {
+func (m *Signer) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1748,7 +1748,7 @@ func (m *ClientState) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RecentSingers", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RecentSigners", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1775,8 +1775,8 @@ func (m *ClientState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RecentSingers = append(m.RecentSingers, Singer{})
-			if err := m.RecentSingers[len(m.RecentSingers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.RecentSigners = append(m.RecentSigners, Signer{})
+			if err := m.RecentSigners[len(m.RecentSigners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1854,7 +1854,7 @@ func (m *ClientState) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *Singer) Unmarshal(dAtA []byte) error {
+func (m *Signer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1877,10 +1877,10 @@ func (m *Singer) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Singer: wiretype end group for non-group")
+			return fmt.Errorf("proto: Signer: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Singer: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Signer: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,26 +26,25 @@ type snapshot struct {
 	Recents    map[uint64]common.Address
 }
 
-func getSnapshot(
+func (m ClientState) getSnapshot(
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
-	height exported.Height,
 ) (*snapshot, error) {
 
-	recentSingers, err := GetRecentSingers(store)
+	recentSingers, err := GetRecentSigners(store)
 	if err != nil {
 		return nil, err
 	}
-	validatorSet := GetValidators(cdc, store, height)
+
 	snap := &snapshot{
 		cdc:        cdc,
 		store:      store,
-		Number:     height.GetRevisionHeight(),
-		Validators: make(map[common.Address]struct{}, len(validatorSet.Validators)),
+		Number:     m.Header.Height.RevisionHeight,
+		Validators: make(map[common.Address]struct{}, len(m.Validators)),
 		Recents:    make(map[uint64]common.Address, len(recentSingers)),
 	}
 
-	for _, validator := range validatorSet.Validators {
+	for _, validator := range m.Validators {
 		snap.Validators[common.BytesToAddress(validator)] = struct{}{}
 	}
 

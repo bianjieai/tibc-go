@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -33,7 +34,10 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	if err := checkValidity(cdc, store, &m, bscConsState, *bscHeader); err != nil {
 		return nil, nil, err
 	}
-	newClientState, consensusState := update(ctx, store, &m, bscHeader)
+	newClientState, consensusState, err := update(cdc, store, &m, bscHeader)
+	if err != nil {
+		return nil, nil, err
+	}
 	return newClientState, consensusState, nil
 }
 
@@ -54,8 +58,51 @@ func checkValidity(
 }
 
 // update the RecentSingers and the ConsensusState.
-func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
-	//height := header.GetHeight().(clienttypes.Height)
-	// TODO
-	return nil, nil
+func update(cdc codec.BinaryMarshaler,
+	store sdk.KVStore,
+	clientState *ClientState,
+	header *Header,
+) (*ClientState, *ConsensusState, error) {
+	// The validator set change occurs at `header.Number % cs.Epoch == 0`
+	number := header.Height.RevisionHeight
+	if number%clientState.Epoch == 0 {
+		validators, err := ParseValidators(header.Extra)
+		if err != nil {
+			return nil, nil, err
+		}
+		SetPenddingValidators(store, cdc, validators)
+	}
+
+	// change validator set
+	if number%clientState.Epoch == uint64(len(clientState.Validators)/2) {
+		validators := GetPenddingValidators(cdc, store).Validators
+		newVals := make(map[common.Address]struct{}, len(validators))
+		for _, val := range validators {
+			newVals[common.BytesToAddress(val)] = struct{}{}
+		}
+
+		oldLimit := len(clientState.Validators)/2 + 1
+		newLimit := len(newVals)/2 + 1
+		if newLimit < oldLimit {
+			for i := 0; i < oldLimit-newLimit; i++ {
+				pruneHeight := clienttypes.NewHeight(header.Height.RevisionNumber, number-uint64(newLimit)-uint64(i))
+				DeleteSigner(store, pruneHeight)
+			}
+		}
+		clientState.Validators = validators
+	}
+
+	// update the recentSingers
+	// Delete the oldest validator from the recent list to allow it signing again
+	if limit := uint64(len(clientState.Validators)/2 + 1); number >= limit {
+		pruneHeight := clienttypes.NewHeight(header.Height.RevisionNumber, number-limit)
+		DeleteSigner(store, pruneHeight)
+	}
+
+	cs := &ConsensusState{
+		Timestamp: header.Time,
+		Number:    header.Height,
+		Root:      header.Root,
+	}
+	return clientState, cs, nil
 }

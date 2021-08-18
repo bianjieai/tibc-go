@@ -169,9 +169,13 @@ func verifySeal(
 		return sdkerrors.Wrap(ErrCoinBaseMisMatch, "header.Coinbase")
 	}
 
-	lastHeight, _ := header.Height.Decrement()
+	SetSigner(store, Signer{
+		Height:    header.Height,
+		Validator: signer.Bytes(),
+	})
+
 	// Retrieve the snapshot needed to verify this header and cache it
-	snap, err := getSnapshot(cdc, store, lastHeight)
+	snap, err := clientState.getSnapshot(cdc, store)
 	if err != nil {
 		return err
 	}

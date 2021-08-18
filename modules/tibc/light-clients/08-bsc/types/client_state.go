@@ -39,7 +39,12 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	SetRecentSingers(store, m.RecentSingers)
+	SetRecentSigners(store, m.RecentSigners)
+	penddingValidators, err := ParseValidators(m.Header.Extra)
+	if err != nil {
+		return err
+	}
+	SetPenddingValidators(store, cdc, penddingValidators)
 	return nil
 }
 

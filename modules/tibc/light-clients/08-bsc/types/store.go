@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	PrefixKeyValidators    = "validators"
-	PrefixKeyRecentSingers = "RecentSingers"
+	PrefixKeyRecentSingers   = "recentSingers"
+	PrefixPenddingValidators = "penddingValidators"
 )
 
 // GetConsensusState retrieves the consensus state from the client prefixed
@@ -46,15 +46,24 @@ func GetConsensusState(store sdk.KVStore,
 	return consensusState, nil
 }
 
-// SetRecentSingers sets the recent singer list in the client prefixed store
-func SetRecentSingers(store sdk.KVStore, recentSingers []Singer) {
+// SetRecentSigners sets the recent singer list in the client prefixed store
+func SetRecentSigners(store sdk.KVStore, recentSingers []Signer) {
 	for _, singer := range recentSingers {
 		store.Set(keyRecentSinger(singer), singer.Validator)
 	}
 }
 
-// GetRecentSingers retrieves the recent singer list from the client prefixed
-func GetRecentSingers(store sdk.KVStore) (recentSingers []Singer, err error) {
+func SetSigner(store sdk.KVStore, signer Signer) {
+	store.Set(keyRecentSinger(signer), signer.Validator)
+}
+
+func DeleteSigner(store sdk.KVStore, height clienttypes.Height) {
+	keyBz := []byte(fmt.Sprintf("%s/%s", PrefixKeyRecentSingers, height))
+	store.Delete(keyBz)
+}
+
+// GetRecentSigners retrieves the recent singer list from the client prefixed
+func GetRecentSigners(store sdk.KVStore) (recentSingers []Signer, err error) {
 	iterator := sdk.KVStorePrefixIterator(store, []byte(PrefixKeyRecentSingers))
 	defer iterator.Close()
 
@@ -65,7 +74,7 @@ func GetRecentSingers(store sdk.KVStore) (recentSingers []Singer, err error) {
 		if err != nil {
 			return nil, err
 		}
-		recentSingers = append(recentSingers, Singer{
+		recentSingers = append(recentSingers, Signer{
 			Height:    height,
 			Validator: iterator.Value(),
 		})
@@ -73,36 +82,34 @@ func GetRecentSingers(store sdk.KVStore) (recentSingers []Singer, err error) {
 	return
 }
 
-// GetValidators retrieves the validators from the client prefixed store
-func GetValidators(
+// SetPenddingValidators sets the validators to be updated in the client prefixed store
+func SetPenddingValidators(store sdk.KVStore,
 	cdc codec.BinaryMarshaler,
-	store sdk.KVStore,
-	height exported.Height,
-) ValidatorSet {
-	bz := store.Get(keyValidators(height))
-
-	var validatorSet ValidatorSet
-	cdc.MustUnmarshalBinaryBare(bz, &validatorSet)
-	return validatorSet
-}
-
-// SetValidators sets the validators in the client prefixed store
-func SetValidators(store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	height exported.Height,
 	validators [][]byte,
 ) {
 	validatorSet := ValidatorSet{
 		Validators: validators,
 	}
 	bz := cdc.MustMarshalBinaryBare(&validatorSet)
-	store.Set(keyValidators(height), bz)
+	store.Set(keyPenddingValidators(), bz)
 }
 
-func keyRecentSinger(singer Singer) []byte {
-	return []byte(fmt.Sprintf("%s/%s", PrefixKeyValidators, singer.Height))
+// GetPenddingValidators retrieves the validators to be updated from the client prefixed store
+func GetPenddingValidators(
+	cdc codec.BinaryMarshaler,
+	store sdk.KVStore,
+) ValidatorSet {
+	bz := store.Get(keyPenddingValidators())
+
+	var validatorSet ValidatorSet
+	cdc.MustUnmarshalBinaryBare(bz, &validatorSet)
+	return validatorSet
 }
 
-func keyValidators(height exported.Height) []byte {
-	return []byte(fmt.Sprintf("%s/%s", PrefixKeyRecentSingers, height))
+func keyRecentSinger(singer Signer) []byte {
+	return []byte(fmt.Sprintf("%s/%s", PrefixKeyRecentSingers, singer.Height))
+}
+
+func keyPenddingValidators() []byte {
+	return []byte(PrefixPenddingValidators)
 }
