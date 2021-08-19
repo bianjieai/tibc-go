@@ -3,6 +3,8 @@ package ibc
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
+
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	packet "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
@@ -14,12 +16,14 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *types.GenesisState) {
 	client.InitGenesis(ctx, k.ClientKeeper, gs.ClientGenesis)
 	packet.InitGenesis(ctx, k.Packetkeeper, gs.PacketGenesis)
+	routing.InitGenesis(ctx, k.RoutingKeeper, gs.RoutingGenesis)
 }
 
 // ExportGenesis returns the ibc exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		ClientGenesis: client.ExportGenesis(ctx, k.ClientKeeper),
-		PacketGenesis: packet.ExportGenesis(ctx, k.Packetkeeper),
+		ClientGenesis:  client.ExportGenesis(ctx, k.ClientKeeper),
+		PacketGenesis:  packet.ExportGenesis(ctx, k.Packetkeeper),
+		RoutingGenesis: routing.ExportGenesis(ctx, k.RoutingKeeper),
 	}
 }

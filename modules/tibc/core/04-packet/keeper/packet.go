@@ -33,13 +33,7 @@ func (k Keeper) SendPacket(
 		return clienttypes.ErrConsensusStateNotFound
 	}
 
-	nextSequenceSend, found := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrSequenceSendNotFound,
-			"source chain: %s, dest chain: %s", packet.GetSourceChain(), packet.GetDestChain(),
-		)
-	}
+	nextSequenceSend, _ := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 
 	if packet.GetSequence() != nextSequenceSend {
 		return sdkerrors.Wrapf(
