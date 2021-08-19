@@ -52,12 +52,12 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		// 	suite.coordinator.SetupClients(path)
 		// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
 		// }, false},
-		//{"client state not found", func() {
-		//	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		//	suite.coordinator.SetupClients(path)
-		//
-		//	packet = types.NewPacket(validPacketData, 1, ibctesting.InvalidID, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
-		//}, false},
+		{"client state not found", func() {
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, ibctesting.InvalidID, relayChain, ibctesting.MockPort)
+		}, false},
 		{"next sequence wrong", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
