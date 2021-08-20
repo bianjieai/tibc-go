@@ -33,6 +33,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecvPacket{},
 		&MsgAcknowledgement{},
 		&MsgCleanPacket{},
+		&MsgRecvCleanPacket{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
