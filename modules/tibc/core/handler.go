@@ -28,6 +28,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := k.Acknowledgement(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
+		case *packettypes.MsgCleanPacket:
+			res, err := k.CleanPacket(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *packettypes.MsgRecvCleanPacket:
+			res, err := k.RecvCleanPacket(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC message type: %T", msg)
 		}
