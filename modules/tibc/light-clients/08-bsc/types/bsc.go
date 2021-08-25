@@ -7,6 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
 const (
@@ -82,8 +84,8 @@ func (b *BlockNonce) SetBytes(d []byte) {
 	copy(b[nonceByteLength-len(d):], d)
 }
 
-// bscHeader represents a block header in the Ethereum blockchain.
-type bscHeader struct {
+// BscHeader represents a block header in the Ethereum blockchain.
+type BscHeader struct {
 	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
 	UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
 	Coinbase    common.Address `json:"miner"            gencodec:"required"`
@@ -99,6 +101,26 @@ type bscHeader struct {
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"`
 	Nonce       BlockNonce     `json:"nonce"`
+}
+
+func (h BscHeader) ToHeader() Header {
+	return Header{
+		ParentHash:  h.ParentHash[:],
+		UncleHash:   h.UncleHash[:],
+		Coinbase:    h.Coinbase[:],
+		Root:        h.Root[:],
+		TxHash:      h.TxHash[:],
+		ReceiptHash: h.ReceiptHash[:],
+		Bloom:       h.Bloom[:],
+		Difficulty:  h.Difficulty.Uint64(),
+		Height:      clienttypes.NewHeight(0, h.Number.Uint64()),
+		GasLimit:    h.GasLimit,
+		GasUsed:     h.GasUsed,
+		Time:        h.Time,
+		Extra:       h.Extra,
+		MixDigest:   h.MixDigest[:],
+		Nonce:       h.Nonce[:],
+	}
 }
 
 // ProofAccount ...

@@ -66,8 +66,8 @@ func (h Header) ValidateBasic() error {
 	return nil
 }
 
-func (h Header) ToBscHeader() bscHeader {
-	return bscHeader{
+func (h Header) ToBscHeader() BscHeader {
+	return BscHeader{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
 		Coinbase:    common.BytesToAddress(h.Coinbase),
