@@ -47,6 +47,10 @@ message Signer {
   bytes validator = 2;
 }
 
+message SignerSet {
+  repeated Signer signers = 1 [ (gogoproto.nullable) = false ];
+}
+
 message ValidatorSet { repeated bytes validators = 1; }
 
 // ConsensusState defines the consensus state from bsc.

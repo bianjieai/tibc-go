@@ -103,17 +103,17 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	ctx := endpoint.Chain.GetContext()
 
 	// set selft chain name
-	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
 
 	// set send sequence
-	endpoint.Chain.App.IBCKeeper.Packetkeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
+	endpoint.Chain.App.TIBCKeeper.Packetkeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
 
 	// set relayers
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
-	endpoint.Chain.App.IBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
 
 	// create counterparty chain light client
-	err = endpoint.Chain.App.IBCKeeper.ClientKeeper.CreateClient(
+	err = endpoint.Chain.App.TIBCKeeper.ClientKeeper.CreateClient(
 		endpoint.Chain.GetContext(),
 		endpoint.Counterparty.ChainName,
 		clientState, consensusState,
@@ -163,7 +163,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
 	// no need to send message, acting as a module
-	err := endpoint.Chain.App.IBCKeeper.Packetkeeper.SendPacket(endpoint.Chain.GetContext(), packet)
+	err := endpoint.Chain.App.TIBCKeeper.Packetkeeper.SendPacket(endpoint.Chain.GetContext(), packet)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func (endpoint *Endpoint) RecvPacket(packet packettypes.Packet) error {
 // The counterparty client is updated.
 func (endpoint *Endpoint) WriteAcknowledgement(acknowledgement []byte, packet exported.PacketI) error {
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.IBCKeeper.Packetkeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, acknowledgement)
+	err := endpoint.Chain.App.TIBCKeeper.Packetkeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, acknowledgement)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (endpoint *Endpoint) RecvCleanPacket(packet packettypes.Packet) error {
 }
 
 func (endpoint *Endpoint) ClientStore() sdk.KVStore {
-	return endpoint.Chain.App.IBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName)
+	return endpoint.Chain.App.TIBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName)
 }
 
 // GetClientState retrieves the Client State for this endpoint. The
@@ -249,7 +249,7 @@ func (endpoint *Endpoint) GetClientState() exported.ClientState {
 
 // SetClientState sets the client state for this endpoint.
 func (endpoint *Endpoint) SetClientState(clientState exported.ClientState) {
-	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, clientState)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, clientState)
 }
 
 // GetConsensusState retrieves the Consensus State for this endpoint at the provided height.
@@ -263,7 +263,7 @@ func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.Con
 
 // SetConsensusState sets the consensus state for this endpoint.
 func (endpoint *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
-	endpoint.Chain.App.IBCKeeper.ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, height, consensusState)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, height, consensusState)
 }
 
 // QueryClientStateProof performs and abci query for a client stat associated

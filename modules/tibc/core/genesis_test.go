@@ -184,7 +184,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 		app := simapp.Setup(false)
 
 		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.IBCKeeper, true, tc.genState)
+			ibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.TIBCKeeper, true, tc.genState)
 		})
 	}
 }
@@ -214,12 +214,12 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			var gs *types.GenesisState
 			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper)
+				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.TIBCKeeper)
 			})
 
 			// init genesis based on export
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper, true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.TIBCKeeper, true, gs)
 			})
 
 			suite.NotPanics(func() {
@@ -230,7 +230,7 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			// init genesis based on marshal and unmarshal
 			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.IBCKeeper, true, gs)
+				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.TIBCKeeper, true, gs)
 			})
 		})
 	}

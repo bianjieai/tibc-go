@@ -24,10 +24,10 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	}
 
 	// get consensus state from clientStore
-	bscConsState, err := GetConsensusState(store, cdc, bscHeader.Height)
+	bscConsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
 	if err != nil {
 		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", bscHeader.Height,
+			err, "could not get consensus state from clientstore at TrustedHeight: %s", m.GetLatestHeight(),
 		)
 	}
 
@@ -104,5 +104,7 @@ func update(cdc codec.BinaryMarshaler,
 		Number:    header.Height,
 		Root:      header.Root,
 	}
+
+	clientState.Header = *header
 	return clientState, cs, nil
 }

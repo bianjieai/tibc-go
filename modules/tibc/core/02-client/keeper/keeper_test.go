@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testChainName, Time: now2})
-	suite.keeper = &app.IBCKeeper.ClientKeeper
+	suite.keeper = &app.TIBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
 
 	pubKey, err := suite.privVal.GetPubKey()
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.IBCKeeper.ClientKeeper)
+	types.RegisterQueryServer(queryHelper, app.TIBCKeeper.ClientKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
@@ -154,11 +154,11 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 	expGenClients := make(types.IdentifiedClientStates, len(expClients))
 
 	for i := range expClients {
-		suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), chainNames[i], expClients[i])
+		suite.chainA.App.TIBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), chainNames[i], expClients[i])
 		expGenClients[i] = types.NewIdentifiedClientState(chainNames[i], expClients[i])
 	}
 
-	genClients := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
+	genClients := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
@@ -185,9 +185,9 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 		types.NewIdentifiedClientState("clientA", &ibctmtypes.ClientState{}), types.NewIdentifiedClientState("clientB", &ibctmtypes.ClientState{}),
 	}
 
-	suite.chainA.App.IBCKeeper.ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
+	suite.chainA.App.TIBCKeeper.ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
 
-	actualGenMetadata, err := suite.chainA.App.IBCKeeper.ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients)
+	actualGenMetadata, err := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients)
 	suite.Require().NoError(err, "get client metadata returned error unexpectedly")
 	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
@@ -248,7 +248,7 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 		{Height: expConsensusHeight1.(types.Height), ConsensusState: consensusStateAny1},
 	}
 
-	consStates := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
+	consStates := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Len(consStates, 1)
 	suite.Require().Equal(path.EndpointB.ChainName, consStates[0].ChainName)
 	suite.Require().Equal(expConsensus, consStates[0].ConsensusStates)

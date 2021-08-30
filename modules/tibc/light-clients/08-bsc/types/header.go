@@ -4,18 +4,18 @@ import (
 	fmt "fmt"
 	io "io"
 	"math/big"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"golang.org/x/crypto/sha3"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var _ exported.Header = (*Header)(nil)
@@ -37,10 +37,6 @@ func (h *Header) Hash() common.Hash {
 func (h Header) ValidateBasic() error {
 	number := h.Height.RevisionHeight
 
-	// Don't waste time checking blocks from the future
-	if h.Time > uint64(time.Now().Unix()) {
-		return sdkerrors.Wrap(ErrFutureBlock, "header Height")
-	}
 	// Check that the extra-data contains the vanity, validators and signature.
 	if len(h.Extra) < extraVanity {
 		return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
@@ -66,8 +62,8 @@ func (h Header) ValidateBasic() error {
 	return nil
 }
 
-func (h Header) ToBscHeader() bscHeader {
-	return bscHeader{
+func (h Header) ToBscHeader() BscHeader {
+	return BscHeader{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
 		Coinbase:    common.BytesToAddress(h.Coinbase),
@@ -122,10 +118,10 @@ func verifyCascadingFields(
 	store sdk.KVStore,
 	clientState *ClientState,
 	header Header) error {
-	number := header.Height.RevisionHeight
+	height := header.Height.RevisionHeight
 
 	parent := clientState.Header
-	if parent.Height.RevisionHeight != number-1 || parent.Hash() != common.BytesToHash(header.ParentHash) {
+	if parent.Height.RevisionHeight != height-1 || parent.Hash() != common.BytesToHash(header.ParentHash) {
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}
 
@@ -171,11 +167,6 @@ func verifySeal(
 		return sdkerrors.Wrap(ErrCoinBaseMisMatch, "header.Coinbase")
 	}
 
-	SetSigner(store, Signer{
-		Height:    header.Height,
-		Validator: signer.Bytes(),
-	})
-
 	// Retrieve the snapshot needed to verify this header and cache it
 	snap, err := clientState.snapshot(cdc, store)
 	if err != nil {
@@ -194,6 +185,11 @@ func verifySeal(
 			}
 		}
 	}
+
+	SetSigner(store, Signer{
+		Height:    header.Height,
+		Validator: signer.Bytes(),
+	})
 
 	// Ensure that the difficulty corresponds to the turn-ness of the signer
 	inturn := snap.inturn(signer)

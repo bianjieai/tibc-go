@@ -31,8 +31,8 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		{
 			"not a consensus state interface", func() {
 				// marshal an empty client state and set as consensus state
-				store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
-				clientStateBz := suite.chainA.App.IBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
+				store := suite.chainA.App.TIBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
+				clientStateBz := suite.chainA.App.TIBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false,
 		},
@@ -52,7 +52,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 
 			tc.malleate() // change vars as necessary
 
-			store := suite.chainA.App.IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
+			store := suite.chainA.App.TIBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
 			consensusState, err := types.GetConsensusState(store, suite.chainA.Codec, height)
 
 			if tc.expPass {

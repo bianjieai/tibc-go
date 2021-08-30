@@ -136,7 +136,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		ChainID:       chainID,
 		App:           app,
 		CurrentHeader: header,
-		QueryServer:   app.IBCKeeper,
+		QueryServer:   app.TIBCKeeper,
 		TxConfig:      txConfig,
 		Codec:         app.AppCodec(),
 		Vals:          valSet,
@@ -213,7 +213,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // stored with a given chainName and returns the ClientState along with the proof
 func (chain *TestChain) QueryClientStateProof(chainName string) (exported.ClientState, []byte) {
 	// retrieve client state to provide proof for
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
+	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
 	require.True(chain.t, found)
 
 	clientKey := host.FullClientStateKey(chainName)
@@ -300,7 +300,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // GetClientState retrieves the client state for the provided chainName. The client is
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
-	clientState, found := chain.App.IBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
+	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
 	require.True(chain.t, found)
 
 	return clientState
@@ -309,7 +309,7 @@ func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
 // GetConsensusState retrieves the consensus state for the provided chainName and height.
 // It will return a success boolean depending on if consensus state exists or not.
 func (chain *TestChain) GetConsensusState(chainName string, height exported.Height) (exported.ConsensusState, bool) {
-	return chain.App.IBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), chainName, height)
+	return chain.App.TIBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), chainName, height)
 }
 
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
@@ -332,7 +332,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.IBCKeeper.Packetkeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	ack, found := chain.App.TIBCKeeper.Packetkeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	require.True(chain.t, found)
 
 	return ack
@@ -363,7 +363,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainN
 		chain.t.Fatalf("unsupported client state type %s", clientType)
 	}
 
-	err := chain.App.IBCKeeper.ClientKeeper.CreateClient(
+	err := chain.App.TIBCKeeper.ClientKeeper.CreateClient(
 		chain.GetContext(),
 		chainName,
 		clientState, consensusState,
