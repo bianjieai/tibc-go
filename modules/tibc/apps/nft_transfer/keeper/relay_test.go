@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		expPass        bool
 	}{
 		{"success receive on awayfromSource chain", func() {}, true, true},
-		{"success receive on nearToSource chain", func() {
+		{"failed receive on nearToSource chain", func() {
 			// issue denom
 			issueDenomMsg := nfttypes.NewMsgIssueDenom("dog", "dog-name", "",
 				suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
@@ -126,9 +126,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				suite.chainA.SenderAccount.GetAddress().String())
 			_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-			newClass = PREFIX + "/" + suite.chainB.ChainID + "/" + CLASS
-
-		}, false, true},
+		}, false, false},
 		{"failed receive on nearToSource chain without prefix ", func() {
 			newClass = CLASS
 		}, false, false},
@@ -158,7 +156,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// send nft from B to A
 				tc.malleate()
 
-				data := types.NewNonFungibleTokenPacketData(newClass, NFTID, "", suite.chainB.SenderAccount.GetAddress().String(),
+				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(),
 					suite.chainA.SenderAccount.GetAddress().String(), false)
 				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainB.ChainID, suite.chainA.ChainID, "", string(routingtypes.NFT))
 				err := suite.chainA.App.NftTransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, data)
@@ -272,5 +270,4 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			}
 		})
 	}
-
 }

@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet = types.NewPacket(validPacketData, 1, ibctesting.InvalidID, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, ibctesting.InvalidID, relayChain, ibctesting.MockPort)
 		}, false},
 		{"next sequence wrong", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)

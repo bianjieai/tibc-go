@@ -761,3 +761,85 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
+	var (
+		req *types.QueryCleanPacketCommitmentRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			false,
+		},
+		{
+			"invalid source chain name",
+			func() {
+				req = &types.QueryCleanPacketCommitmentRequest{
+					SourceChain: "",
+					DestChain:   "dest-chain",
+				}
+			},
+			false,
+		},
+		{
+			"invalid destination chain name",
+			func() {
+				req = &types.QueryCleanPacketCommitmentRequest{
+					SourceChain: "source-chain",
+					DestChain:   "",
+				}
+			},
+			false,
+		},
+		{"dest chain not found",
+			func() {
+				req = &types.QueryCleanPacketCommitmentRequest{
+					SourceChain: "source-chain",
+					DestChain:   "dest-chain",
+				}
+			},
+			false,
+		},
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
+				suite.chainA.App.TIBCKeeper.Packetkeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+
+				req = &types.QueryCleanPacketCommitmentRequest{
+					SourceChain: path.EndpointA.ChainName,
+					DestChain:   path.EndpointB.ChainName,
+				}
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := sdk.WrapSDKContext(suite.chainA.GetContext())
+
+			res, err := suite.chainA.QueryServer.CleanPacketCommitment(ctx, req)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(sdk.Uint64ToBigEndian(1), res.Commitment)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}

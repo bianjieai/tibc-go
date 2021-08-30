@@ -252,7 +252,7 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 		return err
 	}
 
-	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, []byte{byte(sequence)}); err != nil {
+	if err := merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), path, sdk.Uint64ToBigEndian(sequence)); err != nil {
 		return err
 	}
 

@@ -8,6 +8,7 @@ import (
 	ibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	packet "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -41,6 +42,7 @@ func GetQueryCmd() *cobra.Command {
 	ibcQueryCmd.AddCommand(
 		ibcclient.GetQueryCmd(),
 		packet.GetQueryCmd(),
+		routing.GetQueryCmd(),
 	)
 
 	return ibcQueryCmd
