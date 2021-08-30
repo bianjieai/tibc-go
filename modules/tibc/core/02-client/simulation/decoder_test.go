@@ -32,11 +32,11 @@ func TestDecodeStore(t *testing.T) {
 		Pairs: []kv.Pair{
 			{
 				Key:   host.FullClientStateKey(chainName),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+				Value: app.TIBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
 			},
 			{
 				Key:   host.FullConsensusStateKey(chainName, height),
-				Value: app.IBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
+				Value: app.TIBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
 			},
 			{
 				Key:   []byte{0x99},
@@ -56,7 +56,7 @@ func TestDecodeStore(t *testing.T) {
 	for i, tt := range tests {
 		i, tt := i, tt
 		t.Run(tt.name, func(t *testing.T) {
-			res, found := simulation.NewDecodeStore(app.IBCKeeper.ClientKeeper, kvPairs.Pairs[i], kvPairs.Pairs[i])
+			res, found := simulation.NewDecodeStore(app.TIBCKeeper.ClientKeeper, kvPairs.Pairs[i], kvPairs.Pairs[i])
 			if i == len(tests)-1 {
 				require.False(t, found, string(kvPairs.Pairs[i].Key))
 				require.Empty(t, res, string(kvPairs.Pairs[i].Key))

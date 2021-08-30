@@ -3,20 +3,25 @@ package types_test
 import (
 	"crypto/tls"
 	"encoding/json"
-	fmt "fmt"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	bsctypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/08-bsc/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	bsctypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/08-bsc/types"
 )
 
 var (
-	url = "https://bsc-dataseed1.binance.org"
+	url       = "https://bsc-dataseed1.binance.org"
+	chainName = "bsc"
+	epoch     = uint64(200)
 )
 
 func (suite *BSCTestSuite) TestCheckHeaderAndUpdateState() {
@@ -25,31 +30,77 @@ func (suite *BSCTestSuite) TestCheckHeaderAndUpdateState() {
 
 	suite.NoError(err)
 
-	header, err := GetNodeHeader(rc, height)
-	suite.NoError(err)
+	genesisHeight := height - height%epoch - 2*epoch
 
-	str, _ := json.Marshal(header)
-	println(string(str))
+	header, err := GetNodeHeader(rc, genesisHeight)
+	suite.NoError(err)
 
 	validators, err := bsctypes.ParseValidators(header.Extra)
 	suite.NoError(err)
 
-	clientState := bsctypes.ClientState{
+	genesisValidatorHeader, err := GetNodeHeader(rc, genesisHeight-epoch)
+	suite.NoError(err)
+
+	genesisValidators, err := bsctypes.ParseValidators(genesisValidatorHeader.Extra)
+	suite.NoError(err)
+
+	number := clienttypes.NewHeight(0, header.Number.Uint64())
+
+	clientState := exported.ClientState(&bsctypes.ClientState{
 		Header:          header.ToHeader(),
-		ChainId:         1,
-		Epoch:           200,
+		ChainId:         56,
+		Epoch:           epoch,
 		BlockInteval:    3,
-		Validators:      validators,
+		Validators:      genesisValidators,
 		ContractAddress: []byte("0x00"),
 		TrustingPeriod:  200,
-	}
+	})
 
-	consensusState := bsctypes.ConsensusState{
+	consensusState := exported.ConsensusState(&bsctypes.ConsensusState{
 		Timestamp: header.Time,
-		Number:    clienttypes.NewHeight(0, header.Number.Uint64()),
+		Number:    number,
 		Root:      header.Root[:],
+	})
+
+	suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
+
+	bsctypes.SetPendingValidators(suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName), suite.app.AppCodec(), validators)
+
+	for i := uint64(1); i <= uint64(1.5*float64(epoch)); i++ {
+		updateHeader, err := GetNodeHeader(rc, genesisHeight+i)
+
+		// skip some connection error on getting header
+		if err != nil {
+			i--
+			continue
+		}
+
+		protoHeader := updateHeader.ToHeader()
+		suite.NoError(err)
+
+		clientState, consensusState, err = clientState.CheckHeaderAndUpdateState(
+			suite.ctx,
+			suite.app.AppCodec(),
+			suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName), // pass in chainName prefixed clientStore
+			&protoHeader,
+		)
+
+		suite.NoError(err)
+
+		number.RevisionHeight = genesisHeight + i
+		suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
+
+		recentSigners, err := bsctypes.GetRecentSigners(suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName))
+		suite.NoError(err)
+
+		validatorCount := len(clientState.(*bsctypes.ClientState).Validators)
+		if i <= uint64(validatorCount)/2+1 {
+			suite.Equal(i, uint64(len(recentSigners)))
+		} else {
+			suite.Equal(uint64(validatorCount)/2+1, uint64(len(recentSigners)))
+		}
+		suite.Equal(updateHeader.Number.Uint64(), clientState.GetLatestHeight().GetRevisionHeight())
 	}
-	suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, clientState, consensusState)
 }
 
 type RestClient struct {
@@ -174,7 +225,11 @@ func GetNodeHeader(restClient *RestClient, height uint64) (*bsctypes.BscHeader, 
 		return nil, fmt.Errorf("GetNodeHeight, unmarshal resp err: %s", err)
 	}
 	if rsp.Error != nil {
-		return nil, fmt.Errorf("GetNodeHeight, unmarshal resp err: %s", rsp.Error.Message)
+		return nil, fmt.Errorf("GetNodeHeight, return error: %s", rsp.Error.Message)
+	}
+
+	if rsp.Result == nil {
+		return nil, errors.New("GetNodeHeight, no result")
 	}
 
 	header := rsp.Result

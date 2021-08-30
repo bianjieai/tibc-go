@@ -6,7 +6,6 @@ import (
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
-
 func (m *ConsensusState) ClientType() string {
 	panic("implement me")
 }
