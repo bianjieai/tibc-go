@@ -37,10 +37,6 @@ func (h *Header) Hash() common.Hash {
 func (h Header) ValidateBasic() error {
 	number := h.Height.RevisionHeight
 
-	// Don't waste time checking blocks from the future
-	// if h.Time > uint64(time.Now().Unix()) {
-	// 	return sdkerrors.Wrap(ErrFutureBlock, "header Height")
-	// }
 	// Check that the extra-data contains the vanity, validators and signature.
 	if len(h.Extra) < extraVanity {
 		return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
