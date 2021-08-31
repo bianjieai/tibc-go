@@ -1,23 +1,26 @@
 package types
 
 import (
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
 
 func (m *ConsensusState) ClientType() string {
-	panic("implement me")
+	return exported.BSC
 }
 
 func (m *ConsensusState) GetRoot() exported.Root {
-	panic("implement me")
+	return commitmenttypes.MerkleRoot{
+		Hash: m.Root,
+	}
 }
 
 func (m *ConsensusState) GetTimestamp() uint64 {
-	panic("implement me")
+	return m.Timestamp
 }
 
 func (m *ConsensusState) ValidateBasic() error {
-	panic("implement me")
+	return nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
@@ -30,7 +31,7 @@ func (m ClientState) GetLatestHeight() exported.Height {
 }
 
 func (m ClientState) Validate() error {
-	panic("implement me")
+	return m.Header.ValidateBasic()
 }
 
 func (m ClientState) GetDelayTime() uint64 {
@@ -42,7 +43,7 @@ func (m ClientState) GetDelayBlock() uint64 {
 }
 
 func (m ClientState) GetPrefix() exported.Prefix {
-	panic("implement me")
+	return commitmenttypes.MerklePrefix{}
 }
 
 func (m ClientState) Initialize(
