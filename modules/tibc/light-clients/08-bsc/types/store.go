@@ -2,6 +2,9 @@ package types
 
 import (
 	"fmt"
+
+	"github.com/cosmos/cosmos-sdk/store/types"
+
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,6 +20,25 @@ var (
 	PrefixKeyRecentSingers  = "recentSingers"
 	PrefixPendingValidators = "pendingValidators"
 )
+
+
+func GetIterator(store sdk.KVStore,keyType string) (types.Iterator){
+	iterator := sdk.KVStorePrefixIterator(store,[]byte(keyType))
+	return iterator
+}
+
+func IteratorTraversal(store sdk.KVStore,keyType string, cb func(key, val []byte) bool) {
+	iterator := GetIterator(store, keyType)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(iterator.Key(),iterator.Value()) {
+			break
+		}
+	}
+}
+
+
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.

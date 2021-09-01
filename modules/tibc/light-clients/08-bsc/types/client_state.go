@@ -5,6 +5,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	fmt "fmt"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -80,9 +84,23 @@ func (m ClientState) Status(
 	return exported.Active
 }
 
+// ExportMetadata exports all the processed times in the client store so they can be included in clients genesis
+// and imported by a ClientKeeper
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	//TODO
-	return nil
+	gm := make([]exported.GenesisMetadata, 0)
+	callback := func(key, val []byte) bool {
+		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
+		return false
+	}
+
+	IteratorTraversal(store, host.KeyConsensusStatePrefix, callback)
+	IteratorTraversal(store, PrefixKeyRecentSingers, callback)
+	IteratorTraversal(store, PrefixPendingValidators, callback)
+
+	if len(gm) == 0 {
+		return nil
+	}
+	return gm
 }
 
 func (m ClientState) VerifyPacketCommitment(
