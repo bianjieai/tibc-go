@@ -14,7 +14,7 @@ func (cs ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetada
 	IterateProcessedTime(store, func(key, val []byte) bool {
 		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
 		return false
-	})
+	}) 
 	if len(gm) == 0 {
 		return nil
 	}
