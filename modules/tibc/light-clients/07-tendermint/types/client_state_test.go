@@ -100,7 +100,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	suite.Require().NoError(err)
 
 	clientState := path.EndpointA.GetClientState()
-	relayers := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+	relayers := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
 	suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
 	store := path.EndpointA.ClientStore()
 
@@ -154,10 +154,10 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			suite.coordinator.SetupClients(path)
 
-			relayerAs := path.EndpointA.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+			relayerAs := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
 			suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
 
-			relayerBs := path.EndpointB.Chain.App.IBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.ChainName)
+			relayerBs := path.EndpointB.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.ChainName)
 			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
 
 			// setup testing conditions
@@ -179,7 +179,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			store := path.EndpointB.ClientStore()
 
-			commitment := packettypes.CommitPacket(suite.chainB.App.IBCKeeper.Codec(), packet)
+			commitment := packettypes.CommitPacket(suite.chainB.App.TIBCKeeper.Codec(), packet)
 			err = clientState.VerifyPacketCommitment(suite.chainB.GetContext(),
 				store, suite.chainB.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,
