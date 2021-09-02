@@ -19,5 +19,5 @@ var (
 	ErrPacketReceived           = sdkerrors.Register(moduleName, 8, "packet already received")
 	ErrAcknowledgementExists    = sdkerrors.Register(moduleName, 9, "acknowledgement for packet already exists")
 	ErrInvalidCleanPacket       = sdkerrors.Register(moduleName, 10, "invalid clean packet")
-	ErrUnauthorized     		= sdkerrors.Register(moduleName, 11, "unauthorized")
+	ErrUnauthorized             = sdkerrors.Register(moduleName, 11, "unauthorized")
 )
