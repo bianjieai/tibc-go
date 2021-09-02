@@ -148,7 +148,7 @@ func (k Keeper) RecvPacket(
 
 	if isRelay {
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
-			return sdkerrors.Wrap(types.ErrUnauthorized, "no rule in routing table to relay this packet")
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
 		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
 		// Emit Event with Packet data along with other packet information for relayer to pick up
@@ -314,7 +314,7 @@ func (k Keeper) AcknowledgePacket(
 
 	if isRelay {
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
-			return sdkerrors.Wrap(types.ErrUnauthorized, "no rule in routing table to relay this packet")
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
 		// set the acknowledgement so that it can be verified on the other side
 		k.SetPacketAcknowledgement(
