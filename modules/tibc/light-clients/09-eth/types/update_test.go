@@ -125,7 +125,7 @@ func GetBlockHeight(rc *RestClient, url string) (height uint64, err error) {
 	}
 }
 
-func getNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeader, error) {
+func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeader, error) {
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
 	req := &blockReq{
 		JsonRpc: "2.0",
@@ -181,8 +181,8 @@ func Test_getjson(test *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	genesisHeight := height - 7
-	header, err := getNodeHeader(rc, ethurl, genesisHeight)
+	height = height - 10086
+	header, err := GetNodeHeader(rc, ethurl, height)
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
 	clientState := exported.ClientState(&ClientState{
 		Header:          header.ToHeader(),

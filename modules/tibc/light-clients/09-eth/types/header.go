@@ -18,6 +18,10 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
+var (
+	// Maximum number of uncles allowed in a single block
+	allowedFutureBlockTimeSeconds = int64(15)
+)
 var _ exported.Header = (*Header)(nil)
 
 func (h Header) ClientType() string {
@@ -35,26 +39,13 @@ func (h *Header) Hash() common.Hash {
 }
 
 func (h Header) ValidateBasic() error {
-	number := h.Height.RevisionHeight
-
-	//todo ? do not need the extra vanity?
-	//Check that the extra-data contains the vanity, validators and signature.
-	//if len(h.Extra) < extraVanity {
-	//	return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
-	//}
-	//if len(h.Extra) < extraVanity+extraSeal {
-	//	return sdkerrors.Wrap(ErrMissingSignature, "header Extra")
-	//}
-
-	// Ensure that the mix digest is zero as we don't have fork protection currently
-	if common.BytesToHash(h.MixDigest) != (common.Hash{}) {
-		return sdkerrors.Wrap(ErrInvalidMixDigest, "header MixDigest")
+	// Ensure that the header's extra-data section is of a reasonable size
+	if uint64(len(h.Extra)) > params.MaximumExtraDataSize {
+		return fmt.Errorf("extra-data too long: %d > %d", len(h.Extra), params.MaximumExtraDataSize)
 	}
-	// Ensure that the block doesn't contain any uncles which are meaningless in PoA
-	if common.BytesToHash(h.UncleHash) != uncleHash {
-		return sdkerrors.Wrap(ErrInvalidUncleHash, "header UncleHash")
-	}
+
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
+	number := h.Height.RevisionHeight
 	if number > 0 {
 		if h.Difficulty == 0 {
 			return sdkerrors.Wrap(ErrInvalidDifficulty, "header Difficulty")
@@ -92,22 +83,7 @@ func verifyHeader(
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
-
-	//todo ? need check epoch?
-	//number := header.Height.RevisionHeight
-	//// check extra data
-	//isEpoch := number%clientState.Epoch == 0
-	//// Ensure that the extra-data contains a signer list on checkpoint, but none otherwise
-	//signersBytes := len(header.Extra) - extraVanity - extraSeal
-	//if !isEpoch && signersBytes != 0 {
-	//	return sdkerrors.Wrap(ErrExtraValidators, "header.Extra")
-	//}
-	//
-	//if isEpoch && signersBytes%addressLength != 0 {
-	//	return sdkerrors.Wrap(ErrInvalidSpanValidators, "header.Extra")
-	//}
-
-	// All basic checks passed, verify cascading fields
+	//todo
 	return verifyCascadingFields(cdc, store, clientState, header)
 }
 
@@ -187,13 +163,6 @@ func verifySeal(
 			}
 		}
 	}
-	//todo ? delete singer
-	//SetSigner(store, Signer{
-	//	Height:    header.Height,
-	//	Validator: signer.Bytes(),
-	//})
-
-	// Ensure that the difficulty corresponds to the turn-ness of the signer
 	inturn := snap.inturn(signer)
 	diff := big.NewInt(int64(header.Difficulty))
 	if inturn && diff.Cmp(diffInTurn) != 0 {
