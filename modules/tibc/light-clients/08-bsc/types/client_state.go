@@ -8,8 +8,6 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -21,7 +19,6 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -93,7 +90,6 @@ func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadat
 		return false
 	}
 
-	IteratorTraversal(store, host.KeyConsensusStatePrefix, callback)
 	IteratorTraversal(store, PrefixKeyRecentSingers, callback)
 	IteratorTraversal(store, PrefixPendingValidators, callback)
 

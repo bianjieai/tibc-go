@@ -38,8 +38,6 @@ func IteratorTraversal(store sdk.KVStore,keyType string, cb func(key, val []byte
 	}
 }
 
-
-
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
 func GetConsensusState(store sdk.KVStore,
