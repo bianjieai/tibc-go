@@ -4,6 +4,9 @@ import (
 	fmt "fmt"
 	io "io"
 	"math/big"
+	"time"
+
+	"github.com/ethereum/go-ethereum/consensus"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,7 +46,18 @@ func (h Header) ValidateBasic() error {
 	if uint64(len(h.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(h.Extra), params.MaximumExtraDataSize)
 	}
-
+	if h.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
+		return consensus.ErrFutureBlock
+	}
+	// Verify that the gas limit is <= 2^63-1
+	cap := uint64(0x7fffffffffffffff)
+	if h.GasLimit > cap {
+		return fmt.Errorf("invalid gasLimit: have %v, max %v", h.GasLimit, cap)
+	}
+	// Verify that the gasUsed is <= gasLimit
+	if h.GasUsed > h.GasLimit {
+		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", h.GasUsed, h.GasLimit)
+	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	number := h.Height.RevisionHeight
 	if number > 0 {

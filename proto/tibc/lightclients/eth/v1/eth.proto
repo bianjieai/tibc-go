@@ -48,6 +48,8 @@ message ConsensusState {
   uint64 timestamp = 1;
   tibc.core.client.v1.Height number = 2 [ (gogoproto.nullable) = false ];
   bytes root = 3;
+  Header header = 4 [ (gogoproto.nullable) = false ];
+
 }
 
 message StorageResult {
