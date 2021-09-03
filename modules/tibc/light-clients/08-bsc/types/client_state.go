@@ -103,8 +103,7 @@ func (m ClientState) Status(
 	return exported.Active
 }
 
-// ExportMetadata exports all the processed times in the client store so they can be included in clients genesis
-// and imported by a ClientKeeper
+// ExportMetadata exports RecentSingers and PendingValidators
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
 	gm := make([]exported.GenesisMetadata, 0)
 	callback := func(key, val []byte) bool {

@@ -1,7 +1,6 @@
 package types
 
 import (
-
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
