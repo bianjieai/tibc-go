@@ -21,18 +21,17 @@ var (
 	PrefixPendingValidators = "pendingValidators"
 )
 
-
-func GetIterator(store sdk.KVStore,keyType string) (types.Iterator){
-	iterator := sdk.KVStorePrefixIterator(store,[]byte(keyType))
+func GetIterator(store sdk.KVStore, keyType string) types.Iterator {
+	iterator := sdk.KVStorePrefixIterator(store, []byte(keyType))
 	return iterator
 }
 
-func IteratorTraversal(store sdk.KVStore,keyType string, cb func(key, val []byte) bool) {
+func IteratorTraversal(store sdk.KVStore, keyType string, cb func(key, val []byte) bool) {
 	iterator := GetIterator(store, keyType)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		if cb(iterator.Key(),iterator.Value()) {
+		if cb(iterator.Key(), iterator.Value()) {
 			break
 		}
 	}

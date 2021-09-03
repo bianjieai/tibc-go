@@ -23,6 +23,18 @@ import (
 
 var _ exported.ClientState = (*ClientState)(nil)
 
+// NewClientState creates a new ClientState instance
+func NewClientState(
+	header Header,
+	chainID uint64,
+	Epoch uint64,
+	BlockInteval uint64,
+
+) *ClientState {
+	return &ClientState{
+		Header: header,
+	}
+}
 func (m ClientState) ClientType() string {
 	return exported.BSC
 }
