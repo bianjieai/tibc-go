@@ -5,20 +5,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	fmt "fmt"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -27,14 +26,25 @@ var _ exported.ClientState = (*ClientState)(nil)
 func NewClientState(
 	header Header,
 	chainID uint64,
-	Epoch uint64,
-	BlockInteval uint64,
-
+	epoch uint64,
+	blockInteval uint64,
+	validators [][]byte,
+	recentSigners []Signer,
+	contractAddress []byte,
+	trustingPeriod uint64,
 ) *ClientState {
 	return &ClientState{
-		Header: header,
+		Header:          header,
+		ChainId:         chainID,
+		Epoch:           epoch,
+		BlockInteval:    blockInteval,
+		Validators:      validators,
+		RecentSigners:   recentSigners,
+		ContractAddress: contractAddress,
+		TrustingPeriod:  trustingPeriod,
 	}
 }
+
 func (m ClientState) ClientType() string {
 	return exported.BSC
 }
