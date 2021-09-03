@@ -21,7 +21,7 @@ import (
 var _ exported.Header = (*Header)(nil)
 
 func (h Header) ClientType() string {
-	return exported.BSC
+	return exported.ETH
 }
 
 func (h Header) GetHeight() exported.Height {
@@ -31,19 +31,20 @@ func (h Header) GetHeight() exported.Height {
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
 // RLP encoding.
 func (h *Header) Hash() common.Hash {
-	return rlpHash(h.ToBscHeader())
+	return rlpHash(h.ToEthHeader())
 }
 
 func (h Header) ValidateBasic() error {
 	number := h.Height.RevisionHeight
 
-	// Check that the extra-data contains the vanity, validators and signature.
-	if len(h.Extra) < extraVanity {
-		return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
-	}
-	if len(h.Extra) < extraVanity+extraSeal {
-		return sdkerrors.Wrap(ErrMissingSignature, "header Extra")
-	}
+	//todo ? do not need the extra vanity?
+	//Check that the extra-data contains the vanity, validators and signature.
+	//if len(h.Extra) < extraVanity {
+	//	return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
+	//}
+	//if len(h.Extra) < extraVanity+extraSeal {
+	//	return sdkerrors.Wrap(ErrMissingSignature, "header Extra")
+	//}
 
 	// Ensure that the mix digest is zero as we don't have fork protection currently
 	if common.BytesToHash(h.MixDigest) != (common.Hash{}) {
@@ -62,7 +63,7 @@ func (h Header) ValidateBasic() error {
 	return nil
 }
 
-func (h Header) ToBscHeader() EthHeader {
+func (h Header) ToEthHeader() EthHeader {
 	return EthHeader{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),

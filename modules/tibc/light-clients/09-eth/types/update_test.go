@@ -174,7 +174,7 @@ func getNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 	}, nil
 }
 
-func Test_getheader(test *testing.T) {
+func Test_getjson(test *testing.T) {
 	rc := NewRestClient()
 	height, err := GetBlockHeight(rc, ethurl)
 	if err != nil {
@@ -210,7 +210,7 @@ func Test_getheader(test *testing.T) {
 	if err != nil {
 		return
 	}
-	b1 = []byte(EthStaType + string(b1)[1:])
+	b1 = []byte(EthConType + string(b1)[1:])
 	clientConsensusStateName := "eth_consensus_state.json"
 	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
 	if err != nil {
