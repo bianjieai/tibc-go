@@ -60,7 +60,7 @@ func (k Keeper) SendNftTransfer(
 		// Two things need to be done
 		// 1. lock nft  |send to moduleAccount
 		// 2. send packet
-		if err := k.nk.TransferOwner(ctx, class, id, "", nft.GetURI(), "", sender, moudleAddr); err != nil {
+		if err := k.nk.TransferOwner(ctx, class, id, nft.GetName(), nft.GetURI(), nft.GetData(), sender, moudleAddr); err != nil {
 			return err
 		}
 	} else {
