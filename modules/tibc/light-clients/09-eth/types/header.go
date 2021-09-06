@@ -2,23 +2,19 @@ package types
 
 import (
 	fmt "fmt"
-	io "io"
 	"math/big"
 	"time"
 
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+
 	"github.com/ethereum/go-ethereum/consensus"
 
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"golang.org/x/crypto/sha3"
-
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
-
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var (
@@ -97,7 +93,7 @@ func verifyHeader(
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
-	//todo
+
 	return verifyCascadingFields(cdc, store, clientState, header)
 }
 
@@ -110,12 +106,35 @@ func verifyCascadingFields(
 	store sdk.KVStore,
 	clientState *ClientState,
 	header Header) error {
-	height := header.Height.RevisionHeight
 
-	parent := clientState.Header
-	if parent.Height.RevisionHeight != height-1 || parent.Hash() != common.BytesToHash(header.ParentHash) {
+	height := header.Height.RevisionHeight
+	exist, err := IsHeaderExist(store, header.Hash().String())
+	if err != nil {
+		return fmt.Errorf("SyncBlockHeader, check header exist err: %v", err)
+	}
+	if exist == true {
+		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
+	}
+
+	parentbytes := store.Get(host.ConsensusStateIndexKey(string(header.ParentHash)))
+	var parent ConsensusState
+	err1 := cdc.UnmarshalInterface(parentbytes, parent)
+	if err1 != nil {
+		return err1
+	}
+	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}
+
+	// Verify the header's timestamp
+	if header.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
+		return fmt.Errorf("block in the future")
+	}
+	if header.Time <= parent.Header.Time {
+		return fmt.Errorf("timestamp older than parent")
+	}
+
+	//todo ? Verify the block's difficulty based on its timestamp and parent's difficulty
 
 	// Verify that the gas limit is <= 2^63-1
 	capacity := uint64(0x7fffffffffffffff)
@@ -128,113 +147,25 @@ func verifyCascadingFields(
 	}
 
 	// Verify that the gas limit remains within allowed bounds
-	diff := int64(parent.GasLimit) - int64(header.GasLimit)
+	diff := int64(parent.Header.GasLimit) - int64(header.GasLimit)
 	if diff < 0 {
 		diff *= -1
 	}
-	limit := parent.GasLimit / gasLimitBoundDivisor
+	limit := parent.Header.GasLimit / gasLimitBoundDivisor
 
 	if uint64(diff) >= limit || header.GasLimit < params.MinGasLimit {
-		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.GasLimit, limit)
+		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.Header.GasLimit, limit)
 
-	}
-	// All basic checks passed, verify the seal and return
-	return verifySeal(cdc, store, clientState, header)
-}
-
-func verifySeal(
-	cdc codec.BinaryMarshaler,
-	store sdk.KVStore,
-	clientState *ClientState,
-	header Header) error {
-
-	number := header.Height.RevisionHeight
-	// Resolve the authorization key and check against validators
-	signer, err := ecrecover(header, big.NewInt(int64(clientState.ChainId)))
-	if err != nil {
-		return err
-	}
-
-	if signer != common.BytesToAddress(header.Coinbase) {
-		return sdkerrors.Wrap(ErrCoinBaseMisMatch, "header.Coinbase")
-	}
-
-	// Retrieve the snapshot needed to verify this header and cache it
-	snap, err := clientState.snapshot(cdc, store)
-	if err != nil {
-		return err
-	}
-
-	if _, ok := snap.Validators[signer]; !ok {
-		return sdkerrors.Wrap(ErrUnauthorizedValidator, signer.Hex())
-	}
-
-	for seen, recent := range snap.Recents {
-		if recent == signer {
-			// Signer is among recents, only fail if the current block doesn't shift it out
-			if limit := uint64(len(snap.Validators)/2 + 1); seen > number-limit {
-				return sdkerrors.Wrap(ErrRecentlySigned, signer.Hex())
-			}
-		}
-	}
-	inturn := snap.inturn(signer)
-	diff := big.NewInt(int64(header.Difficulty))
-	if inturn && diff.Cmp(diffInTurn) != 0 {
-		return sdkerrors.Wrap(ErrWrongDifficulty, "header.Difficulty")
-	}
-	if !inturn && diff.Cmp(diffNoTurn) != 0 {
-		return sdkerrors.Wrap(ErrWrongDifficulty, "header.Difficulty")
 	}
 	return nil
+	// All basic checks passed, verify the seal and return
 }
 
-// ecrecover extracts the Ethereum account address from a signed header.
-func ecrecover(header Header, chainId *big.Int) (common.Address, error) {
-	// Retrieve the signature from the header extra-data
-	if len(header.Extra) < extraSeal {
-		return common.Address{}, sdkerrors.Wrap(ErrMissingSignature, "header.Extra")
-	}
-	signature := header.Extra[len(header.Extra)-extraSeal:]
-
-	// Recover the public key and the Ethereum address
-	pubkey, err := crypto.Ecrecover(sealHash(header, chainId).Bytes(), signature)
-	if err != nil {
-		return common.Address{}, err
-	}
-	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
-
-	return signer, nil
-}
-
-// sealHash returns the hash of a block prior to it being sealed.
-func sealHash(header Header, chainId *big.Int) (hash common.Hash) {
-	hasher := sha3.NewLegacyKeccak256()
-	encodeSigHeader(hasher, header, chainId)
-	hasher.Sum(hash[:0])
-	return hash
-}
-
-func encodeSigHeader(w io.Writer, header Header, chainId *big.Int) {
-	err := rlp.Encode(w, []interface{}{
-		chainId,
-		header.ParentHash,
-		header.UncleHash,
-		header.Coinbase,
-		header.Root,
-		header.TxHash,
-		header.ReceiptHash,
-		header.Bloom,
-		header.Difficulty,
-		header.Height.RevisionHeight,
-		header.GasLimit,
-		header.GasUsed,
-		header.Time,
-		header.Extra[:len(header.Extra)-65], // this will panic if extra is too short, should check before calling encodeSigHeader
-		header.MixDigest,
-		header.Nonce,
-	})
-	if err != nil {
-		panic("can't encode: " + err.Error())
+func IsHeaderExist(store sdk.KVStore, hash string) (bool, error) {
+	headerStore := store.Get(host.ConsensusStateIndexKey(hash))
+	if headerStore == nil {
+		return false, nil
+	} else {
+		return true, nil
 	}
 }

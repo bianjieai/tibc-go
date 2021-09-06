@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	fmt "fmt"
 
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -54,7 +55,12 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	//todo?
+	// set  consensusState by struct (prefix+hash , consensusState)
+	marshalInterface, err := cdc.MarshalInterface(state)
+	if err != nil {
+		return err
+	}
+	store.Set(host.ConsensusStateIndexKey(string(state.GetRoot().GetHash())), marshalInterface)
 	return nil
 }
 
@@ -67,7 +73,7 @@ func (m ClientState) Status(
 	if err != nil {
 		return exported.Unknown
 	}
-	if onsState.Timestamp+m.GetDelayTime() < uint64(ctx.BlockTime().Nanosecond()) {
+	if onsState.Timestamp+uint64(allowedFutureBlockTimeSeconds) < uint64(ctx.BlockTime().Nanosecond()) {
 		return exported.Expired
 	}
 	return exported.Active
@@ -88,7 +94,7 @@ func (m ClientState) VerifyPacketCommitment(
 	sequence uint64,
 	commitment []byte,
 ) error {
-	bscProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
 	if err != nil {
 		return err
 	}
@@ -103,7 +109,7 @@ func (m ClientState) VerifyPacketCommitment(
 		)
 	}
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment)
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(

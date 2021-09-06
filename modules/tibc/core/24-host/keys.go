@@ -38,7 +38,21 @@ const (
 	KeyPacketAckPrefix             = "acks"
 	KeyPacketReceiptPrefix         = "receipts"
 	KeyCleanPacketCommitmentPrefix = "clean"
+	KeyIndexConsensusStatePrefix   = "consensusStatesIndex"
+	KeyCurrentBlockHeight          = "currentBlockHeight"
 )
+
+func ConsensusStateIndexPath(hash string) string {
+	return fmt.Sprintf("%s/%s", KeyIndexConsensusStatePrefix, hash)
+}
+
+func ConsensusStateIndexKey(hash string) []byte {
+	return []byte(ConsensusStateIndexPath(hash))
+}
+
+func CurrentBlockHeighteKey() []byte {
+	return []byte(KeyCurrentBlockHeight)
+}
 
 // FullClientPath returns the full path of a specific client path in the format:
 // "clients/{chainName}/{path}" as a string.

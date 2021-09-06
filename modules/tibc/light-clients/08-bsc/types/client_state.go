@@ -35,7 +35,7 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	return uint64((2*len(m.Validators)/3 + 1)) * m.BlockInteval
+	return uint64(2*len(m.Validators)/3+1) * m.BlockInteval
 }
 
 func (m ClientState) GetDelayBlock() uint64 {

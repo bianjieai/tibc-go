@@ -1,7 +1,13 @@
 package types
 
 import (
+	"bytes"
+	"errors"
+
+	"github.com/ethereum/go-ethereum/common"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,32 +20,52 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	store sdk.KVStore,
 	header exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
-	bscHeader, ok := header.(*Header)
+	ethHeader, ok := header.(*Header)
 	if !ok {
 		return nil, nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
 		)
 	}
-
+	height := m.GetLatestHeight()
 	// get consensus state from clientStore
-	bscConsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
+	ethConsState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
 		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", m.GetLatestHeight(),
+			err, "could not get consensus state from clientstore at TrustedHeight: %s,please upgrade", m.GetLatestHeight(),
 		)
 	}
-
-	if err := checkValidity(cdc, store, &m, bscConsState, *bscHeader); err != nil {
-		return nil, nil, err
+	for {
+		if err := checkValidity(cdc, store, &m, ethConsState, *ethHeader); err != nil {
+			return nil, nil, err
+		}
+		break
 	}
-	newClientState, consensusState, err := update(cdc, store, &m, bscHeader)
+	newClientState, consensusState, err := update(cdc, store, &m, ethHeader)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// If  verify succeeds, save consensusState first . this store is header_index
+	consensusStatetmp, err := cdc.MarshalInterface(consensusState)
+	if err != nil {
+		return nil, nil, err
+	}
+	store.Set(host.ConsensusStateIndexKey(string(consensusState.GetRoot().GetHash())), consensusStatetmp)
+
+	//Check the bifurcation
+	if bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
+		// set all consensusState by struct (prefix+hash , consensusState)
+		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStatetmp)
+	} else {
+		err := m.RestructChain(cdc, store, *ethHeader)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	return newClientState, consensusState, nil
 }
 
-// checkValidity checks if the bsc header is valid.
+// checkValidity checks if the eth header is valid.
 func checkValidity(
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
@@ -51,7 +77,9 @@ func checkValidity(
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
-
+	//if clientState.Header.Hash() != header.ToEthHeader().ParentHash {
+	//	return errors.New("parent hash not same")
+	//}
 	return verifyHeader(cdc, store, clientState, header)
 }
 
@@ -61,42 +89,74 @@ func update(cdc codec.BinaryMarshaler,
 	clientState *ClientState,
 	header *Header,
 ) (*ClientState, *ConsensusState, error) {
-	// The validator set change occurs at `header.Number % cs.Epoch == 0`
-	//todo ?
-	//number := header.Height.RevisionHeight
-
-	//todo? change validator set
-	//if number%clientState.Epoch == uint64(len(clientState.Validators)/2) {
-	//	validators := GetPendingValidators(cdc, store).Validators
-	//	newVals := make(map[common.Address]struct{}, len(validators))
-	//	for _, val := range validators {
-	//		newVals[common.BytesToAddress(val)] = struct{}{}
-	//	}
-	//
-	//	oldLimit := len(clientState.Validators)/2 + 1
-	//	newLimit := len(newVals)/2 + 1
-	//	if newLimit < oldLimit {
-	//		for i := 0; i < oldLimit-newLimit; i++ {
-	//			pruneHeight := clienttypes.NewHeight(header.Height.RevisionNumber, number-uint64(newLimit)-uint64(i))
-	//			DeleteSigner(store, pruneHeight)
-	//		}
-	//	}
-	//	clientState.Validators = validators
-	//}
-
-	// update the recentSingers
-	//todo? Delete the oldest validator from the recent list to allow it signing again
-	//if limit := uint64(len(clientState.Validators)/2 + 1); number >= limit {
-	//	pruneHeight := clienttypes.NewHeight(header.Height.RevisionNumber, number-limit)
-	//	DeleteSigner(store, pruneHeight)
-	//}
 
 	cs := &ConsensusState{
 		Timestamp: header.Time,
 		Number:    header.Height,
 		Root:      header.Root,
+		Header:    *header,
 	}
 
 	clientState.Header = *header
 	return clientState, cs, nil
+}
+func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore, new Header) error {
+	si, ti := m.Header.Height, new.Height
+	var err error
+	current := m.Header
+	if si.RevisionHeight > ti.RevisionHeight {
+		currentTmp := store.Get(host.ConsensusStateKey(ti))
+		if currentTmp == nil {
+			err = errors.New("no found ConsensusState")
+			return err
+		}
+		err := cdc.UnmarshalInterface(currentTmp, current)
+		if err != nil {
+			return err
+		}
+		si = ti
+	}
+	newHashs := make([]common.Hash, 0)
+	for ti.RevisionHeight > si.RevisionHeight {
+		newHashs = append(newHashs, new.Hash())
+		newTmp := store.Get(host.ConsensusStateIndexKey(string(new.ParentHash)))
+		if newTmp == nil {
+			err = errors.New("no found ConsensusState")
+			return err
+		}
+		err := cdc.UnmarshalInterface(newTmp, new)
+		if err != nil {
+			return err
+		}
+		ti.RevisionHeight--
+	}
+	for bytes.Equal(current.ParentHash, new.ParentHash) {
+		newHashs = append(newHashs, new.Hash())
+		newTmp := store.Get(host.ConsensusStateIndexKey(string(new.ParentHash)))
+		if newTmp == nil {
+			err = errors.New("no found ConsensusState")
+			return err
+		}
+		err := cdc.UnmarshalInterface(newTmp, new)
+		if err != nil {
+			return err
+		}
+		ti.RevisionHeight--
+		si.RevisionHeight--
+		currentTmp := store.Get(host.ConsensusStateKey(si))
+		err = cdc.UnmarshalInterface(currentTmp, current)
+		if err != nil {
+			return err
+		}
+	}
+	for i := len(newHashs) - 1; i >= 0; i-- {
+		newTmp := store.Get(host.ConsensusStateIndexKey(newHashs[i].String()))
+		if newTmp == nil {
+			err = errors.New("no found ConsensusState")
+			return err
+		}
+		store.Set(host.ConsensusStateKey(ti), newTmp)
+		ti.RevisionHeight++
+	}
+	return err
 }

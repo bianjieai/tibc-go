@@ -195,6 +195,7 @@ func Test_getjson(test *testing.T) {
 		Timestamp: header.Time,
 		Number:    number,
 		Root:      header.Root[:],
+		Header:    header.ToHeader(),
 	})
 	b0, err := json.Marshal(clientState)
 	if err != nil {

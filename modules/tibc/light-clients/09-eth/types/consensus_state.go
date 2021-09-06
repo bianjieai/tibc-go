@@ -24,3 +24,6 @@ func (m *ConsensusState) GetTimestamp() uint64 {
 func (m *ConsensusState) ValidateBasic() error {
 	return nil
 }
+func (m *ConsensusState) GetHeader() Header {
+	return m.Header
+}
