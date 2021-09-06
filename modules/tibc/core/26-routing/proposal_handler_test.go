@@ -68,7 +68,7 @@ func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 
 			tc.malleate()
 
-			proposalHandler := routing.NewSetRoutingProposalHandler(suite.chain.App.IBCKeeper.RoutingKeeper)
+			proposalHandler := routing.NewSetRoutingProposalHandler(suite.chain.App.TIBCKeeper.RoutingKeeper)
 
 			err = proposalHandler(suite.chain.GetContext(), content)
 
