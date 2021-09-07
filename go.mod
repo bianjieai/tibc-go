@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/armon/go-metrics v0.3.9
-	github.com/bianjieai/tibc-sdk-go v0.0.0-20210831083053-72f0368f6a20
 	github.com/confio/ics23/go v0.6.6
 	github.com/cosmos/cosmos-sdk v0.42.9
 	github.com/ethereum/go-ethereum v1.10.7
@@ -12,9 +11,9 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/irisnet/core-sdk-go v0.0.0-20210817104504-bd2c112847e9
 	github.com/irisnet/irismod v1.4.1-0.20210823060730-52fb3e67d950
-	github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e
+	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cast v1.4.0

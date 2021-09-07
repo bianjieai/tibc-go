@@ -162,7 +162,7 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 		Root:        header.Root,
 		TxHash:      header.TxHash,
 		ReceiptHash: header.ReceiptHash,
-		Bloom:       Bloom(header.Bloom),
+		Bloom:       header.Bloom,
 		Difficulty:  header.Difficulty,
 		Number:      header.Number,
 		GasLimit:    header.GasLimit,
@@ -170,7 +170,8 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 		Time:        header.Time,
 		Extra:       header.Extra,
 		MixDigest:   header.MixDigest,
-		Nonce:       BlockNonce(header.Nonce),
+		Nonce:       header.Nonce,
+		BaseFee: header.BaseFee,
 	}, nil
 }
 
@@ -181,7 +182,7 @@ func Test_getjson(test *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	height = height - 10086
+	height = height - 60
 	header, err := GetNodeHeader(rc, ethurl, height)
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
 	clientState := exported.ClientState(&ClientState{
@@ -218,28 +219,3 @@ func Test_getjson(test *testing.T) {
 		return
 	}
 }
-
-//func Test_update(test *testing.T) {
-//	rc := NewRestClient()
-//	height, err := GetBlockHeight(rc, ethurl)
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//	height = height - 10086
-//	header, err := GetNodeHeader(rc, ethurl, height)
-//	number := clienttypes.NewHeight(0, header.Number.Uint64())
-//	clientState := exported.ClientState(&ClientState{
-//		Header:          header.ToHeader(),
-//		ChainId:         56,
-//		ContractAddress: []byte("0x00"),
-//		TrustingPeriod:  200,
-//	})
-//
-//	consensusState := exported.ConsensusState(&ConsensusState{
-//		Timestamp: header.Time,
-//		Number:    number,
-//		Root:      header.Root[:],
-//		Header:    header.ToHeader(),
-//	})
-//}

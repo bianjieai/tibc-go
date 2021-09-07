@@ -103,8 +103,6 @@ github.com/armon/go-metrics v0.3.9 h1:O2sNqxBdvq8Eq5xmzljcYzAORli6RWCvEym4cJf9m1
 github.com/armon/go-metrics v0.3.9/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a/go.mod h1:DAHtR1m6lCRdSC2Tm3DSWRPvIPr6xNKyeHdqDQSQT+A=
-github.com/avast/retry-go v3.0.0+incompatible h1:4SOWQ7Qs+oroOTQOYnAHqelpCO0biHSxpiH9JdtuBj0=
-github.com/avast/retry-go v3.0.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.27.0/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
@@ -125,12 +123,8 @@ github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQ
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bianjieai/tendermint v0.34.1-irita-210113 h1:p0sDVhwIBScHlJta4zoO5dDbhjBmVKknaM+pwibmi1g=
 github.com/bianjieai/tendermint v0.34.1-irita-210113/go.mod h1:NJCKYDQ5I18NZSqS98EVpkdBKILvc+potW7xkV/5BUA=
-github.com/bianjieai/tibc-sdk-go v0.0.0-20210831083053-72f0368f6a20 h1:uC5qwCyLSFj3iTUFDdt/RD/pr2DD27ZQVcAbS7xPcq0=
-github.com/bianjieai/tibc-sdk-go v0.0.0-20210831083053-72f0368f6a20/go.mod h1:Q6za+QhrF5w9y5c9HJbCoJ7qnocuHt/aMcwG0YXOAVk=
 github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJmJgSg28kpZDP6UIiPt0e0Oz0kqKNGyRaWEPv84=
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
-github.com/bluele/gcache v0.0.2 h1:WcbfdXICg7G/DGBh1PFfcirkWOQV+v077yF1pSy3DGw=
-github.com/bluele/gcache v0.0.2/go.mod h1:m15KV+ECjptwSPxKhOhQoAFQVtUFjTVkc3H8o0t/fp0=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d/go.mod h1:d3C0AkH6BRcvO8T0UEPu53cnw4IbV63x1bEjildYhO0=
@@ -463,13 +457,8 @@ github.com/influxdata/promql/v2 v2.12.0/go.mod h1:fxOPu+DY0bqCTCECchSRtWfc+0X19y
 github.com/influxdata/roaring v0.4.13-0.20180809181101-fc520f41fab6/go.mod h1:bSgUQ7q5ZLSO+bKBGqJiCBGAl+9DxyW63zLTujjUlOE=
 github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9/go.mod h1:Js0mqiSBE6Ffsg94weZZ2c+v/ciT8QRHFOap7EKDrR0=
 github.com/influxdata/usage-client v0.0.0-20160829180054-6d3895376368/go.mod h1:Wbbw6tYNvwa5dlB6304Sd+82Z3f7PmVZHVKU637d4po=
-github.com/irisnet/core-sdk-go v0.0.0-20210719031639-9c6ece68d908/go.mod h1:ODgRsJ1Vo+OQ9CENiYoMPJvXx5eTTAsbD4SG59hhnmM=
-github.com/irisnet/core-sdk-go v0.0.0-20210817104504-bd2c112847e9 h1:lR3qceGnshqnJnSLI1pE5gyBrsSt91pEv/zgflwwqhY=
-github.com/irisnet/core-sdk-go v0.0.0-20210817104504-bd2c112847e9/go.mod h1:ODgRsJ1Vo+OQ9CENiYoMPJvXx5eTTAsbD4SG59hhnmM=
 github.com/irisnet/irismod v1.4.1-0.20210823060730-52fb3e67d950 h1:BJnxrJ762ZbgdyC1Mo8isTOPhOnor02i8rw/EB+16R0=
 github.com/irisnet/irismod v1.4.1-0.20210823060730-52fb3e67d950/go.mod h1:7tgG214rYkF1tAeN6okEX4BWWF+gyKB1MTh2gJgpmBM=
-github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e h1:gl9FHA4Ydce/srOi/BOuJ7xq9ktbWbmJ/tSsmZ1gLOU=
-github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e/go.mod h1:m3/Te6sMvO9PansYSvcKE0m+/ZPyC/cTjwWbJN6fTfo=
 github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jedisct1/go-minisign v0.0.0-20190909160543-45766022959e/go.mod h1:G1CVv03EnqU1wYL2dFwXxW2An0az9JTl/ZsqXQeBlkU=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=

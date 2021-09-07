@@ -3,8 +3,6 @@ package types
 import (
 	fmt "fmt"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 	"time"
 
@@ -41,28 +39,7 @@ func (h *Header) Hash() common.Hash {
 	return rlpHash(h.ToEthHeader())
 }
 func (h *EthHeader) Hash() (hash common.Hash) {
-	hasher := sha3.NewLegacyKeccak256()
-	enc := []interface{}{
-		h.ParentHash,
-		h.UncleHash,
-		h.Coinbase,
-		h.Root,
-		h.TxHash,
-		h.ReceiptHash,
-		h.Bloom,
-		h.Difficulty,
-		h.Number,
-		h.GasLimit,
-		h.GasUsed,
-		h.Time,
-		h.Extra,
-	}
-	if h.BaseFee != nil {
-		enc = append(enc, h.BaseFee)
-	}
-	rlp.Encode(hasher, enc)
-	hasher.Sum(hash[:0])
-	return hash
+	return rlpHash(h)
 }
 
 func (h Header) ValidateBasic() error {
