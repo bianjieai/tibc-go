@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"errors"
-
 	"github.com/ethereum/go-ethereum/common"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"

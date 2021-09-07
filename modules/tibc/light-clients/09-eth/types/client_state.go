@@ -59,7 +59,8 @@ func (m ClientState) Initialize(
 		return err
 	}
 	consensusState := state.(*ConsensusState)
-	store.Set(host.ConsensusStateIndexKey(consensusState.Header.Hash()), marshalInterface)
+	header := consensusState.Header.ToEthHeader()
+	store.Set(host.ConsensusStateIndexKey(header.Hash()), marshalInterface)
 
 	return nil
 }

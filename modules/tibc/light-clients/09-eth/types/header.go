@@ -122,19 +122,12 @@ func verifyCascadingFields(
 		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
 	}
 
-	ethHeader := header.ToEthHeader()
-	parenthash := ethHeader.ParentHash
-	protohash := header.Hash()
-	ethheaderhash:=  ethHeader.Hash()
-	_ = store.Get(host.ConsensusStateIndexKey(clientState.Header.Hash()))
-	fmt.Println(parenthash,"\n",protohash,"\n",ethheaderhash)
-
 	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
-	var parent ConsensusState
-	err1 := cdc.UnmarshalInterface(parentbytes, parent)
-	if err1 != nil {
-		return err1
+	var parentConsInterface exported.ConsensusState
+	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
+		return err
 	}
+	parent := parentConsInterface.(*ConsensusState)
 	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}

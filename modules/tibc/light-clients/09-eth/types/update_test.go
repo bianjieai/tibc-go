@@ -155,6 +155,7 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 	}
 
 	header := rsp.Result
+	fmt.Println(header.Hash())
 	return &EthHeader{
 		ParentHash:  header.ParentHash,
 		UncleHash:   header.UncleHash,
@@ -184,6 +185,9 @@ func Test_getjson(test *testing.T) {
 	}
 	height = height - 60
 	header, err := GetNodeHeader(rc, ethurl, height)
+	fmt.Println(header.Hash())
+	toHeader := header.ToHeader()
+	fmt.Println(toHeader.Hash())
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
 	clientState := exported.ClientState(&ClientState{
 		Header:          header.ToHeader(),

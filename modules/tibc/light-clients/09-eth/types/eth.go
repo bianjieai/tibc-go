@@ -67,6 +67,7 @@ func (h EthHeader) ToHeader() Header {
 		Extra:       h.Extra,
 		MixDigest:   h.MixDigest[:],
 		Nonce:       h.Nonce.Uint64(),
+		BaseFee: 	h.BaseFee.Uint64(),
 	}
 }
 
