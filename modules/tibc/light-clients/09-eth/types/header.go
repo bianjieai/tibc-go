@@ -108,14 +108,14 @@ func verifyCascadingFields(
 	header Header) error {
 
 	height := header.Height.RevisionHeight
-	exist, err := IsHeaderExist(store, header.Hash().String())
+	exist, err := IsHeaderExist(store, header.Hash())
 	if err != nil {
 		return fmt.Errorf("SyncBlockHeader, check header exist err: %v", err)
 	}
 	if exist == true {
 		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
 	}
-	parentbytes := store.Get(host.ConsensusStateIndexKey(string(header.ParentHash)))
+	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parent ConsensusState
 	err1 := cdc.UnmarshalInterface(parentbytes, parent)
 	if err1 != nil {
@@ -160,7 +160,7 @@ func verifyCascadingFields(
 	// All basic checks passed, verify the seal and return
 }
 
-func IsHeaderExist(store sdk.KVStore, hash string) (bool, error) {
+func IsHeaderExist(store sdk.KVStore, hash common.Hash) (bool, error) {
 	headerStore := store.Get(host.ConsensusStateIndexKey(hash))
 	if headerStore == nil {
 		return false, nil

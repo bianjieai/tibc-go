@@ -50,8 +50,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	if err != nil {
 		return nil, nil, err
 	}
-	store.Set(host.ConsensusStateIndexKey(string(consensusState.GetRoot().GetHash())), consensusStatetmp)
-
+	store.Set(host.ConsensusStateIndexKey(consensusState.Header.Hash()), consensusStatetmp)
 	//Check the bifurcation
 	if bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
 		// set all consensusState by struct (prefix+hash , consensusState)
@@ -119,7 +118,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 	newHashs := make([]common.Hash, 0)
 	for ti.RevisionHeight > si.RevisionHeight {
 		newHashs = append(newHashs, new.Hash())
-		newTmp := store.Get(host.ConsensusStateIndexKey(string(new.ParentHash)))
+		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
@@ -132,7 +131,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 	}
 	for bytes.Equal(current.ParentHash, new.ParentHash) {
 		newHashs = append(newHashs, new.Hash())
-		newTmp := store.Get(host.ConsensusStateIndexKey(string(new.ParentHash)))
+		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
@@ -150,7 +149,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 		}
 	}
 	for i := len(newHashs) - 1; i >= 0; i-- {
-		newTmp := store.Get(host.ConsensusStateIndexKey(newHashs[i].String()))
+		newTmp := store.Get(host.ConsensusStateIndexKey(newHashs[i]))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
