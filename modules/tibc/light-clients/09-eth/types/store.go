@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -44,12 +42,3 @@ func GetConsensusState(store sdk.KVStore,
 
 	return consensusState, nil
 }
-
-
-func DeleteSigner(store sdk.KVStore, height clienttypes.Height) {
-	keyBz := []byte(fmt.Sprintf("%s/%s", PrefixKeyRecentSingers, height))
-	store.Delete(keyBz)
-}
-
-
-

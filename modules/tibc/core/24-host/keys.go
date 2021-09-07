@@ -3,6 +3,8 @@ package host
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
@@ -42,11 +44,11 @@ const (
 	KeyCurrentBlockHeight          = "currentBlockHeight"
 )
 
-func ConsensusStateIndexPath(hash string) string {
+func ConsensusStateIndexPath(hash common.Hash) string {
 	return fmt.Sprintf("%s/%s", KeyIndexConsensusStatePrefix, hash)
 }
 
-func ConsensusStateIndexKey(hash string) []byte {
+func ConsensusStateIndexKey(hash common.Hash) []byte {
 	return []byte(ConsensusStateIndexPath(hash))
 }
 

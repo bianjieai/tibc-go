@@ -56,11 +56,19 @@ func (m ClientState) Initialize(
 	state exported.ConsensusState,
 ) error {
 	// set  consensusState by struct (prefix+hash , consensusState)
+	//todo interface to struct
 	marshalInterface, err := cdc.MarshalInterface(state)
 	if err != nil {
 		return err
 	}
-	store.Set(host.ConsensusStateIndexKey(string(state.GetRoot().GetHash())), marshalInterface)
+	var header Header
+	err = cdc.UnmarshalInterface(marshalInterface, header)
+	if err != nil {
+		return err
+	}
+	fmt.Println(state.String())
+	fmt.Println(header.Hash())
+	store.Set(host.ConsensusStateIndexKey(header.Hash()), marshalInterface)
 	return nil
 }
 

@@ -115,7 +115,6 @@ func verifyCascadingFields(
 	if exist == true {
 		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
 	}
-
 	parentbytes := store.Get(host.ConsensusStateIndexKey(string(header.ParentHash)))
 	var parent ConsensusState
 	err1 := cdc.UnmarshalInterface(parentbytes, parent)
