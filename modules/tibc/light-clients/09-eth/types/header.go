@@ -2,6 +2,9 @@ package types
 
 import (
 	fmt "fmt"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rlp"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"time"
 
@@ -34,7 +37,32 @@ func (h Header) GetHeight() exported.Height {
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
 // RLP encoding.
 func (h *Header) Hash() common.Hash {
+
 	return rlpHash(h.ToEthHeader())
+}
+func (h *EthHeader) Hash() (hash common.Hash) {
+	hasher := sha3.NewLegacyKeccak256()
+	enc := []interface{}{
+		h.ParentHash,
+		h.UncleHash,
+		h.Coinbase,
+		h.Root,
+		h.TxHash,
+		h.ReceiptHash,
+		h.Bloom,
+		h.Difficulty,
+		h.Number,
+		h.GasLimit,
+		h.GasUsed,
+		h.Time,
+		h.Extra,
+	}
+	if h.BaseFee != nil {
+		enc = append(enc, h.BaseFee)
+	}
+	rlp.Encode(hasher, enc)
+	hasher.Sum(hash[:0])
+	return hash
 }
 
 func (h Header) ValidateBasic() error {
@@ -72,7 +100,7 @@ func (h Header) ToEthHeader() EthHeader {
 		Root:        common.BytesToHash(h.Root),
 		TxHash:      common.BytesToHash(h.TxHash),
 		ReceiptHash: common.BytesToHash(h.ReceiptHash),
-		Bloom:       BytesToBloom(h.Bloom),
+		Bloom:       types.BytesToBloom(h.Bloom),
 		Difficulty:  big.NewInt(int64(h.Difficulty)),
 		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
 		GasLimit:    h.GasLimit,
@@ -80,7 +108,8 @@ func (h Header) ToEthHeader() EthHeader {
 		Time:        h.Time,
 		Extra:       h.Extra,
 		MixDigest:   common.BytesToHash(h.MixDigest),
-		Nonce:       BytesToBlockNonce(h.Nonce),
+		Nonce:       types.EncodeNonce(h.Nonce),
+		BaseFee: big.NewInt(int64(h.BaseFee)),
 	}
 }
 
@@ -115,6 +144,14 @@ func verifyCascadingFields(
 	if exist == true {
 		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
 	}
+
+	ethHeader := header.ToEthHeader()
+	parenthash := ethHeader.ParentHash
+	protohash := header.Hash()
+	ethheaderhash:=  ethHeader.Hash()
+	_ = store.Get(host.ConsensusStateIndexKey(clientState.Header.Hash()))
+	fmt.Println(parenthash,"\n",protohash,"\n",ethheaderhash)
+
 	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parent ConsensusState
 	err1 := cdc.UnmarshalInterface(parentbytes, parent)

@@ -21,4 +21,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*exported.Header)(nil),
 		&Header{},
 	)
+
 }

@@ -24,7 +24,8 @@ message Header {
   uint64 time = 12;
   bytes extra = 13;
   bytes mix_digest = 14;
-  bytes nonce = 15;
+  uint64 nonce = 15;
+  uint64  baseFee=16;
 }
 
 // ClientState from bsc tracks the current validator set, latest height,

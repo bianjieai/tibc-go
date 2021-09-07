@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	fmt "fmt"
-
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,14 +58,9 @@ func (m ClientState) Initialize(
 	if err != nil {
 		return err
 	}
-	var header Header
-	err = cdc.UnmarshalInterface(marshalInterface, header)
-	if err != nil {
-		return err
-	}
-	fmt.Println(state.String())
-	fmt.Println(header.Hash())
-	store.Set(host.ConsensusStateIndexKey(header.Hash()), marshalInterface)
+	consensusState := state.(*ConsensusState)
+	store.Set(host.ConsensusStateIndexKey(consensusState.Header.Hash()), marshalInterface)
+
 	return nil
 }
 
