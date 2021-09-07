@@ -55,8 +55,6 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	// set  consensusState by struct (prefix+hash , consensusState)
-	//todo interface to struct
 	marshalInterface, err := cdc.MarshalInterface(state)
 	if err != nil {
 		return err
