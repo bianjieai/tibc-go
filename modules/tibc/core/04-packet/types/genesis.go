@@ -47,39 +47,29 @@ func NewGenesisState(
 	sendSeqs, recvSeqs, ackSeqs []PacketSequence, nextChannelSequence uint64,
 ) GenesisState {
 	return GenesisState{
-		Acknowledgements:    acks,
-		Commitments:         commitments,
-		SendSequences:       sendSeqs,
-		RecvSequences:       recvSeqs,
-		AckSequences:        ackSeqs,
-		NextChannelSequence: nextChannelSequence,
+		Acknowledgements: acks,
+		Commitments:      commitments,
+		SendSequences:    sendSeqs,
+		RecvSequences:    recvSeqs,
+		AckSequences:     ackSeqs,
 	}
 }
 
 // DefaultGenesisState returns the tibc packet submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Acknowledgements:    []PacketState{},
-		Receipts:            []PacketState{},
-		Commitments:         []PacketState{},
-		SendSequences:       []PacketSequence{},
-		RecvSequences:       []PacketSequence{},
-		AckSequences:        []PacketSequence{},
-		NextChannelSequence: 0,
+		Acknowledgements: []PacketState{},
+		Receipts:         []PacketState{},
+		Commitments:      []PacketState{},
+		SendSequences:    []PacketSequence{},
+		RecvSequences:    []PacketSequence{},
+		AckSequences:     []PacketSequence{},
 	}
 }
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating connection identifers.
-	var maxSequence uint64 = 0
-
-	if maxSequence != 0 && maxSequence >= gs.NextChannelSequence {
-		return fmt.Errorf("next channel sequence %d must be greater than maximum sequence used in channel identifier %d", gs.NextChannelSequence, maxSequence)
-	}
-
 	for i, ack := range gs.Acknowledgements {
 		if err := ack.Validate(); err != nil {
 			return fmt.Errorf("invalid acknowledgement %v ack index %d: %w", ack, i, err)
