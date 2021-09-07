@@ -53,12 +53,12 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 				// mint nft
-				mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "",
-					"", "", suite.chainA.SenderAccount.GetAddress().String(),
+				mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "taidy",
+					"www.test.com", "none", suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainA.SenderAccount.GetAddress().String())
 				_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-				data := types.NewNonFungibleTokenPacketData("dog", "taidy", "", suite.chainA.SenderAccount.GetAddress().String(),
+				data := types.NewNonFungibleTokenPacketData("dog", "taidy", "www.test.com", suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(), true)
 
 				packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 		}, false, true, true},
 		{"successful refund from sink chain ", failedAck, func() {
-			data := types.NewNonFungibleTokenPacketData("dog", "taidy", "", suite.chainA.SenderAccount.GetAddress().String(),
+			data := types.NewNonFungibleTokenPacketData("dog", "taidy", "www.test.com", suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(), true)
 
 			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.chainB.SenderAccount.GetAddress(), suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainA.ChainID, "")
 
-				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), false)
+				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), false)
 				err := suite.chainB.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), data, tc.ack)
 
 				if tc.expPass {
