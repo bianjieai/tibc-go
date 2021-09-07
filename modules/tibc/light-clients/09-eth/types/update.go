@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -11,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func (m ClientState) CheckHeaderAndUpdateState(
@@ -102,19 +102,23 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 	si, ti := m.Header.Height, new.Height
 	var err error
 	current := m.Header
+	//si > ti
 	if si.RevisionHeight > ti.RevisionHeight {
 		currentTmp := store.Get(host.ConsensusStateKey(ti))
 		if currentTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		err := cdc.UnmarshalInterface(currentTmp, current)
-		if err != nil {
+		var currenttmp exported.Header
+		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
 			return err
 		}
+		current = *currenttmp.(*Header)
+
 		si = ti
 	}
 	newHashs := make([]common.Hash, 0)
+
 	for ti.RevisionHeight > si.RevisionHeight {
 		newHashs = append(newHashs, new.Hash())
 		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
@@ -122,12 +126,14 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		err := cdc.UnmarshalInterface(newTmp, new)
-		if err != nil {
+		var currenttmp exported.Header
+		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
 			return err
 		}
+		new = *currenttmp.(*Header)
 		ti.RevisionHeight--
 	}
+	// si.parent == ti.parent
 	for bytes.Equal(current.ParentHash, new.ParentHash) {
 		newHashs = append(newHashs, new.Hash())
 		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
@@ -135,17 +141,22 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		err := cdc.UnmarshalInterface(newTmp, new)
+		var currenttmp exported.Header
+		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
+			return err
+		}
+		new = *currenttmp.(*Header)
+
 		if err != nil {
 			return err
 		}
 		ti.RevisionHeight--
 		si.RevisionHeight--
 		currentTmp := store.Get(host.ConsensusStateKey(si))
-		err = cdc.UnmarshalInterface(currentTmp, current)
-		if err != nil {
+		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
 			return err
 		}
+		current = *currenttmp.(*Header)
 	}
 	for i := len(newHashs) - 1; i >= 0; i-- {
 		newTmp := store.Get(host.ConsensusStateIndexKey(newHashs[i]))
@@ -153,6 +164,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 			err = errors.New("no found ConsensusState")
 			return err
 		}
+		// set main_chain
 		store.Set(host.ConsensusStateKey(ti), newTmp)
 		ti.RevisionHeight++
 	}

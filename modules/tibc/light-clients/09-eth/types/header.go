@@ -1,20 +1,18 @@
 package types
 
 import (
-	fmt "fmt"
-	"github.com/ethereum/go-ethereum/core/types"
+	"fmt"
 	"math/big"
 	"time"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-
-	"github.com/ethereum/go-ethereum/consensus"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -86,7 +84,7 @@ func (h Header) ToEthHeader() EthHeader {
 		Extra:       h.Extra,
 		MixDigest:   common.BytesToHash(h.MixDigest),
 		Nonce:       types.EncodeNonce(h.Nonce),
-		BaseFee: big.NewInt(int64(h.BaseFee)),
+		BaseFee:     big.NewInt(int64(h.BaseFee)),
 	}
 }
 
