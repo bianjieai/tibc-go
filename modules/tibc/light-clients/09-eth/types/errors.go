@@ -53,6 +53,11 @@ var (
 	// ErrInvalidSpanValidators is returned if a block contains an
 	// invalid list of validators (i.e. non divisible by 20 bytes).
 	ErrInvalidSpanValidators = sdkerrors.Register(moduleName, 17, "invalid validator list on sprint end block")
-
-	ErrInvalidProof = sdkerrors.Register(moduleName, 18, "invalid proof")
+	ErrInvalidProof          = sdkerrors.Register(moduleName, 18, "invalid proof")
+	ErrHeaderIsExist         = sdkerrors.Register(moduleName, 19, "header has exist")
+	ErrUnmarshalInterface    = sdkerrors.Register(moduleName, 20, "Unmarshal field")
+	ErrExtraLenth            = sdkerrors.Register(moduleName, 21, "extra-data too long")
+	ErrInvalidGas            = sdkerrors.Register(moduleName, 22, "gas invalid")
+	ErrHeader                = sdkerrors.Register(moduleName, 23, "header invalid")
+	ErrInvalidDifficult      = sdkerrors.Register(moduleName, 24, "difficult invalid")
 )

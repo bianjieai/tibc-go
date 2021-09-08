@@ -7,14 +7,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/math"
-
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
@@ -50,7 +49,8 @@ func (h Header) ValidateBasic() error {
 		return fmt.Errorf("extra-data too long: %d > %d", len(h.Extra), params.MaximumExtraDataSize)
 	}
 	if h.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
-		return consensus.ErrFutureBlock
+
+		return sdkerrors.Wrap(ErrFutureBlock, consensus.ErrFutureBlock.Error())
 	}
 	// Verify that the gas limit is <= 2^63-1
 	cap := uint64(0x7fffffffffffffff)
@@ -118,16 +118,16 @@ func verifyCascadingFields(
 	height := header.Height.RevisionHeight
 	exist, err := IsHeaderExist(store, header.Hash())
 	if err != nil {
-		return fmt.Errorf("SyncBlockHeader, check header exist err: %v", err)
+		return sdkerrors.Wrap(ErrUnknownBlock, fmt.Errorf("SyncBlockHeader, check header exist err: %v", err).Error())
 	}
 	if exist == true {
-		return fmt.Errorf("SyncBlockHeader, header has exist. Header: %s", header.String())
+		return sdkerrors.Wrap(ErrHeaderIsExist, "header"+header.String())
 	}
 
 	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parentConsInterface exported.ConsensusState
 	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
 	}
 	parent := parentConsInterface.(*ConsensusState)
 	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
@@ -141,35 +141,36 @@ func verifyCascadingFields(
 	}
 	//verify whether extra size validity
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
-		return fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String())
+		return sdkerrors.Wrap(ErrExtraLenth, fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String()).Error())
 	}
 	// Verify the header's timestamp
 	if header.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
-		return fmt.Errorf("block in the future")
+		return ErrFutureBlock
 	}
 	if header.Time <= parent.Header.Time {
-		return fmt.Errorf("timestamp older than parent")
+		return ErrFutureBlock
 	}
 
 	// Verify that the gas limit is <= 2^63-1
 	capacity := uint64(0x7fffffffffffffff)
 	if header.GasLimit > capacity {
-		return fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, capacity)
+		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, capacity).Error())
+
 	}
 	// Verify that the gasUsed is <= gasLimit
 	if header.GasUsed > header.GasLimit {
-		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit)
+		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit).Error())
 	}
 	err = VerifyEip1559Header(&parent.Header, &header)
 	if err != nil {
-		return fmt.Errorf("SyncBlockHeader, err:%v", err)
+		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}
-
 	//verify difficulty
 	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
-		return fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String())
+		return sdkerrors.Wrap(ErrInvalidDifficult, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
+	// todo verify header
 	// All basic checks passed
 	return nil
 

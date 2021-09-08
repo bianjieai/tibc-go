@@ -55,7 +55,7 @@ func (m ClientState) Initialize(
 ) error {
 	marshalInterface, err := cdc.MarshalInterface(state)
 	if err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
 	consensusState := state.(*ConsensusState)
 	header := consensusState.Header.ToEthHeader()
@@ -169,7 +169,7 @@ func produceVerificationArgs(
 	return merkleProof, consensusState, nil
 }
 
-func verifyMerkleProof(bscProof Proof,
+func verifyMerkleProof(ethProof Proof,
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
@@ -177,14 +177,14 @@ func verifyMerkleProof(bscProof Proof,
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
 
-	for _, s := range bscProof.AccountProof {
+	for _, s := range ethProof.AccountProof {
 		_ = nodeList.Put(nil, common.FromHex(s))
 	}
 	ns := nodeList.NodeSet()
 
-	addr := common.FromHex(bscProof.Address)
+	addr := common.FromHex(ethProof.Address)
 	if !bytes.Equal(addr, contractAddr) {
-		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", bscProof.Address, hex.EncodeToString(contractAddr))
+		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", ethProof.Address, hex.EncodeToString(contractAddr))
 	}
 	acctKey := crypto.Keccak256(addr)
 
@@ -195,10 +195,10 @@ func verifyMerkleProof(bscProof Proof,
 		return fmt.Errorf("verifyMerkleProof, verify account proof error:%s", err)
 	}
 
-	storageHash := common.HexToHash(bscProof.StorageHash)
-	codeHash := common.HexToHash(bscProof.CodeHash)
-	nonce := common.HexToHash(bscProof.Nonce).Big()
-	balance := common.HexToHash(bscProof.Balance).Big()
+	storageHash := common.HexToHash(ethProof.StorageHash)
+	codeHash := common.HexToHash(ethProof.CodeHash)
+	nonce := common.HexToHash(ethProof.Nonce).Big()
+	balance := common.HexToHash(ethProof.Balance).Big()
 
 	acct := &ProofAccount{
 		Nonce:    nonce,
@@ -218,11 +218,11 @@ func verifyMerkleProof(bscProof Proof,
 
 	//3.verify storage proof
 	nodeList = new(light.NodeList)
-	if len(bscProof.StorageProof) != 1 {
+	if len(ethProof.StorageProof) != 1 {
 		return fmt.Errorf("verifyMerkleProof, invalid storage proof format")
 	}
 
-	sp := bscProof.StorageProof[0]
+	sp := ethProof.StorageProof[0]
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
 
 	for _, prf := range sp.Proof {
