@@ -1,9 +1,13 @@
 package types
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common/math"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -130,6 +134,15 @@ func verifyCascadingFields(
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}
 
+	//verify whether parent hash validity
+	ethHeader := parent.Header.ToEthHeader()
+	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
+		return fmt.Errorf("SyncBlockHeader, parent header is not right. Header: %s", header.String())
+	}
+	//verify whether extra size validity
+	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
+		return fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String())
+	}
 	// Verify the header's timestamp
 	if header.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
 		return fmt.Errorf("block in the future")
@@ -137,8 +150,6 @@ func verifyCascadingFields(
 	if header.Time <= parent.Header.Time {
 		return fmt.Errorf("timestamp older than parent")
 	}
-
-	//todo ? Verify the block's difficulty based on its timestamp and parent's difficulty
 
 	// Verify that the gas limit is <= 2^63-1
 	capacity := uint64(0x7fffffffffffffff)
@@ -149,20 +160,19 @@ func verifyCascadingFields(
 	if header.GasUsed > header.GasLimit {
 		return fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit)
 	}
-
-	// Verify that the gas limit remains within allowed bounds
-	diff := int64(parent.Header.GasLimit) - int64(header.GasLimit)
-	if diff < 0 {
-		diff *= -1
+	err = VerifyEip1559Header(&parent.Header, &header)
+	if err != nil {
+		return fmt.Errorf("SyncBlockHeader, err:%v", err)
 	}
-	limit := parent.Header.GasLimit / gasLimitBoundDivisor
 
-	if uint64(diff) >= limit || header.GasLimit < params.MinGasLimit {
-		return fmt.Errorf("invalid gas limit: have %d, want %d += %d", header.GasLimit, parent.Header.GasLimit, limit)
-
+	//verify difficulty
+	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
+	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
+		return fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String())
 	}
+	// All basic checks passed
 	return nil
-	// All basic checks passed, verify the seal and return
+
 }
 
 func IsHeaderExist(store sdk.KVStore, hash common.Hash) (bool, error) {
@@ -171,5 +181,161 @@ func IsHeaderExist(store sdk.KVStore, hash common.Hash) (bool, error) {
 		return false, nil
 	} else {
 		return true, nil
+	}
+}
+
+// Some weird constants to avoid constant memory allocs for them.
+var (
+	expDiffPeriod = big.NewInt(100000)
+	big1          = big.NewInt(1)
+	big2          = big.NewInt(2)
+	big9          = big.NewInt(9)
+	bigMinus99    = big.NewInt(-99)
+)
+
+// makeDifficultyCalculator creates a difficultyCalculator with the given bomb-delay.
+// the difficulty is calculated with Byzantium rules, which differs from Homestead in
+// how uncles affect the calculation
+func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *Header) *big.Int {
+	// Note, the calculations below looks at the parent number, which is 1 below
+	// the block number. Thus we remove one from the delay given
+	bombDelayFromParent := new(big.Int).Sub(bombDelay, big1)
+	return func(time uint64, parent *Header) *big.Int {
+		// https://github.com/ethereum/EIPs/issues/100.
+		// algorithm:
+		// diff = (parent_diff +
+		//         (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
+		//        ) + 2^(periodCount - 2)
+
+		bigTime := new(big.Int).SetUint64(time)
+		bigParentTime := new(big.Int).SetUint64(parent.Time)
+
+		// holds intermediate values to make the algo easier to read & audit
+		x := new(big.Int)
+		y := new(big.Int)
+
+		// (2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9
+		x.Sub(bigTime, bigParentTime)
+		x.Div(x, big9)
+		if parent.ToEthHeader().UncleHash == types.EmptyUncleHash {
+			x.Sub(big1, x)
+		} else {
+			x.Sub(big2, x)
+		}
+		// max((2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9, -99)
+		if x.Cmp(bigMinus99) < 0 {
+			x.Set(bigMinus99)
+		}
+		// parent_diff + (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
+		y.Div(parent.ToEthHeader().Difficulty, params.DifficultyBoundDivisor)
+		x.Mul(y, x)
+		x.Add(parent.ToEthHeader().Difficulty, x)
+
+		// minimum difficulty can ever be (before exponential factor)
+		if x.Cmp(params.MinimumDifficulty) < 0 {
+			x.Set(params.MinimumDifficulty)
+		}
+		// calculate a fake block number for the ice-age delay
+		// Specification: https://eips.ethereum.org/EIPS/eip-1234
+		fakeBlockNumber := new(big.Int)
+		if parent.ToEthHeader().Number.Cmp(bombDelayFromParent) >= 0 {
+			fakeBlockNumber = fakeBlockNumber.Sub(parent.ToEthHeader().Number, bombDelayFromParent)
+		}
+		// for the exponential factor
+		periodCount := fakeBlockNumber
+		periodCount.Div(periodCount, expDiffPeriod)
+
+		// the exponential factor, commonly referred to as "the bomb"
+		// diff = diff + 2^(periodCount - 2)
+		if periodCount.Cmp(big1) > 0 {
+			y.Sub(periodCount, big2)
+			y.Exp(big2, y, nil)
+			x.Add(x, y)
+		}
+		return x
+	}
+}
+
+const (
+	BaseFeeChangeDenominator = 8          // Bounds the amount the base fee can change between blocks.
+	ElasticityMultiplier     = 2          // Bounds the maximum gas limit an EIP-1559 block may have.
+	InitialBaseFee           = 1000000000 // Initial base fee for EIP-1559 blocks.
+)
+
+// VerifyEip1559Header verifies some header attributes which were changed in EIP-1559,
+// - gas limit check
+// - basefee check
+func VerifyEip1559Header(parent, header *Header) error {
+	// Verify that the gas limit remains within allowed bounds
+	parentGasLimit := parent.ToEthHeader().GasLimit
+
+	if err := VerifyGaslimit(parentGasLimit, header.ToEthHeader().GasLimit); err != nil {
+		return err
+	}
+	// Verify the header is not malformed
+	if header.ToEthHeader().BaseFee == nil {
+		return fmt.Errorf("header is missing baseFee")
+	}
+	// Verify the baseFee is correct based on the parent header.
+	expectedBaseFee := CalcBaseFee(parent)
+	if header.ToEthHeader().BaseFee.Cmp(expectedBaseFee) != 0 {
+		return fmt.Errorf("invalid baseFee: have %s, want %s, parentBaseFee %s, parentGasUsed %d",
+			expectedBaseFee, header.ToEthHeader().BaseFee, parent.ToEthHeader().BaseFee, parent.ToEthHeader().GasUsed)
+	}
+	return nil
+}
+
+// VerifyGaslimit verifies the header gas limit according increase/decrease
+// in relation to the parent gas limit.
+func VerifyGaslimit(parentGasLimit, headerGasLimit uint64) error {
+	// Verify that the gas limit remains within allowed bounds
+	diff := int64(parentGasLimit) - int64(headerGasLimit)
+	if diff < 0 {
+		diff *= -1
+	}
+	limit := parentGasLimit / params.GasLimitBoundDivisor
+	if uint64(diff) >= limit {
+		return fmt.Errorf("invalid gas limit: have %d, want %d +-= %d", headerGasLimit, parentGasLimit, limit-1)
+	}
+	if headerGasLimit < params.MinGasLimit {
+		return errors.New("invalid gas limit below 5000")
+	}
+	return nil
+}
+
+// CalcBaseFee calculates the basefee of the header.
+func CalcBaseFee(parent *Header) *big.Int {
+
+	var (
+		parentGasTarget          = parent.ToEthHeader().GasLimit / ElasticityMultiplier
+		parentGasTargetBig       = new(big.Int).SetUint64(parentGasTarget)
+		baseFeeChangeDenominator = new(big.Int).SetUint64(BaseFeeChangeDenominator)
+	)
+	// If the parent gasUsed is the same as the target, the baseFee remains unchanged.
+	if parent.ToEthHeader().GasUsed == parentGasTarget {
+		return new(big.Int).Set(parent.ToEthHeader().BaseFee)
+	}
+	if parent.ToEthHeader().GasUsed > parentGasTarget {
+		// If the parent block used more gas than its target, the baseFee should increase.
+		gasUsedDelta := new(big.Int).SetUint64(parent.ToEthHeader().GasUsed - parentGasTarget)
+		x := new(big.Int).Mul(parent.ToEthHeader().BaseFee, gasUsedDelta)
+		y := x.Div(x, parentGasTargetBig)
+		baseFeeDelta := math.BigMax(
+			x.Div(y, baseFeeChangeDenominator),
+			common.Big1,
+		)
+
+		return x.Add(parent.ToEthHeader().BaseFee, baseFeeDelta)
+	} else {
+		// Otherwise if the parent block used less gas than its target, the baseFee should decrease.
+		gasUsedDelta := new(big.Int).SetUint64(parentGasTarget - parent.ToEthHeader().GasUsed)
+		x := new(big.Int).Mul(parent.ToEthHeader().BaseFee, gasUsedDelta)
+		y := x.Div(x, parentGasTargetBig)
+		baseFeeDelta := x.Div(y, baseFeeChangeDenominator)
+
+		return math.BigMax(
+			x.Sub(parent.ToEthHeader().BaseFee, baseFeeDelta),
+			common.Big0,
+		)
 	}
 }
