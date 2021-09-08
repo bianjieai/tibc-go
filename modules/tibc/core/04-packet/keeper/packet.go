@@ -366,7 +366,7 @@ func (k Keeper) CleanPacket(
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	sourceChain := cleanPacket.GetSourceChain();
+	sourceChain := cleanPacket.GetSourceChain()
 	if len(sourceChain) == 0 {
 		sourceChain = k.clientKeeper.GetChainName(ctx)
 	}

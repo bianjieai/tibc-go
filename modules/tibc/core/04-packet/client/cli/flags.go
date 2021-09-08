@@ -10,7 +10,7 @@ const (
 )
 
 var (
-	FsSendCleanPacket    = flag.NewFlagSet("", flag.ContinueOnError)
+	FsSendCleanPacket = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {

@@ -2,14 +2,16 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
 	"strconv"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
 // NewSendCleanPacketCmd defines the command to send clean packet.
@@ -35,7 +37,7 @@ func NewSendCleanPacketCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			destChain := args[0];
+			destChain := args[0]
 			sequence, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return err
@@ -46,8 +48,8 @@ func NewSendCleanPacketCmd() *cobra.Command {
 				DestinationChain: destChain,
 				RelayChain:       relayChain,
 			}
-			
-			msg:= types.NewMsgCleanPacket(cleanPacket, clientCtx.GetFromAddress())
+
+			msg := types.NewMsgCleanPacket(cleanPacket, clientCtx.GetFromAddress())
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
