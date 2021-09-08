@@ -31,10 +31,10 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketState(testChain1, testChain2, 1, []byte("ack")),
 				},
 				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("")),
+					types.NewPacketState(testChain1, testChain2, 1, []byte("commit_hash")),
 				},
 				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("commit_hash")),
+					types.NewPacketState(testChain1, testChain2, 1, []byte("")),
 				},
 				[]types.PacketSequence{
 					types.NewPacketSequence(testChain1, testChain2, 1),
