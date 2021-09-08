@@ -170,12 +170,12 @@ func verifyCascadingFields(
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
 		return sdkerrors.Wrap(ErrInvalidDifficult, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
-
-	caches := NewCaches(3, store)
-	err = VerifyHeader(caches, &header)
-	if err != nil {
-		return sdkerrors.Wrap(ErrHeader, err.Error())
-	}
+	// todo !
+	//caches := NewCaches(3, store)
+	//err = VerifyHeader(caches, &header)
+	//if err != nil {
+	//	return sdkerrors.Wrap(ErrHeader, err.Error())
+	//}
 	// All basic checks passed
 	return nil
 
