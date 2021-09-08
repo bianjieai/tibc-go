@@ -50,10 +50,10 @@ func (suite KeeperTestSuite) TestGetAllSequences() {
 	ctxA := suite.chainA.GetContext()
 
 	for _, seq := range []types.PacketSequence{seq1, seq2} {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq.Sequence)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq.Sequence)
 	}
 
-	sendSeqs := suite.chainA.App.TIBCKeeper.Packetkeeper.GetAllPacketSendSeqs(ctxA)
+	sendSeqs := suite.chainA.App.TIBCKeeper.PacketKeeper.GetAllPacketSendSeqs(ctxA)
 	suite.Len(sendSeqs, 1)
 
 	suite.Equal(expSeqs, sendSeqs)
@@ -89,22 +89,22 @@ func (suite KeeperTestSuite) TestGetAllPacketState() {
 
 	// set acknowledgements
 	for _, ack := range []types.PacketState{ack1, ack2, ack2dup} {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
 	}
 
 	// set packet receipts
 	for _, rec := range expReceipts {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, rec.Sequence)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, rec.Sequence)
 	}
 
 	// set packet commitments
 	for _, comm := range expCommitments {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, comm.Sequence, comm.Data)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, comm.Sequence, comm.Data)
 	}
 
-	acks := suite.chainA.App.TIBCKeeper.Packetkeeper.GetAllPacketAcks(ctxA)
-	receipts := suite.chainA.App.TIBCKeeper.Packetkeeper.GetAllPacketReceipts(ctxA)
-	commitments := suite.chainA.App.TIBCKeeper.Packetkeeper.GetAllPacketCommitments(ctxA)
+	acks := suite.chainA.App.TIBCKeeper.PacketKeeper.GetAllPacketAcks(ctxA)
+	receipts := suite.chainA.App.TIBCKeeper.PacketKeeper.GetAllPacketReceipts(ctxA)
+	commitments := suite.chainA.App.TIBCKeeper.PacketKeeper.GetAllPacketCommitments(ctxA)
 
 	suite.Require().Len(acks, len(expAcks))
 	suite.Require().Len(commitments, len(expCommitments))
@@ -124,14 +124,14 @@ func (suite *KeeperTestSuite) TestSetSequence() {
 	one := uint64(1)
 
 	// initialized channel has next send seq of 1
-	seq, found := suite.chainA.App.TIBCKeeper.Packetkeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
+	seq, found := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
 	suite.True(found)
 	suite.Equal(one, seq)
 
 	nextSeqSend := uint64(10)
-	suite.chainA.App.TIBCKeeper.Packetkeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, nextSeqSend)
+	suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, nextSeqSend)
 
-	storedNextSeqSend, found := suite.chainA.App.TIBCKeeper.Packetkeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
+	storedNextSeqSend, found := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
 	suite.True(found)
 	suite.Equal(nextSeqSend, storedNextSeqSend)
 }
@@ -154,20 +154,20 @@ func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 
 	// create consecutive commitments
 	for i := uint64(1); i < seq; i++ {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, i, hash)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, i, hash)
 		expectedSeqs[i] = true
 	}
 
 	// add non-consecutive commitments
 	for i := seq; i < maxSeq; i += 2 {
-		suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, i, hash)
+		suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, i, hash)
 		expectedSeqs[i] = true
 	}
 
 	// add sequence on different channel/port
-	suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, "EndpointBChainName", maxSeq+1, hash)
+	suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(ctxA, path.EndpointA.ChainName, "EndpointBChainName", maxSeq+1, hash)
 
-	commitments := suite.chainA.App.TIBCKeeper.Packetkeeper.GetAllPacketCommitmentsAtChannel(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
+	commitments := suite.chainA.App.TIBCKeeper.PacketKeeper.GetAllPacketCommitmentsAtChannel(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
 
 	suite.Equal(len(expectedSeqs), len(commitments))
 	// ensure above for loops occurred
@@ -194,15 +194,15 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	ctxA := suite.chainA.GetContext()
 	seq := uint64(10)
 
-	storedAckHash, found := suite.chainA.App.TIBCKeeper.Packetkeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
+	storedAckHash, found := suite.chainA.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
 	suite.Require().False(found)
 	suite.Require().Nil(storedAckHash)
 
 	ackHash := []byte("ackhash")
-	suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq, ackHash)
+	suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq, ackHash)
 
-	storedAckHash, found = suite.chainA.App.TIBCKeeper.Packetkeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
+	storedAckHash, found = suite.chainA.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
 	suite.Require().True(found)
 	suite.Require().Equal(ackHash, storedAckHash)
-	suite.Require().True(suite.chainA.App.TIBCKeeper.Packetkeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq))
+	suite.Require().True(suite.chainA.App.TIBCKeeper.PacketKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, seq))
 }

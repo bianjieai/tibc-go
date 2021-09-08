@@ -15,7 +15,7 @@ import (
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *types.GenesisState) {
 	client.InitGenesis(ctx, k.ClientKeeper, gs.ClientGenesis)
-	packet.InitGenesis(ctx, k.Packetkeeper, gs.PacketGenesis)
+	packet.InitGenesis(ctx, k.PacketKeeper, gs.PacketGenesis)
 	routing.InitGenesis(ctx, k.RoutingKeeper, gs.RoutingGenesis)
 }
 
@@ -23,7 +23,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *typ
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		ClientGenesis:  client.ExportGenesis(ctx, k.ClientKeeper),
-		PacketGenesis:  packet.ExportGenesis(ctx, k.Packetkeeper),
+		PacketGenesis:  packet.ExportGenesis(ctx, k.PacketKeeper),
 		RoutingGenesis: routing.ExportGenesis(ctx, k.RoutingKeeper),
 	}
 }
