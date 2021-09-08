@@ -6,10 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/log"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
@@ -59,20 +58,25 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	return nil
 }
 
-func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
+func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, error) {
 	var rules []string
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(RoutingRulesKey())
 	if bz == nil {
-		return nil, false
+		return nil, nil
 	}
-	json.Unmarshal(bz, &rules)
-	return rules, true
+	if err := json.Unmarshal(bz, &rules); err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrFailUnmarshalRules, "failed to unmarshal rules: %s", err.Error())
+	}
+	return rules, nil
 }
 
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
-	rules, found := k.GetRoutingRules(ctx)
-	if !found {
+	rules, err := k.GetRoutingRules(ctx)
+	if err != nil {
+		panic(err)
+	}
+	if rules == nil {
 		return false
 	}
 	flag := false

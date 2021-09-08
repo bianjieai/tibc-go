@@ -10,12 +10,18 @@ import (
 // InitGenesis initializes the tibc routing submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
-	k.SetRoutingRules(ctx, gs.Rules)
+	err := k.SetRoutingRules(ctx, gs.Rules)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns the tibc routing submodule's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
-	rules, _ := k.GetRoutingRules(ctx)
+	rules, err := k.GetRoutingRules(ctx)
+	if err != nil {
+		panic(err)
+	}
 	return types.GenesisState{
 		Rules: rules,
 	}

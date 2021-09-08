@@ -45,7 +45,6 @@ func TestValidateGenesis(t *testing.T) {
 				[]types.PacketSequence{
 					types.NewPacketSequence(testChain1, testChain2, 1),
 				},
-				2,
 			),
 			expPass: true,
 		},
