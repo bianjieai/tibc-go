@@ -33,11 +33,11 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	return 0
+	return m.TimeDelay
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	return 0
+	return m.BlockDelay
 }
 
 func (m ClientState) GetPrefix() exported.Prefix {

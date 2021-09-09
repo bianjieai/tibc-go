@@ -37,6 +37,8 @@ message ClientState {
   uint64 chain_id = 2;
   bytes contract_address = 3;
   uint64 trusting_period = 4;
+  uint64 timeDelay = 5;
+  uint64 blockDelay = 6;
 }
 
 

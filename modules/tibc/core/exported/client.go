@@ -20,7 +20,7 @@ const (
 	// BSC is the client type for a bianance smart chain client.
 	BSC string = "008-bsc"
 
-	ETH string = "009-eth"
+	ETH string = "010-eth"
 
 	// Fabric is the client type for a hyperledge fabric client.
 	Fabric string = "009-fabric"
