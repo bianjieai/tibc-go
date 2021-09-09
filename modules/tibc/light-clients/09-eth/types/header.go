@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/big"
+	"os"
 	"time"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -73,6 +75,26 @@ func (h Header) ValidateBasic() error {
 
 func (h Header) ToEthHeader() EthHeader {
 	return EthHeader{
+		ParentHash:  common.BytesToHash(h.ParentHash),
+		UncleHash:   common.BytesToHash(h.UncleHash),
+		Coinbase:    common.BytesToAddress(h.Coinbase),
+		Root:        common.BytesToHash(h.Root),
+		TxHash:      common.BytesToHash(h.TxHash),
+		ReceiptHash: common.BytesToHash(h.ReceiptHash),
+		Bloom:       types.BytesToBloom(h.Bloom),
+		Difficulty:  big.NewInt(int64(h.Difficulty)),
+		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
+		GasLimit:    h.GasLimit,
+		GasUsed:     h.GasUsed,
+		Time:        h.Time,
+		Extra:       h.Extra,
+		MixDigest:   common.BytesToHash(h.MixDigest),
+		Nonce:       types.EncodeNonce(h.Nonce),
+		BaseFee:     big.NewInt(int64(h.BaseFee)),
+	}
+}
+func (h Header) ToVerifyHeader() *types.Header {
+	return &types.Header{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
 		Coinbase:    common.BytesToAddress(h.Coinbase),
@@ -171,11 +193,22 @@ func verifyCascadingFields(
 		return sdkerrors.Wrap(ErrInvalidDifficult, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
 	// todo !
-	//caches := NewCaches(3, store)
-	//err = VerifyHeader(caches, &header)
-	//if err != nil {
-	//	return sdkerrors.Wrap(ErrHeader, err.Error())
-	//}
+
+	cachedir, err := ioutil.TempDir("", "")
+	if err != nil {
+		fmt.Println(err)
+		return errEthashStopped
+	}
+	defer os.RemoveAll(cachedir)
+	config := Config{
+		CacheDir:     cachedir,
+		CachesOnDisk: 1,
+	}
+	ethash := New(config, nil, false)
+	defer ethash.Close()
+	if err := ethash.verifySeal(header.ToEthHeader(), false); err != nil {
+		return ErrUnknownBlock
+	}
 	// All basic checks passed
 	return nil
 
