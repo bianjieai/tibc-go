@@ -59,5 +59,4 @@ var (
 	ErrExtraLenth            = sdkerrors.Register(moduleName, 21, "extra-data too long")
 	ErrInvalidGas            = sdkerrors.Register(moduleName, 22, "gas invalid")
 	ErrHeader                = sdkerrors.Register(moduleName, 23, "header invalid")
-	ErrInvalidDifficult      = sdkerrors.Register(moduleName, 24, "difficult invalid")
 )

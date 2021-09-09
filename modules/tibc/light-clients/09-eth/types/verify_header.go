@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 	"runtime"
 
@@ -16,7 +15,7 @@ func (ethash *Ethash) verifySeal(header *types.Header, fulldag bool) error {
 
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
-		return ErrInvalidDifficult
+		return ErrWrongDifficulty
 	}
 	// Recompute the digest and PoW values
 	number := header.Number.Uint64()
@@ -53,15 +52,13 @@ func (ethash *Ethash) verifySeal(header *types.Header, fulldag bool) error {
 		// until after the call to hashimotoLight so it's not unmapped while being used.
 		runtime.KeepAlive(cache)
 	}
-	fmt.Println(digest)
 	// Verify the calculated values against the ones provided in the header
 	if !bytes.Equal(header.MixDigest[:], digest) {
-		fmt.Println("????")
-		return ErrInvalidDifficult
+		return ErrInvalidMixDigest
 	}
 	target := new(big.Int).Div(two256, header.Difficulty)
 	if new(big.Int).SetBytes(result).Cmp(target) > 0 {
-		return ErrInvalidDifficult
+		return ErrWrongDifficulty
 	}
 	return nil
 }

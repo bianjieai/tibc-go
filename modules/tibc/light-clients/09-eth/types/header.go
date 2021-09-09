@@ -191,7 +191,7 @@ func verifyCascadingFields(
 	//verify difficulty
 	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
-		return sdkerrors.Wrap(ErrInvalidDifficult, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
+		return sdkerrors.Wrap(ErrWrongDifficulty, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
 
 	cachedir, err := ioutil.TempDir("", "")
@@ -207,7 +207,7 @@ func verifyCascadingFields(
 	ethash := New(config, nil, false)
 	defer ethash.Close()
 	if err := ethash.verifySeal(header.ToVerifyHeader(), false); err != nil {
-		return ErrUnknownBlock
+		return ErrHeader
 	}
 	// All basic checks passed
 	return nil
