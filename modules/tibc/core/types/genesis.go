@@ -30,9 +30,6 @@ func (gs *GenesisState) Validate() error {
 	if err := gs.ClientGenesis.Validate(); err != nil {
 		return err
 	}
-	if err := gs.PacketGenesis.Validate(); err != nil {
-		return err
-	}
 
-	return nil
+	return gs.PacketGenesis.Validate()
 }
