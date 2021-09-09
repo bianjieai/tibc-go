@@ -58,25 +58,20 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	return nil
 }
 
-func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, error) {
+func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	var rules []string
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(RoutingRulesKey())
 	if bz == nil {
-		return nil, nil
+		return nil, false
 	}
-	if err := json.Unmarshal(bz, &rules); err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrFailUnmarshalRules, "failed to unmarshal rules: %s", err.Error())
-	}
-	return rules, nil
+	json.Unmarshal(bz, &rules)
+	return rules, true
 }
 
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
-	rules, err := k.GetRoutingRules(ctx)
-	if err != nil {
-		panic(err)
-	}
-	if rules == nil {
+	rules, found := k.GetRoutingRules(ctx)
+	if !found {
 		return false
 	}
 	flag := false
