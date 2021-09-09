@@ -97,6 +97,7 @@ func update(cdc codec.BinaryMarshaler,
 	clientState.Header = *header
 	return clientState, cs, nil
 }
+
 func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore, new Header) error {
 	si, ti := m.Header.Height, new.Height
 	var err error
