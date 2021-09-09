@@ -38,13 +38,12 @@ func (h Header) GetHeight() exported.Height {
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
 // RLP encoding.
 func (h *Header) Hash() common.Hash {
-
-	return rlpHash(h.ToVerifyHeader())
+	return rlpHash(h.ToEthHeader())
 }
 
-//func (h *EthHeader) Hash() (hash common.Hash) {
-//	return rlpHash(h)
-//}
+func (h *EthHeader) Hash() (hash common.Hash) {
+	return rlpHash(h)
+}
 
 func (h Header) ValidateBasic() error {
 	// Ensure that the header's extra-data section is of a reasonable size
@@ -74,27 +73,27 @@ func (h Header) ValidateBasic() error {
 	return nil
 }
 
-//
-//func (h Header) ToEthHeader() EthHeader {
-//	return EthHeader{
-//		ParentHash:  common.BytesToHash(h.ParentHash),
-//		UncleHash:   common.BytesToHash(h.UncleHash),
-//		Coinbase:    common.BytesToAddress(h.Coinbase),
-//		Root:        common.BytesToHash(h.Root),
-//		TxHash:      common.BytesToHash(h.TxHash),
-//		ReceiptHash: common.BytesToHash(h.ReceiptHash),
-//		Bloom:       types.BytesToBloom(h.Bloom),
-//		Difficulty:  big.NewInt(int64(h.Difficulty)),
-//		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
-//		GasLimit:    h.GasLimit,
-//		GasUsed:     h.GasUsed,
-//		Time:        h.Time,
-//		Extra:       h.Extra,
-//		MixDigest:   common.BytesToHash(h.MixDigest),
-//		Nonce:       types.EncodeNonce(h.Nonce),
-//		BaseFee:     big.NewInt(int64(h.BaseFee)),
-//	}
-//}
+func (h Header) ToEthHeader() EthHeader {
+	return EthHeader{
+		ParentHash:  common.BytesToHash(h.ParentHash),
+		UncleHash:   common.BytesToHash(h.UncleHash),
+		Coinbase:    common.BytesToAddress(h.Coinbase),
+		Root:        common.BytesToHash(h.Root),
+		TxHash:      common.BytesToHash(h.TxHash),
+		ReceiptHash: common.BytesToHash(h.ReceiptHash),
+		Bloom:       types.BytesToBloom(h.Bloom),
+		Difficulty:  big.NewInt(int64(h.Difficulty)),
+		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
+		GasLimit:    h.GasLimit,
+		GasUsed:     h.GasUsed,
+		Time:        h.Time,
+		Extra:       h.Extra,
+		MixDigest:   common.BytesToHash(h.MixDigest),
+		Nonce:       types.EncodeNonce(h.Nonce),
+		BaseFee:     big.NewInt(int64(h.BaseFee)),
+	}
+}
+
 func (h Header) ToVerifyHeader() *types.Header {
 	return &types.Header{
 		ParentHash:  common.BytesToHash(h.ParentHash),
@@ -148,7 +147,7 @@ func verifyCascadingFields(
 		return sdkerrors.Wrap(ErrHeaderIsExist, "header"+header.String())
 	}
 
-	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToVerifyHeader().ParentHash))
+	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parentConsInterface exported.ConsensusState
 	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
@@ -159,8 +158,8 @@ func verifyCascadingFields(
 	}
 
 	//verify whether parent hash validity
-	ethHeader := parent.Header.ToVerifyHeader()
-	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToVerifyHeader().ParentHash.Bytes()) {
+	ethHeader := parent.Header.ToEthHeader()
+	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
 		return fmt.Errorf("SyncBlockHeader, parent header is not right. Header: %s", header.String())
 	}
 	//verify whether extra size validity
@@ -191,10 +190,9 @@ func verifyCascadingFields(
 	}
 	//verify difficulty
 	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
-	if expected.Cmp(header.ToVerifyHeader().Difficulty) != 0 {
+	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
 		return sdkerrors.Wrap(ErrInvalidDifficult, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
-	// todo !
 
 	cachedir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -258,7 +256,7 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *Head
 		// (2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9
 		x.Sub(bigTime, bigParentTime)
 		x.Div(x, big9)
-		if parent.ToVerifyHeader().UncleHash == types.EmptyUncleHash {
+		if parent.ToEthHeader().UncleHash == types.EmptyUncleHash {
 			x.Sub(big1, x)
 		} else {
 			x.Sub(big2, x)
@@ -268,9 +266,9 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *Head
 			x.Set(bigMinus99)
 		}
 		// parent_diff + (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
-		y.Div(parent.ToVerifyHeader().Difficulty, params.DifficultyBoundDivisor)
+		y.Div(parent.ToEthHeader().Difficulty, params.DifficultyBoundDivisor)
 		x.Mul(y, x)
-		x.Add(parent.ToVerifyHeader().Difficulty, x)
+		x.Add(parent.ToEthHeader().Difficulty, x)
 
 		// minimum difficulty can ever be (before exponential factor)
 		if x.Cmp(params.MinimumDifficulty) < 0 {
@@ -279,8 +277,8 @@ func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *Head
 		// calculate a fake block number for the ice-age delay
 		// Specification: https://eips.ethereum.org/EIPS/eip-1234
 		fakeBlockNumber := new(big.Int)
-		if parent.ToVerifyHeader().Number.Cmp(bombDelayFromParent) >= 0 {
-			fakeBlockNumber = fakeBlockNumber.Sub(parent.ToVerifyHeader().Number, bombDelayFromParent)
+		if parent.ToEthHeader().Number.Cmp(bombDelayFromParent) >= 0 {
+			fakeBlockNumber = fakeBlockNumber.Sub(parent.ToEthHeader().Number, bombDelayFromParent)
 		}
 		// for the exponential factor
 		periodCount := fakeBlockNumber
@@ -308,20 +306,20 @@ const (
 // - basefee check
 func VerifyEip1559Header(parent, header *Header) error {
 	// Verify that the gas limit remains within allowed bounds
-	parentGasLimit := parent.ToVerifyHeader().GasLimit
+	parentGasLimit := parent.ToEthHeader().GasLimit
 
-	if err := VerifyGaslimit(parentGasLimit, header.ToVerifyHeader().GasLimit); err != nil {
+	if err := VerifyGaslimit(parentGasLimit, header.ToEthHeader().GasLimit); err != nil {
 		return err
 	}
 	// Verify the header is not malformed
-	if header.ToVerifyHeader().BaseFee == nil {
+	if header.ToEthHeader().BaseFee == nil {
 		return fmt.Errorf("header is missing baseFee")
 	}
 	// Verify the baseFee is correct based on the parent header.
 	expectedBaseFee := CalcBaseFee(parent)
-	if header.ToVerifyHeader().BaseFee.Cmp(expectedBaseFee) != 0 {
+	if header.ToEthHeader().BaseFee.Cmp(expectedBaseFee) != 0 {
 		return fmt.Errorf("invalid baseFee: have %s, want %s, parentBaseFee %s, parentGasUsed %d",
-			expectedBaseFee, header.ToVerifyHeader().BaseFee, parent.ToVerifyHeader().BaseFee, parent.ToVerifyHeader().GasUsed)
+			expectedBaseFee, header.ToEthHeader().BaseFee, parent.ToEthHeader().BaseFee, parent.ToEthHeader().GasUsed)
 	}
 	return nil
 }
@@ -348,34 +346,34 @@ func VerifyGaslimit(parentGasLimit, headerGasLimit uint64) error {
 func CalcBaseFee(parent *Header) *big.Int {
 
 	var (
-		parentGasTarget          = parent.ToVerifyHeader().GasLimit / ElasticityMultiplier
+		parentGasTarget          = parent.ToEthHeader().GasLimit / ElasticityMultiplier
 		parentGasTargetBig       = new(big.Int).SetUint64(parentGasTarget)
 		baseFeeChangeDenominator = new(big.Int).SetUint64(BaseFeeChangeDenominator)
 	)
 	// If the parent gasUsed is the same as the target, the baseFee remains unchanged.
-	if parent.ToVerifyHeader().GasUsed == parentGasTarget {
-		return new(big.Int).Set(parent.ToVerifyHeader().BaseFee)
+	if parent.ToEthHeader().GasUsed == parentGasTarget {
+		return new(big.Int).Set(parent.ToEthHeader().BaseFee)
 	}
-	if parent.ToVerifyHeader().GasUsed > parentGasTarget {
+	if parent.ToEthHeader().GasUsed > parentGasTarget {
 		// If the parent block used more gas than its target, the baseFee should increase.
-		gasUsedDelta := new(big.Int).SetUint64(parent.ToVerifyHeader().GasUsed - parentGasTarget)
-		x := new(big.Int).Mul(parent.ToVerifyHeader().BaseFee, gasUsedDelta)
+		gasUsedDelta := new(big.Int).SetUint64(parent.ToEthHeader().GasUsed - parentGasTarget)
+		x := new(big.Int).Mul(parent.ToEthHeader().BaseFee, gasUsedDelta)
 		y := x.Div(x, parentGasTargetBig)
 		baseFeeDelta := math.BigMax(
 			x.Div(y, baseFeeChangeDenominator),
 			common.Big1,
 		)
 
-		return x.Add(parent.ToVerifyHeader().BaseFee, baseFeeDelta)
+		return x.Add(parent.ToEthHeader().BaseFee, baseFeeDelta)
 	} else {
 		// Otherwise if the parent block used less gas than its target, the baseFee should decrease.
-		gasUsedDelta := new(big.Int).SetUint64(parentGasTarget - parent.ToVerifyHeader().GasUsed)
-		x := new(big.Int).Mul(parent.ToVerifyHeader().BaseFee, gasUsedDelta)
+		gasUsedDelta := new(big.Int).SetUint64(parentGasTarget - parent.ToEthHeader().GasUsed)
+		x := new(big.Int).Mul(parent.ToEthHeader().BaseFee, gasUsedDelta)
 		y := x.Div(x, parentGasTargetBig)
 		baseFeeDelta := x.Div(y, baseFeeChangeDenominator)
 
 		return math.BigMax(
-			x.Sub(parent.ToVerifyHeader().BaseFee, baseFeeDelta),
+			x.Sub(parent.ToEthHeader().BaseFee, baseFeeDelta),
 			common.Big0,
 		)
 	}

@@ -121,7 +121,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 
 	for ti.RevisionHeight > si.RevisionHeight {
 		newHashs = append(newHashs, new.Hash())
-		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToVerifyHeader().ParentHash))
+		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
@@ -136,7 +136,7 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 	// si.parent == ti.parent
 	for bytes.Equal(current.ParentHash, new.ParentHash) {
 		newHashs = append(newHashs, new.Hash())
-		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToVerifyHeader().ParentHash))
+		newTmp := store.Get(host.ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err

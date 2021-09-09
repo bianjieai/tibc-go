@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethash implements the ethash proof-of-work consensus engine.
 package types
 
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
 	"math/rand"
 	"os"
@@ -47,6 +45,12 @@ import (
 )
 
 var ErrInvalidDumpMagic = errors.New("invalid dump magic")
+var errEthashStopped = errors.New("ethash stopped")
+
+// API exposes ethash related methods for the RPC interface.
+type API struct {
+	ethash *Ethash
+}
 
 var (
 	// two256 is a big integer representing 2^256
@@ -391,18 +395,6 @@ func (d *dataset) finalizer() {
 	}
 }
 
-// MakeCache generates a new ethash cache and optionally stores it to disk.
-func MakeCache(block uint64, dir string) {
-	c := cache{epoch: block / epochLength}
-	c.generate(dir, math.MaxInt32, false, false)
-}
-
-// MakeDataset generates a new ethash dataset and optionally stores it to disk.
-func MakeDataset(block uint64, dir string) {
-	d := dataset{epoch: block / epochLength}
-	d.generate(dir, math.MaxInt32, false, false)
-}
-
 // Mode defines the type and amount of PoW verification an ethash engine makes.
 type Mode uint
 
@@ -531,49 +523,6 @@ func (ethash *Ethash) SealHash(header *ethtypes.Header) (hash common.Hash) {
 	rlp.Encode(hasher, enc)
 	hasher.Sum(hash[:0])
 	return hash
-}
-
-// NewFakeFailer creates a ethash consensus engine with a fake PoW scheme that
-// accepts all blocks as valid apart from the single one specified, though they
-// still have to conform to the Ethereum consensus rules.
-func NewFakeFailer(fail uint64) *Ethash {
-	return &Ethash{
-		config: Config{
-			PowMode: ModeFake,
-			Log:     log.Root(),
-		},
-		fakeFail: fail,
-	}
-}
-
-// NewFakeDelayer creates a ethash consensus engine with a fake PoW scheme that
-// accepts all blocks as valid, but delays verifications by some time, though
-// they still have to conform to the Ethereum consensus rules.
-func NewFakeDelayer(delay time.Duration) *Ethash {
-	return &Ethash{
-		config: Config{
-			PowMode: ModeFake,
-			Log:     log.Root(),
-		},
-		fakeDelay: delay,
-	}
-}
-
-// NewFullFaker creates an ethash consensus engine with a full fake scheme that
-// accepts all blocks as valid, without checking any consensus rules whatsoever.
-func NewFullFaker() *Ethash {
-	return &Ethash{
-		config: Config{
-			PowMode: ModeFullFake,
-			Log:     log.Root(),
-		},
-	}
-}
-
-// NewShared creates a full sized ethash PoW shared between all requesters running
-// in the same process.
-func NewShared() *Ethash {
-	return &Ethash{shared: sharedEthash}
 }
 
 // Close closes the exit channel to notify all backend threads exiting.

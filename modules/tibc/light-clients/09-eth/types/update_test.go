@@ -172,7 +172,7 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 		Extra:       header.Extra,
 		MixDigest:   header.MixDigest,
 		Nonce:       header.Nonce,
-		BaseFee: header.BaseFee,
+		BaseFee:     header.BaseFee,
 	}, nil
 }
 
@@ -220,6 +220,33 @@ func Test_getjson(test *testing.T) {
 	clientConsensusStateName := "eth_consensus_state.json"
 	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
 	if err != nil {
+		return
+	}
+}
+func TestVerifyHeader(test *testing.T) {
+	cachedir, err := ioutil.TempDir("", "")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer os.RemoveAll(cachedir)
+	rc := NewRestClient()
+	height, err := GetBlockHeight(rc, ethurl)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	height = height - 60
+
+	nodeHeader, err := GetNodeHeader(rc, ethurl, 13177652)
+	config := Config{
+		CacheDir:     cachedir,
+		CachesOnDisk: 1,
+	}
+	ethash := New(config, nil, false)
+	defer ethash.Close()
+	if err := ethash.verifySeal(nodeHeader.ToHeader().ToVerifyHeader(), false); err != nil {
+		fmt.Println(err)
 		return
 	}
 }

@@ -58,7 +58,7 @@ func (m ClientState) Initialize(
 		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
 	consensusState := state.(*ConsensusState)
-	header := consensusState.Header.ToVerifyHeader()
+	header := consensusState.Header.ToEthHeader()
 	store.Set(host.ConsensusStateIndexKey(header.Hash()), marshalInterface)
 
 	return nil
