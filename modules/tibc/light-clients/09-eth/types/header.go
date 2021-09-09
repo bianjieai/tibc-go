@@ -9,21 +9,18 @@ import (
 	"os"
 	"time"
 
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
 var (
-	// Maximum number of uncles allowed in a single block
-	allowedFutureBlockTimeSeconds = int64(15)
+	allowedFutureBlockTime = 15 * time.Second
 )
 var _ exported.Header = (*Header)(nil)
 
@@ -49,10 +46,6 @@ func (h Header) ValidateBasic() error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(h.Extra)) > params.MaximumExtraDataSize {
 		return fmt.Errorf("extra-data too long: %d > %d", len(h.Extra), params.MaximumExtraDataSize)
-	}
-	if h.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
-
-		return sdkerrors.Wrap(ErrFutureBlock, consensus.ErrFutureBlock.Error())
 	}
 	// Verify that the gas limit is <= 2^63-1
 	cap := uint64(0x7fffffffffffffff)
@@ -116,6 +109,7 @@ func (h Header) ToVerifyHeader() *types.Header {
 }
 
 func verifyHeader(
+	ctx sdk.Context,
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
 	clientState *ClientState,
@@ -125,7 +119,7 @@ func verifyHeader(
 		return err
 	}
 
-	return verifyCascadingFields(cdc, store, clientState, header)
+	return verifyCascadingFields(ctx, cdc, store, clientState, header)
 }
 
 // verifyCascadingFields verifies all the header fields that are not standalone,
@@ -133,6 +127,7 @@ func verifyHeader(
 // in a batch of parents (ascending order) to avoid looking those up from the
 // database. This is useful for concurrently verifying a batch of new headers.
 func verifyCascadingFields(
+	ctx sdk.Context,
 	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
 	clientState *ClientState,
@@ -147,7 +142,7 @@ func verifyCascadingFields(
 		return sdkerrors.Wrap(ErrHeaderIsExist, "header"+header.String())
 	}
 
-	parentbytes := store.Get(host.ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	parentbytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parentConsInterface exported.ConsensusState
 	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
@@ -167,11 +162,11 @@ func verifyCascadingFields(
 		return sdkerrors.Wrap(ErrExtraLenth, fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String()).Error())
 	}
 	// Verify the header's timestamp
-	if header.Time > uint64(time.Now().Unix()+allowedFutureBlockTimeSeconds) {
+	if header.Time > uint64(ctx.BlockTime().Add(allowedFutureBlockTime).Unix()) {
 		return ErrFutureBlock
 	}
 	if header.Time <= parent.Header.Time {
-		return ErrFutureBlock
+		return ErrHeader
 	}
 
 	// Verify that the gas limit is <= 2^63-1
@@ -215,7 +210,7 @@ func verifyCascadingFields(
 }
 
 func IsHeaderExist(store sdk.KVStore, hash common.Hash) (bool, error) {
-	headerStore := store.Get(host.ConsensusStateIndexKey(hash))
+	headerStore := store.Get(ConsensusStateIndexKey(hash))
 	if headerStore == nil {
 		return false, nil
 	} else {

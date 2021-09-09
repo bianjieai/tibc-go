@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,12 +33,10 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	//todo ? add delaytime
 	return 0
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	//todo ? add delayblock
 	return 0
 }
 
@@ -59,7 +56,7 @@ func (m ClientState) Initialize(
 	}
 	consensusState := state.(*ConsensusState)
 	header := consensusState.Header.ToEthHeader()
-	store.Set(host.ConsensusStateIndexKey(header.Hash()), marshalInterface)
+	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
 
 	return nil
 }
@@ -73,7 +70,7 @@ func (m ClientState) Status(
 	if err != nil {
 		return exported.Unknown
 	}
-	if onsState.Timestamp+uint64(allowedFutureBlockTimeSeconds) < uint64(ctx.BlockTime().Nanosecond()) {
+	if onsState.Timestamp+m.GetDelayTime() < uint64(ctx.BlockTime().Nanosecond()) {
 		return exported.Expired
 	}
 	return exported.Active

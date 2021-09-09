@@ -1,18 +1,30 @@
 package types
 
 import (
+	"fmt"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
-	PrefixKeyRecentSingers  = "recentSingers"
-	PrefixPendingValidators = "pendingValidators"
+	PrefixKeyRecentSingers       = "recentSingers"
+	PrefixPendingValidators      = "pendingValidators"
+	KeyIndexConsensusStatePrefix = "consensusStatesIndex"
 )
+
+func ConsensusStateIndexPath(hash common.Hash) string {
+	return fmt.Sprintf("%s/%s", KeyIndexConsensusStatePrefix, hash)
+}
+
+func ConsensusStateIndexKey(hash common.Hash) []byte {
+	return []byte(ConsensusStateIndexPath(hash))
+}
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.

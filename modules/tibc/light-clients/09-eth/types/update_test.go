@@ -155,7 +155,6 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 	}
 
 	header := rsp.Result
-	fmt.Println(header.Hash())
 	return &EthHeader{
 		ParentHash:  header.ParentHash,
 		UncleHash:   header.UncleHash,
