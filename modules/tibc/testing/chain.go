@@ -332,7 +332,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.TIBCKeeper.Packetkeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	ack, found := chain.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	require.True(chain.t, found)
 
 	return ack

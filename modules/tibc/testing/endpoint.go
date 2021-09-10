@@ -105,7 +105,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
 
 	// set send sequence
-	endpoint.Chain.App.TIBCKeeper.Packetkeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
+	endpoint.Chain.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
 
 	// set relayers
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
@@ -162,7 +162,7 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
 	// no need to send message, acting as a module
-	err := endpoint.Chain.App.TIBCKeeper.Packetkeeper.SendPacket(endpoint.Chain.GetContext(), packet)
+	err := endpoint.Chain.App.TIBCKeeper.PacketKeeper.SendPacket(endpoint.Chain.GetContext(), packet)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (endpoint *Endpoint) RecvPacket(packet packettypes.Packet) error {
 // The counterparty client is updated.
 func (endpoint *Endpoint) WriteAcknowledgement(acknowledgement []byte, packet exported.PacketI) error {
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.TIBCKeeper.Packetkeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, acknowledgement)
+	err := endpoint.Chain.App.TIBCKeeper.PacketKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, acknowledgement)
 	if err != nil {
 		return err
 	}
