@@ -3,7 +3,6 @@ package types
 import (
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -39,5 +38,5 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&nftpd))
+	return ModuleCdc.MustMarshalBinaryBare(&nftpd);
 }
