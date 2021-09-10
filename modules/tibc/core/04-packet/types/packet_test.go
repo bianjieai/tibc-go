@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -19,9 +18,7 @@ func TestCommitPacket(t *testing.T) {
 	clienttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
 
-	cdc := codec.NewProtoCodec(registry)
-
-	commitment := types.CommitPacket(cdc, &packet)
+	commitment := types.CommitPacket(&packet)
 	require.NotNil(t, commitment)
 }
 

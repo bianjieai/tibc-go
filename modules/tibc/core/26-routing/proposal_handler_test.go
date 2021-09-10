@@ -43,18 +43,21 @@ func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 		expPass  bool
 	}{
 		{
-			"valid routing rules proposal", func() {
+			"valid routing rules proposal",
+			func() {
 				content, err = routingtypes.NewSetRoutingRulesProposal(ibctesting.Title, ibctesting.Description, []string{"source.dest.dgsbl"})
 				suite.Require().NoError(err)
 			}, true,
 		},
 		{
-			"nil proposal", func() {
+			"nil proposal",
+			func() {
 				content = nil
 			}, false,
 		},
 		{
-			"unsupported proposal type", func() {
+			"unsupported proposal type",
+			func() {
 				content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chain.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
 			}, false,
 		},
