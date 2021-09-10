@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	FlagSourceChain = "source-chain-name"
-	FlagRelayChain  = "relay-chain-name"
+	FlagSourceChain = "source-chain"
+	FlagRelayChain  = "relay-chain"
 )
 
 var (
@@ -14,6 +14,6 @@ var (
 )
 
 func init() {
-	FsSendCleanPacket.String(FlagSourceChain, "", "Denom data structure definition")
-	FsSendCleanPacket.String(FlagRelayChain, "", "The name of the denom")
+	FsSendCleanPacket.String(FlagSourceChain, "", "The name of source chain")
+	FsSendCleanPacket.String(FlagRelayChain, "", "The name of relay chain")
 }
