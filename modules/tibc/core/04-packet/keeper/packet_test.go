@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
-			suite.chainA.App.TIBCKeeper.Packetkeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 5)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 5)
 		}, false},
 	}
 
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.TIBCKeeper.Packetkeeper.SendPacket(suite.chainA.GetContext(), packet)
+			err := suite.chainA.App.TIBCKeeper.PacketKeeper.SendPacket(suite.chainA.GetContext(), packet)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -128,7 +128,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-			suite.chainB.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 		}, false},
 		{"validation failed", func() {
 			// packet commitment not set resulting in invalid proof
@@ -148,12 +148,12 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 			proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
-			err := suite.chainB.App.TIBCKeeper.Packetkeeper.RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
+			err := suite.chainB.App.TIBCKeeper.PacketKeeper.RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				receipt, receiptStored := suite.chainB.App.TIBCKeeper.Packetkeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+				receipt, receiptStored := suite.chainB.App.TIBCKeeper.PacketKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 				suite.Require().True(receiptStored, "packet receipt not stored after RecvPacket in UNORDERED channel")
 				suite.Require().Equal(string([]byte{byte(1)}), receipt, "packet receipt is not empty string")
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				suite.coordinator.SetupClients(path)
 				packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
 				ack = ibctesting.TestHash
-				suite.chainB.App.TIBCKeeper.Packetkeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ack)
+				suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ack)
 			},
 			false,
 		},
@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			tc.malleate()
 
-			err := suite.chainB.App.TIBCKeeper.Packetkeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.App.TIBCKeeper.PacketKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 
 			if tc.expPass {
 				suite.NoError(err, "Invalid Case %d passed: %s", i, tc.msg)
@@ -275,8 +275,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 			proof, proofHeight := suite.chainB.QueryProof(packetKey)
 
-			err := suite.chainA.App.TIBCKeeper.Packetkeeper.AcknowledgePacket(suite.chainA.GetContext(), packet, ack, proof, proofHeight)
-			pc := suite.chainA.App.TIBCKeeper.Packetkeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+			err := suite.chainA.App.TIBCKeeper.PacketKeeper.AcknowledgePacket(suite.chainA.GetContext(), packet, ack, proof, proofHeight)
+			pc := suite.chainA.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 			if tc.expPass {
 				suite.NoError(err, "Case %d failed: %s", i, tc.msg)

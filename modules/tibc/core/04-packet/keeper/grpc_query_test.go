@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 				suite.coordinator.SetupClients(path)
 
 				expCommitment = []byte("hash")
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expCommitment)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expCommitment)
 
 				req = &types.QueryPacketCommitmentRequest{
 					SourceChain: path.EndpointA.ChainName,
@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 
 				for i := uint64(0); i < 9; i++ {
 					commitment := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
-					suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, commitment.Sequence, commitment.Data)
+					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, commitment.Sequence, commitment.Data)
 					expCommitments[i] = &commitment
 				}
 
@@ -257,7 +257,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				req = &types.QueryPacketReceiptRequest{
 					SourceChain: path.EndpointA.ChainName,
@@ -274,7 +274,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				req = &types.QueryPacketReceiptRequest{
 					SourceChain: path.EndpointA.ChainName,
@@ -374,7 +374,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 				suite.coordinator.SetupClients(path)
 
 				expAck = []byte("hash")
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expAck)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expAck)
 
 				req = &types.QueryPacketAcknowledgementRequest{
 					SourceChain: path.EndpointA.ChainName,
@@ -461,7 +461,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 
 				for i := uint64(0); i < 9; i++ {
 					ack := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
-					suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
+					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
 					expAcknowledgements[i] = &ack
 				}
 
@@ -571,7 +571,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				expSeq = []uint64{}
 				req = &types.QueryUnreceivedPacketsRequest{
@@ -596,7 +596,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					packetCommitments = append(packetCommitments, seq)
 
 					if seq%2 == 0 {
-						suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
+						suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
 					} else {
 						expSeq = append(expSeq, seq)
 					}
@@ -687,7 +687,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, []byte("commitment"))
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, []byte("commitment"))
 
 				expSeq = []uint64{1}
 				req = &types.QueryUnreceivedAcksRequest{
@@ -727,7 +727,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 					packetAcks = append(packetAcks, seq)
 
 					if seq%2 == 0 {
-						suite.chainA.App.TIBCKeeper.Packetkeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq, []byte("commitement"))
+						suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq, []byte("commitement"))
 						expSeq = append(expSeq, seq)
 					}
 				}
@@ -813,7 +813,7 @@ func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
-				suite.chainA.App.TIBCKeeper.Packetkeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
 				req = &types.QueryCleanPacketCommitmentRequest{
 					SourceChain: path.EndpointA.ChainName,
