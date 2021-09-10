@@ -22,6 +22,9 @@ func (k Keeper) SendPacket(
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
+	if packet.GetSourceChain() != k.clientKeeper.GetChainName(ctx) {
+		return sdkerrors.Wrap(types.ErrInvalidPacket, "source chain of packet is not this chain")
+	}
 
 	targetChain := packet.GetDestChain()
 	if len(packet.GetRelayChain()) > 0 {
@@ -150,6 +153,12 @@ func (k Keeper) RecvPacket(
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
+
+		targetClient, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
+		if !found {
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		}
+
 		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain
@@ -316,6 +325,10 @@ func (k Keeper) AcknowledgePacket(
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
+		clientState, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
+		if !found {
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		}
 		// set the acknowledgement so that it can be verified on the other side
 		k.SetPacketAcknowledgement(
 			ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
@@ -353,10 +366,16 @@ func (k Keeper) CleanPacket(
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-
-	k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
-	k.cleanAcknowledgementBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
-	k.cleanReceiptBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+	sourceChain := cleanPacket.GetSourceChain()
+	if len(sourceChain) == 0 {
+		sourceChain = k.clientKeeper.GetChainName(ctx)
+	}
+	if sourceChain != k.clientKeeper.GetChainName(ctx) {
+		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "source chain of clean packet is not this chain")
+	}
+	k.SetCleanPacketCommitment(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+	k.cleanAcknowledgementBySeq(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+	k.cleanReceiptBySeq(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 
 	// Emit Event with Packet data along with other packet information for relayer to pick up
 	// and relay to other chain
@@ -364,7 +383,7 @@ func (k Keeper) CleanPacket(
 		sdk.NewEvent(
 			types.EventTypeSendCleanPacket,
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", cleanPacket.GetSequence())),
-			sdk.NewAttribute(types.AttributeKeySrcChain, cleanPacket.GetSourceChain()),
+			sdk.NewAttribute(types.AttributeKeySrcChain, sourceChain),
 			sdk.NewAttribute(types.AttributeKeyDstChain, cleanPacket.GetDestChain()),
 			sdk.NewAttribute(types.AttributeKeyRelayChain, cleanPacket.GetRelayChain()),
 			// we only support 1-hop packets now, and that is the most important hop for a relayer
@@ -380,7 +399,7 @@ func (k Keeper) CleanPacket(
 	return nil
 }
 
-// CleanPacket.
+// RecvCleanPacket.
 func (k Keeper) RecvCleanPacket(
 	ctx sdk.Context,
 	cleanPacket exported.CleanPacketI,
@@ -436,6 +455,10 @@ func (k Keeper) RecvCleanPacket(
 
 	if isRelay {
 		k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+		targetClient, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
+		if !found {
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		}
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain
 		ctx.EventManager().EmitEvents(sdk.Events{

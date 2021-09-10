@@ -30,42 +30,42 @@ func (q Keeper) ConsensusStates(c context.Context, req *clienttypes.QueryConsens
 
 // PacketCommitment implements the IBC QueryServer interface
 func (q Keeper) PacketCommitment(c context.Context, req *packettypes.QueryPacketCommitmentRequest) (*packettypes.QueryPacketCommitmentResponse, error) {
-	return q.Packetkeeper.PacketCommitment(c, req)
+	return q.PacketKeeper.PacketCommitment(c, req)
 }
 
 // PacketCommitments implements the IBC QueryServer interface
 func (q Keeper) PacketCommitments(c context.Context, req *packettypes.QueryPacketCommitmentsRequest) (*packettypes.QueryPacketCommitmentsResponse, error) {
-	return q.Packetkeeper.PacketCommitments(c, req)
+	return q.PacketKeeper.PacketCommitments(c, req)
 }
 
 // PacketReceipt implements the IBC QueryServer interface
 func (q Keeper) PacketReceipt(c context.Context, req *packettypes.QueryPacketReceiptRequest) (*packettypes.QueryPacketReceiptResponse, error) {
-	return q.Packetkeeper.PacketReceipt(c, req)
+	return q.PacketKeeper.PacketReceipt(c, req)
 }
 
 // PacketAcknowledgement implements the IBC QueryServer interface
 func (q Keeper) PacketAcknowledgement(c context.Context, req *packettypes.QueryPacketAcknowledgementRequest) (*packettypes.QueryPacketAcknowledgementResponse, error) {
-	return q.Packetkeeper.PacketAcknowledgement(c, req)
+	return q.PacketKeeper.PacketAcknowledgement(c, req)
 }
 
 // PacketAcknowledgements implements the IBC QueryServer interface
 func (q Keeper) PacketAcknowledgements(c context.Context, req *packettypes.QueryPacketAcknowledgementsRequest) (*packettypes.QueryPacketAcknowledgementsResponse, error) {
-	return q.Packetkeeper.PacketAcknowledgements(c, req)
+	return q.PacketKeeper.PacketAcknowledgements(c, req)
 }
 
 // UnreceivedPackets implements the IBC QueryServer interface
 func (q Keeper) UnreceivedPackets(c context.Context, req *packettypes.QueryUnreceivedPacketsRequest) (*packettypes.QueryUnreceivedPacketsResponse, error) {
-	return q.Packetkeeper.UnreceivedPackets(c, req)
+	return q.PacketKeeper.UnreceivedPackets(c, req)
 }
 
 // UnreceivedAcks implements the IBC QueryServer interface
 func (q Keeper) UnreceivedAcks(c context.Context, req *packettypes.QueryUnreceivedAcksRequest) (*packettypes.QueryUnreceivedAcksResponse, error) {
-	return q.Packetkeeper.UnreceivedAcks(c, req)
+	return q.PacketKeeper.UnreceivedAcks(c, req)
 }
 
 // CleanPacketCommitment implements the IBC QueryServer interface
 func (q Keeper) CleanPacketCommitment(c context.Context, req *packettypes.QueryCleanPacketCommitmentRequest) (*packettypes.QueryCleanPacketCommitmentResponse, error) {
-	return q.Packetkeeper.CleanPacketCommitment(c, req)
+	return q.PacketKeeper.CleanPacketCommitment(c, req)
 }
 
 // RoutingRules implements the IBC QueryServer interface
