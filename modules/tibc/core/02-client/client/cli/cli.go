@@ -41,10 +41,7 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		NewCreateClientProposalCmd(),
 		NewUpdateClientCmd(),
-		NewUpgradeClientProposalCmd(),
-		NewRegisterRelayerProposalCmd(),
 	)
 	return txCmd
 }

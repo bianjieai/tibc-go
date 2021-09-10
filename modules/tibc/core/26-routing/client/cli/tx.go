@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"io/ioutil"
 
 	"github.com/pkg/errors"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -33,11 +33,9 @@ func NewSetRoutingRulesProposalCmd() *cobra.Command {
 				return errors.Wrap(err, "neither JSON input nor path to .json file for routing rules were provided")
 			}
 
-			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 			var rules []string
-
-			if err := cdc.UnmarshalInterfaceJSON(routingRulesBz, &rules); err != nil {
-				return errors.Wrap(err, "error unmarshalling client state file")
+			if err := json.Unmarshal(routingRulesBz, &rules); err != nil {
+				return errors.Wrap(err, "error unmarshalling rules file")
 			}
 
 			title, err := cmd.Flags().GetString(cli.FlagTitle)
@@ -55,8 +53,6 @@ func NewSetRoutingRulesProposalCmd() *cobra.Command {
 				return err
 			}
 
-			from := clientCtx.GetFromAddress()
-
 			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
 			if err != nil {
 				return err
@@ -67,7 +63,7 @@ func NewSetRoutingRulesProposalCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}

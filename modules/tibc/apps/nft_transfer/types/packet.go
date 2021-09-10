@@ -38,5 +38,5 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return ModuleCdc.MustMarshalBinaryBare(&nftpd);
+	return ModuleCdc.MustMarshalBinaryBare(&nftpd)
 }
