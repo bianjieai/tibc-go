@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,39 +16,12 @@ import (
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-// NewClientState creates a new ClientState instance
-func NewClientState(
-	header Header,
-	chainID uint64,
-	epoch uint64,
-	blockInteval uint64,
-	validators [][]byte,
-	recentSigners []Signer,
-	contractAddress []byte,
-	trustingPeriod uint64,
-) *ClientState {
-	return &ClientState{
-		Header:          header,
-		ChainId:         chainID,
-		Epoch:           epoch,
-		BlockInteval:    blockInteval,
-		Validators:      validators,
-		RecentSigners:   recentSigners,
-		ContractAddress: contractAddress,
-		TrustingPeriod:  trustingPeriod,
-	}
-}
-
 func (m ClientState) ClientType() string {
-	return exported.BSC
+	return exported.ETH
 }
 
 func (m ClientState) GetLatestHeight() exported.Height {
@@ -58,11 +33,11 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	return uint64(2*len(m.Validators)/3+1) * m.BlockInteval
+	return m.TimeDelay
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	return uint64(2*len(m.Validators)/3 + 1)
+	return m.BlockDelay
 }
 
 func (m ClientState) GetPrefix() exported.Prefix {
@@ -75,16 +50,14 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	if m.Header.Height.RevisionHeight%m.Epoch != 0 {
-		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "header")
-	}
-
-	SetRecentSigners(store, m.RecentSigners)
-	validators, err := ParseValidators(m.Header.Extra)
+	marshalInterface, err := cdc.MarshalInterface(state)
 	if err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
-	SetPendingValidators(store, cdc, validators)
+	consensusState := state.(*ConsensusState)
+	header := consensusState.Header.ToEthHeader()
+	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
+
 	return nil
 }
 
@@ -103,21 +76,9 @@ func (m ClientState) Status(
 	return exported.Active
 }
 
-// ExportMetadata exports RecentSingers and PendingValidators
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	gm := make([]exported.GenesisMetadata, 0)
-	callback := func(key, val []byte) bool {
-		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
-		return false
-	}
-
-	IteratorTraversal(store, PrefixKeyRecentSingers, callback)
-	IteratorTraversal(store, PrefixPendingValidators, callback)
-
-	if len(gm) == 0 {
-		return nil
-	}
-	return gm
+	//TODO
+	return nil
 }
 
 func (m ClientState) VerifyPacketCommitment(
@@ -130,7 +91,7 @@ func (m ClientState) VerifyPacketCommitment(
 	sequence uint64,
 	commitment []byte,
 ) error {
-	bscProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
 	if err != nil {
 		return err
 	}
@@ -145,7 +106,7 @@ func (m ClientState) VerifyPacketCommitment(
 		)
 	}
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment)
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -205,7 +166,7 @@ func produceVerificationArgs(
 	return merkleProof, consensusState, nil
 }
 
-func verifyMerkleProof(bscProof Proof,
+func verifyMerkleProof(ethProof Proof,
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
@@ -213,14 +174,14 @@ func verifyMerkleProof(bscProof Proof,
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
 
-	for _, s := range bscProof.AccountProof {
+	for _, s := range ethProof.AccountProof {
 		_ = nodeList.Put(nil, common.FromHex(s))
 	}
 	ns := nodeList.NodeSet()
 
-	addr := common.FromHex(bscProof.Address)
+	addr := common.FromHex(ethProof.Address)
 	if !bytes.Equal(addr, contractAddr) {
-		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", bscProof.Address, hex.EncodeToString(contractAddr))
+		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", ethProof.Address, hex.EncodeToString(contractAddr))
 	}
 	acctKey := crypto.Keccak256(addr)
 
@@ -231,10 +192,10 @@ func verifyMerkleProof(bscProof Proof,
 		return fmt.Errorf("verifyMerkleProof, verify account proof error:%s", err)
 	}
 
-	storageHash := common.HexToHash(bscProof.StorageHash)
-	codeHash := common.HexToHash(bscProof.CodeHash)
-	nonce := common.HexToHash(bscProof.Nonce).Big()
-	balance := common.HexToHash(bscProof.Balance).Big()
+	storageHash := common.HexToHash(ethProof.StorageHash)
+	codeHash := common.HexToHash(ethProof.CodeHash)
+	nonce := common.HexToHash(ethProof.Nonce).Big()
+	balance := common.HexToHash(ethProof.Balance).Big()
 
 	acct := &ProofAccount{
 		Nonce:    nonce,
@@ -254,11 +215,11 @@ func verifyMerkleProof(bscProof Proof,
 
 	//3.verify storage proof
 	nodeList = new(light.NodeList)
-	if len(bscProof.StorageProof) != 1 {
+	if len(ethProof.StorageProof) != 1 {
 		return fmt.Errorf("verifyMerkleProof, invalid storage proof format")
 	}
 
-	sp := bscProof.StorageProof[0]
+	sp := ethProof.StorageProof[0]
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
 
 	for _, prf := range sp.Proof {

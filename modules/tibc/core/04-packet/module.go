@@ -15,7 +15,7 @@ func Name() string {
 
 // GetTxCmd returns the root tx command for TIBC packets.
 func GetTxCmd() *cobra.Command {
-	return nil
+	return cli.NewTxCmd()
 }
 
 // GetQueryCmd returns the root query command for TIBC packets.

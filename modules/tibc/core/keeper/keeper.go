@@ -24,7 +24,7 @@ type Keeper struct {
 	cdc codec.BinaryMarshaler
 
 	ClientKeeper  clientkeeper.Keeper
-	Packetkeeper  packetkeeper.Keeper
+	PacketKeeper  packetkeeper.Keeper
 	RoutingKeeper routingkeeper.Keeper
 }
 
@@ -40,7 +40,7 @@ func NewKeeper(
 	return &Keeper{
 		cdc:           cdc,
 		ClientKeeper:  clientKeeper,
-		Packetkeeper:  packetkeeper,
+		PacketKeeper:  packetkeeper,
 		RoutingKeeper: routingKeeper,
 	}
 }
