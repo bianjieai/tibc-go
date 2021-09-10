@@ -179,7 +179,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			store := path.EndpointB.ClientStore()
 
-			commitment := packettypes.CommitPacket(suite.chainB.App.TIBCKeeper.Codec(), packet)
+			commitment := packettypes.CommitPacket(packet)
 			err = clientState.VerifyPacketCommitment(suite.chainB.GetContext(),
 				store, suite.chainB.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,

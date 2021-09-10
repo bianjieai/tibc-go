@@ -45,7 +45,7 @@ func (k Keeper) SendPacket(
 		)
 	}
 
-	commitment := types.CommitPacket(k.cdc, packet)
+	commitment := types.CommitPacket(packet)
 
 	nextSequenceSend++
 	k.SetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain(), nextSequenceSend)
@@ -86,7 +86,7 @@ func (k Keeper) RecvPacket(
 	if err := k.ValidatePacketSeq(ctx, packet); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	commitment := types.CommitPacket(k.cdc, packet)
+	commitment := types.CommitPacket(packet)
 	var isRelay bool
 	var targetChainName string
 	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
@@ -266,7 +266,7 @@ func (k Keeper) AcknowledgePacket(
 ) error {
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {

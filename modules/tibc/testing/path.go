@@ -34,7 +34,7 @@ func NewPath(chainA, chainB *TestChain) *Path {
 // if a relay step fails or the packet commitment does not exist on either endpoint.
 func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
 	pc := path.EndpointA.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	if bytes.Equal(pc, packettypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
+	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
 
 		// packet found, relay from A to B
 		path.EndpointB.UpdateClient()
@@ -51,7 +51,7 @@ func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
 	}
 
 	pc = path.EndpointB.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	if bytes.Equal(pc, packettypes.CommitPacket(path.EndpointB.Chain.App.AppCodec(), packet)) {
+	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
 
 		// packet found, relay B to A
 		path.EndpointA.UpdateClient()
