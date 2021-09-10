@@ -129,15 +129,18 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 		expPass  bool
 	}{
 		{
-			"successful verification", func() {}, true,
+			"successful verification",
+			func() {}, true,
 		},
 		{
-			"latest client height < height", func() {
+			"latest client height < height",
+			func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
 		},
 		{
-			"proof verification failed", func() {
+			"proof verification failed",
+			func() {
 				proof = invalidProof
 			}, false,
 		},
@@ -210,15 +213,18 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		expPass  bool
 	}{
 		{
-			"successful verification", func() {}, true,
+			"successful verification",
+			func() {}, true,
 		},
 		{
-			"latest client height < height", func() {
+			"latest client height < height",
+			func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
 		},
 		{
-			"proof verification failed", func() {
+			"proof verification failed",
+			func() {
 				proof = invalidProof
 			}, false,
 		},
