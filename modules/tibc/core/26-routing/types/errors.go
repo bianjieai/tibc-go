@@ -12,6 +12,7 @@ const moduleName = host.ModuleName + "-" + SubModuleName
 var (
 	ErrInvalidRoute         = sdkerrors.Register(moduleName, 2, "route not found")
 	ErrInvalidRule          = sdkerrors.Register(moduleName, 3, "invalid rule")
-	ErrFailMarshalRules     = sdkerrors.Register(moduleName, 4, "ailed to marshal rules")
+	ErrFailMarshalRules     = sdkerrors.Register(moduleName, 4, "failed to marshal rules")
+	ErrFailUnmarshalRules   = sdkerrors.Register(moduleName, 5, "failed to unmarshal rules")
 	ErrRoutingRulesNotFound = sdkerrors.Register(moduleName, 22, "routing rules not found")
 )

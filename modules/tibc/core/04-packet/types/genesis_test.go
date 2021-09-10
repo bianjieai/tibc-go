@@ -31,13 +31,10 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketState(testChain1, testChain2, 1, []byte("ack")),
 				},
 				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("")),
-				},
-				[]types.PacketState{
 					types.NewPacketState(testChain1, testChain2, 1, []byte("commit_hash")),
 				},
-				[]types.PacketSequence{
-					types.NewPacketSequence(testChain1, testChain2, 1),
+				[]types.PacketState{
+					types.NewPacketState(testChain1, testChain2, 1, []byte("")),
 				},
 				[]types.PacketSequence{
 					types.NewPacketSequence(testChain1, testChain2, 1),
@@ -45,7 +42,9 @@ func TestValidateGenesis(t *testing.T) {
 				[]types.PacketSequence{
 					types.NewPacketSequence(testChain1, testChain2, 1),
 				},
-				2,
+				[]types.PacketSequence{
+					types.NewPacketSequence(testChain1, testChain2, 1),
+				},
 			),
 			expPass: true,
 		},
