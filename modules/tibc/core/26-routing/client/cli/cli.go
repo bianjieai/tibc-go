@@ -21,6 +21,21 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		GetCmdQueryRoutingRulesCommitment(),
 	)
-
 	return queryCmd
+}
+
+// NewTxCmd returns the command to create and handle IBC clients
+func NewTxCmd() *cobra.Command {
+	txCmd := &cobra.Command{
+		Use:                        types.SubModuleName,
+		Short:                      "IBC routing transaction subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	txCmd.AddCommand(
+		NewSetRoutingRulesProposalCmd(),
+	)
+	return txCmd
 }

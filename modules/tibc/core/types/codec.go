@@ -8,6 +8,7 @@ import (
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	bsctypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/08-bsc/types"
+	ethtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-eth/types"
 )
 
 // RegisterInterfaces registers x/ibc interfaces into protobuf Any.
@@ -16,5 +17,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	packettypes.RegisterInterfaces(registry)
 	ibctmtypes.RegisterInterfaces(registry)
 	bsctypes.RegisterInterfaces(registry)
+	ethtypes.RegisterInterfaces(registry)
 	commitmenttypes.RegisterInterfaces(registry)
 }
