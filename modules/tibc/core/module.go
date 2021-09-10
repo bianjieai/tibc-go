@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -70,6 +72,7 @@ func (AppModuleBasic) RegisterRESTRoutes(client.Context, *mux.Router) {}
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	_ = clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
 	_ = packettypes.RegisterQueryHandlerClient(context.Background(), mux, packettypes.NewQueryClient(clientCtx))
+	_ = routingtypes.RegisterQueryHandlerClient(context.Background(), mux, routingtypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the ibc module.

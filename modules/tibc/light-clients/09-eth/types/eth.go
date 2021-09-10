@@ -3,9 +3,10 @@ package types
 import (
 	"math/big"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
 const (

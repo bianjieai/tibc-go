@@ -118,6 +118,7 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distrclient.ProposalHandler, upgradeclient.ProposalHandler, upgradeclient.CancelProposalHandler,
 			tibcclient.CreateClientProposalHandler, tibcclient.UpgradeClientProposalHandler, tibcclient.RegisterRelayerProposalHandler,
+			tibcrouting.SetRoutingRulesProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

@@ -3,6 +3,8 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -15,6 +17,7 @@ import (
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	clienttypes.RegisterInterfaces(registry)
 	packettypes.RegisterInterfaces(registry)
+	routingtypes.RegisterInterfaces(registry)
 	ibctmtypes.RegisterInterfaces(registry)
 	bsctypes.RegisterInterfaces(registry)
 	ethtypes.RegisterInterfaces(registry)
