@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -24,6 +22,7 @@ import (
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
