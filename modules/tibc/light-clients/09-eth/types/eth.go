@@ -3,33 +3,12 @@ package types
 import (
 	"math/big"
 
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
-const (
-	// Fixed number of extra-data prefix bytes reserved for signer vanity
-	extraVanity = 32
-
-	// Fixed number of extra-data suffix bytes reserved for signer seal
-	extraSeal = 65
-
-	// AddressLength is the expected length of the address
-	addressLength = 20
-
-	// BloomByteLength represents the number of bytes used in a header log bloom.
-	bloomByteLength = 256
-
-	// NonceByteLength represents the number of bytes used in a header log nonce.
-	nonceByteLength = 8
-
-	// The bound divisor of the gas limit, used in update calculations.
-	gasLimitBoundDivisor uint64 = 256
-)
-
-//BscHeader represents a block header in the Ethereum blockchain.
+//EthHeader represents a block header in the Ethereum blockchain.
 type EthHeader struct {
 	ParentHash  common.Hash      `json:"parentHash"       gencodec:"required"`
 	UncleHash   common.Hash      `json:"sha3Uncles"       gencodec:"required"`

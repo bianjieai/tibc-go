@@ -8,14 +8,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
-
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var (
@@ -190,7 +189,7 @@ func verifyCascadingFields(header Header) error {
 	}
 	ethash := New(config, nil, false)
 	defer ethash.Close()
-	if err := ethash.verifySeal(header.ToVerifyHeader(), false); err != nil {
+	if err := ethash.VerifySeal(header.ToVerifyHeader(), false); err != nil {
 		return ErrHeader
 	}
 	// All basic checks passed

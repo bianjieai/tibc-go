@@ -18,7 +18,7 @@ import (
 // verifySeal checks whether a block satisfies the PoW difficulty requirements,
 // either using the usual ethash cache for it, or alternatively using a full DAG
 // to make remote mining fast.
-func (ethash *Ethash) verifySeal(header *types.Header, fulldag bool) error {
+func (ethash *Ethash) VerifySeal(header *types.Header, fulldag bool) error {
 
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
