@@ -189,7 +189,7 @@ func verifyCascadingFields(header Header) error {
 	}
 	ethash := New(config, nil, false)
 	defer ethash.Close()
-	if err := ethash.verifySeal(header.ToVerifyHeader(), false); err != nil {
+	if err := ethash.VerifySeal(header.ToVerifyHeader(), false); err != nil {
 		return ErrHeader
 	}
 	// All basic checks passed
