@@ -24,6 +24,7 @@ var (
 	EthConType = "{\"@type\":\"/tibc.lightclients.eth.v1.ConsensusState\","
 	EthStaType = "{\"@type\":\"/tibc.lightclients.eth.v1.ClientState\","
 	chainName  = "eth"
+	epoch      = uint64(200)
 )
 
 func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
@@ -31,17 +32,14 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	height, err := GetBlockHeight(rc, ethurl)
 
 	suite.NoError(err)
-
-	genesisHeight := height - 200
-
+	genesisHeight := height - height%epoch - 2*epoch
 	header, err := GetNodeHeader(rc, ethurl, genesisHeight)
 	suite.NoError(err)
-
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
 
 	clientState := exported.ClientState(&tibcethtypes.ClientState{
 		Header:          header.ToHeader(),
-		ChainId:         56,
+		ChainId:         1,
 		ContractAddress: []byte("0x00"),
 		TrustingPeriod:  200,
 	})
@@ -60,7 +58,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	suite.NoError(err)
 	store.Set(tibcethtypes.ConsensusStateIndexKey(header.Hash()), marshalInterface)
 
-	for i := uint64(1); i <= uint64(50); i++ {
+	for i := uint64(1); i <= uint64(1.5*float64(epoch)); i++ {
 		updateHeader, err := GetNodeHeader(rc, ethurl, genesisHeight+i)
 
 		// skip some connection error on getting header
@@ -68,7 +66,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 			i--
 			continue
 		}
-
+		fmt.Println("test :", i)
 		protoHeader := updateHeader.ToHeader()
 		suite.NoError(err)
 
