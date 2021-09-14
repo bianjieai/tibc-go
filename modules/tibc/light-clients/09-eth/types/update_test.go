@@ -58,8 +58,8 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	marshalInterface, err := suite.app.AppCodec().MarshalInterface(consensusState)
 	suite.NoError(err)
 	store.Set(tibcethtypes.ConsensusStateIndexKey(header.Hash()), marshalInterface)
-
-	for i := uint64(1); i <= uint64(1.5*float64(epoch)); i++ {
+	// change  uint64(1.5*float64(epoch)) to 50 for test time
+	for i := uint64(1); i <= uint64(50); i++ {
 
 		updateHeader, err := GetNodeHeader(rc, ethurl, genesisHeight+i)
 
