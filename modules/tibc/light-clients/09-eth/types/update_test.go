@@ -68,7 +68,6 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 			i--
 			continue
 		}
-		fmt.Println("test :", i)
 
 		protoHeader := updateHeader.ToHeader()
 		suite.NoError(err)
