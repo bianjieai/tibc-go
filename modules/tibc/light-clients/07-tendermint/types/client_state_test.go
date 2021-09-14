@@ -129,15 +129,18 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 		expPass  bool
 	}{
 		{
-			"successful verification", func() {}, true,
+			"successful verification",
+			func() {}, true,
 		},
 		{
-			"latest client height < height", func() {
+			"latest client height < height",
+			func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
 		},
 		{
-			"proof verification failed", func() {
+			"proof verification failed",
+			func() {
 				proof = invalidProof
 			}, false,
 		},
@@ -179,7 +182,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			store := path.EndpointB.ClientStore()
 
-			commitment := packettypes.CommitPacket(suite.chainB.App.TIBCKeeper.Codec(), packet)
+			commitment := packettypes.CommitPacket(packet)
 			err = clientState.VerifyPacketCommitment(suite.chainB.GetContext(),
 				store, suite.chainB.Codec, proofHeight, proof,
 				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment,
@@ -210,15 +213,18 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		expPass  bool
 	}{
 		{
-			"successful verification", func() {}, true,
+			"successful verification",
+			func() {}, true,
 		},
 		{
-			"latest client height < height", func() {
+			"latest client height < height",
+			func() {
 				proofHeight = clientState.LatestHeight.Increment()
 			}, false,
 		},
 		{
-			"proof verification failed", func() {
+			"proof verification failed",
+			func() {
 				proof = invalidProof
 			}, false,
 		},

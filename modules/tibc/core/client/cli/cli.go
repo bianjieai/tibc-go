@@ -23,6 +23,7 @@ func GetTxCmd() *cobra.Command {
 
 	ibcTxCmd.AddCommand(
 		ibcclient.GetTxCmd(),
+		packet.GetTxCmd(),
 	)
 
 	return ibcTxCmd

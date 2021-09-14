@@ -5,6 +5,7 @@ import (
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 var _ codectypes.UnpackInterfacesMessage = GenesisState{}
@@ -12,8 +13,9 @@ var _ codectypes.UnpackInterfacesMessage = GenesisState{}
 // DefaultGenesisState returns the ibc module's default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		ClientGenesis: clienttypes.DefaultGenesisState(),
-		PacketGenesis: packettypes.DefaultGenesisState(),
+		ClientGenesis:  clienttypes.DefaultGenesisState(),
+		PacketGenesis:  packettypes.DefaultGenesisState(),
+		RoutingGenesis: routingtypes.DefaultGenesisState(),
 	}
 }
 

@@ -43,12 +43,13 @@ func (ps PacketSequence) Validate() error {
 
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
-	acks, receipts, commitments []PacketState,
-	sendSeqs, recvSeqs, ackSeqs []PacketSequence, nextChannelSequence uint64,
+	acks, commitments, receipts []PacketState,
+	sendSeqs, recvSeqs, ackSeqs []PacketSequence,
 ) GenesisState {
 	return GenesisState{
 		Acknowledgements: acks,
 		Commitments:      commitments,
+		Receipts:         receipts,
 		SendSequences:    sendSeqs,
 		RecvSequences:    recvSeqs,
 		AckSequences:     ackSeqs,

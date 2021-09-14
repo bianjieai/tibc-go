@@ -22,6 +22,7 @@ import (
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/simulation"
@@ -70,6 +71,7 @@ func (AppModuleBasic) RegisterRESTRoutes(client.Context, *mux.Router) {}
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	_ = clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
 	_ = packettypes.RegisterQueryHandlerClient(context.Background(), mux, packettypes.NewQueryClient(clientCtx))
+	_ = routingtypes.RegisterQueryHandlerClient(context.Background(), mux, routingtypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the ibc module.

@@ -35,6 +35,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	genesisHeight := height - height%epoch - 2*epoch
 	header, err := GetNodeHeader(rc, ethurl, genesisHeight)
 	suite.NoError(err)
+
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
 
 	clientState := exported.ClientState(&tibcethtypes.ClientState{
@@ -59,6 +60,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	store.Set(tibcethtypes.ConsensusStateIndexKey(header.Hash()), marshalInterface)
 
 	for i := uint64(1); i <= uint64(1.5*float64(epoch)); i++ {
+
 		updateHeader, err := GetNodeHeader(rc, ethurl, genesisHeight+i)
 
 		// skip some connection error on getting header
@@ -67,6 +69,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 			continue
 		}
 		fmt.Println("test :", i)
+
 		protoHeader := updateHeader.ToHeader()
 		suite.NoError(err)
 

@@ -20,10 +20,8 @@ func (q Keeper) RoutingRules(c context.Context, req *types.QueryRoutingRulesRequ
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 	routingRules, found := q.GetRoutingRules(ctx)
-
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,

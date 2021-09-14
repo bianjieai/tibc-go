@@ -21,6 +21,5 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		GetCmdQueryRoutingRulesCommitment(),
 	)
-
 	return queryCmd
 }
