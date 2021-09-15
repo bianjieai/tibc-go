@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,9 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-
-	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
