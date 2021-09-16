@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"crypto/tls"
@@ -13,17 +13,80 @@ import (
 	"testing"
 	"time"
 
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	tibcethtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-eth/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
 	ethurl     = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
 	EthConType = "{\"@type\":\"/tibc.lightclients.eth.v1.ConsensusState\","
 	EthStaType = "{\"@type\":\"/tibc.lightclients.eth.v1.ClientState\","
+	chainName  = "eth"
+	epoch      = uint64(200)
 )
+
+func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
+	rc := NewRestClient()
+	height, err := GetBlockHeight(rc, ethurl)
+
+	suite.NoError(err)
+	genesisHeight := height - height%epoch - 2*epoch
+	header, err := GetNodeHeader(rc, ethurl, genesisHeight)
+	suite.NoError(err)
+
+	number := clienttypes.NewHeight(0, header.Number.Uint64())
+
+	clientState := exported.ClientState(&tibcethtypes.ClientState{
+		Header:          header.ToHeader(),
+		ChainId:         1,
+		ContractAddress: []byte("0x00"),
+		TrustingPeriod:  200,
+	})
+
+	consensusState := exported.ConsensusState(&tibcethtypes.ConsensusState{
+		Timestamp: header.Time,
+		Number:    number,
+		Root:      header.Root[:],
+		Header:    header.ToHeader(),
+	})
+
+	suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
+
+	store := suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName)
+	marshalInterface, err := suite.app.AppCodec().MarshalInterface(consensusState)
+	suite.NoError(err)
+	store.Set(tibcethtypes.ConsensusStateIndexKey(header.Hash()), marshalInterface)
+	// change  uint64(1.5*float64(epoch)) to 50 for test time
+	for i := uint64(1); i <= uint64(50); i++ {
+
+		updateHeader, err := GetNodeHeader(rc, ethurl, genesisHeight+i)
+
+		// skip some connection error on getting header
+		if err != nil {
+			i--
+			continue
+		}
+
+		protoHeader := updateHeader.ToHeader()
+		suite.NoError(err)
+
+		clientState, consensusState, err = clientState.CheckHeaderAndUpdateState(
+			suite.ctx,
+			suite.app.AppCodec(),
+			suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName), // pass in chainName prefixed clientStore
+			&protoHeader,
+		)
+
+		suite.NoError(err)
+
+		number.RevisionHeight = genesisHeight + i
+		suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
+
+		suite.Equal(updateHeader.Number.Uint64(), clientState.GetLatestHeight().GetRevisionHeight())
+	}
+}
 
 type RestClient struct {
 	Addr       string
@@ -125,7 +188,7 @@ func GetBlockHeight(rc *RestClient, url string) (height uint64, err error) {
 	}
 }
 
-func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeader, error) {
+func GetNodeHeader(restClient *RestClient, url string, height uint64) (*tibcethtypes.EthHeader, error) {
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
 	req := &blockReq{
 		JsonRpc: "2.0",
@@ -155,7 +218,7 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*EthHeade
 	}
 
 	header := rsp.Result
-	return &EthHeader{
+	return &tibcethtypes.EthHeader{
 		ParentHash:  header.ParentHash,
 		UncleHash:   header.UncleHash,
 		Coinbase:    header.Coinbase,
@@ -182,20 +245,19 @@ func Test_getjson(test *testing.T) {
 		fmt.Println(err)
 		return
 	}
-	height = height - 60
+	height = height - 258
 	header, err := GetNodeHeader(rc, ethurl, height)
-	fmt.Println(header.Hash())
-	toHeader := header.ToHeader()
-	fmt.Println(toHeader.Hash())
 	number := clienttypes.NewHeight(0, header.Number.Uint64())
-	clientState := exported.ClientState(&ClientState{
+	clientState := exported.ClientState(&tibcethtypes.ClientState{
 		Header:          header.ToHeader(),
 		ChainId:         56,
 		ContractAddress: []byte("0x00"),
 		TrustingPeriod:  200,
+		TimeDelay:       0,
+		BlockDelay:      7,
 	})
 
-	consensusState := exported.ConsensusState(&ConsensusState{
+	consensusState := exported.ConsensusState(&tibcethtypes.ConsensusState{
 		Timestamp: header.Time,
 		Number:    number,
 		Root:      header.Root[:],
@@ -238,13 +300,13 @@ func TestVerifyHeader(test *testing.T) {
 	height = height - 60
 
 	nodeHeader, err := GetNodeHeader(rc, ethurl, 13177652)
-	config := Config{
+	config := tibcethtypes.Config{
 		CacheDir:     cachedir,
 		CachesOnDisk: 1,
 	}
-	ethash := New(config, nil, false)
+	ethash := tibcethtypes.New(config, nil, false)
 	defer ethash.Close()
-	if err := ethash.verifySeal(nodeHeader.ToHeader().ToVerifyHeader(), false); err != nil {
+	if err := ethash.VerifySeal(nodeHeader.ToHeader().ToVerifyHeader(), false); err != nil {
 		fmt.Println(err)
 		return
 	}

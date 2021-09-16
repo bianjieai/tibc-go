@@ -1,9 +1,8 @@
 package types
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 // RegisterInterfaces registers the tendermint concrete client-related

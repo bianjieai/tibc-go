@@ -294,7 +294,7 @@ func (k Keeper) AcknowledgePacket(
 	if err := clientState.VerifyPacketAcknowledgement(ctx,
 		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
-		packet.GetSequence(), acknowledgement,
+		packet.GetSequence(), types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", targetChainName)
 	}
