@@ -269,7 +269,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			err = clientState.VerifyPacketAcknowledgement(
 				ctx, store, suite.chainA.Codec, proofHeight, proof,
-				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibcmock.MockAcknowledgement,
+				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), packettypes.CommitAcknowledgement(ibcmock.MockAcknowledgement),
 			)
 
 			if tc.expPass {
