@@ -85,7 +85,7 @@ type ClientState interface {
 		sourceChain,
 		destChain string,
 		sequence uint64,
-		acknowledgement []byte,
+		ackBytes []byte,
 	) error
 
 	VerifyPacketCleanCommitment(
