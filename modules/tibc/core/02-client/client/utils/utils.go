@@ -92,6 +92,18 @@ func QueryConsensusState(
 func QueryConsensusStateABCI(
 	clientCtx client.Context, chainName string, height exported.Height,
 ) (*types.QueryConsensusStateResponse, error) {
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+	if height == nil || height.IsZero() {
+		res, err := QueryClientState(clientCtx, chainName, false)
+		if err != nil {
+			return nil, err
+		}
+		var clientState exported.ClientState
+		if err := cdc.UnpackAny(res.ClientState, clientState); err != nil {
+			return nil, err
+		}
+		height = clientState.GetLatestHeight()
+	}
 	key := host.FullConsensusStateKey(chainName, height)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
@@ -103,8 +115,6 @@ func QueryConsensusStateABCI(
 	if len(value) == 0 {
 		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, chainName)
 	}
-
-	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
 	cs, err := types.UnmarshalConsensusState(cdc, value)
 	if err != nil {
