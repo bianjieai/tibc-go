@@ -38,7 +38,7 @@ func NewSendCleanPacketCmd() *cobra.Command {
 				return err
 			}
 			destChain := args[0]
-			sequence, err := strconv.ParseUint(args[2], 10, 64)
+			sequence, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
