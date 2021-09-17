@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 var (
@@ -16,13 +16,13 @@ var (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
-	chain       *ibctesting.TestChain
+	coordinator *tibctesting.Coordinator
+	chain       *tibctesting.TestChain
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(0))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 1)
+	suite.chain = suite.coordinator.GetChain(tibctesting.GetChainID(0))
 }
 
 func TestKeeperTestSuite(t *testing.T) {

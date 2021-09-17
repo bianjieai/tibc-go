@@ -6,20 +6,20 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type TypesTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
-	chain *ibctesting.TestChain
+	chain *tibctesting.TestChain
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
-	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(0))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 1)
+	suite.chain = suite.coordinator.GetChain(tibctesting.GetChainID(0))
 }
 
 func TestTypesTestSuite(t *testing.T) {
@@ -27,7 +27,7 @@ func TestTypesTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestNewSetRoutingRulesProposal() {
-	p, err := types.NewSetRoutingRulesProposal(ibctesting.Title, ibctesting.Description, []string{"source.dest.dgsbl"})
+	p, err := types.NewSetRoutingRulesProposal(tibctesting.Title, tibctesting.Description, []string{"source.dest.dgsbl"})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(p)
 }

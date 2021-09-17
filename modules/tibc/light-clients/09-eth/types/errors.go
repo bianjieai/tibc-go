@@ -1,8 +1,9 @@
 package types
 
 import (
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
 const (
@@ -10,7 +11,7 @@ const (
 	moduleName    = host.ModuleName + "-" + SubModuleName
 )
 
-// IBC bsc client sentinel errors
+// TIBC bsc client sentinel errors
 var (
 	ErrInvalidGenesisBlock   = sdkerrors.Register(moduleName, 2, "invalid genesis block")
 	ErrInvalidValidatorBytes = sdkerrors.Register(moduleName, 3, "invalid validators bytes length")

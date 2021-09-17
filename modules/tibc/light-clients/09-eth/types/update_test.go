@@ -13,10 +13,11 @@ import (
 	"testing"
 	"time"
 
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	tibcethtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-eth/types"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 var (

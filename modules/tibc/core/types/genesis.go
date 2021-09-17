@@ -10,7 +10,7 @@ import (
 
 var _ codectypes.UnpackInterfacesMessage = GenesisState{}
 
-// DefaultGenesisState returns the ibc module's default genesis state.
+// DefaultGenesisState returns the tibc module's default genesis state.
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		ClientGenesis:  clienttypes.DefaultGenesisState(),

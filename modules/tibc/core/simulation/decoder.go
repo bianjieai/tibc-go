@@ -12,7 +12,7 @@ import (
 )
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's
-// Value to the corresponding ibc type.
+// Value to the corresponding tibc type.
 func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
 	return func(kvA, kvB kv.Pair) string {
 		if res, found := clientsim.NewDecodeStore(k.ClientKeeper, kvA, kvB); found {

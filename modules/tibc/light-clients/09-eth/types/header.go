@@ -8,13 +8,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 var (

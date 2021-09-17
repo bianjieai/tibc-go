@@ -69,7 +69,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 		}
 
 		// Set packet acknowledgement only if the acknowledgement is not nil.
-		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
+		// NOTE: TIBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is nil.
 		if ack != nil {
 			if err := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {

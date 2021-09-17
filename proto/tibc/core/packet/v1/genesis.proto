@@ -6,7 +6,7 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/ty
 import "gogoproto/gogo.proto";
 import "tibc/core/packet/v1/packet.proto";
 
-// GenesisState defines the ibc channel submodule's genesis state.
+// GenesisState defines the tibc channel submodule's genesis state.
 message GenesisState {
   repeated PacketState       acknowledgements = 2 [(gogoproto.nullable) = false];
   repeated PacketState       commitments      = 3 [(gogoproto.nullable) = false];

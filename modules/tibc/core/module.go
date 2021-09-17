@@ -1,4 +1,4 @@
-package ibc
+package tibc
 
 import (
 	"context"
@@ -35,26 +35,26 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the ibc module.
+// AppModuleBasic defines the basic application module used by the tibc module.
 type AppModuleBasic struct{}
 
 var _ module.AppModuleBasic = AppModuleBasic{}
 
-// Name returns the ibc module's name.
+// Name returns the tibc module's name.
 func (AppModuleBasic) Name() string {
 	return host.ModuleName
 }
 
-// RegisterLegacyAminoCodec does nothing. IBC does not support amino.
+// RegisterLegacyAminoCodec does nothing. TIBC does not support amino.
 func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 
-// DefaultGenesis returns default genesis state as raw bytes for the ibc
+// DefaultGenesis returns default genesis state as raw bytes for the tibc
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the ibc module.
+// ValidateGenesis performs genesis state validation for the tibc module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
@@ -64,22 +64,22 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes does nothing. IBC does not support legacy REST routes.
+// RegisterRESTRoutes does nothing. TIBC does not support legacy REST routes.
 func (AppModuleBasic) RegisterRESTRoutes(client.Context, *mux.Router) {}
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	_ = clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
 	_ = packettypes.RegisterQueryHandlerClient(context.Background(), mux, packettypes.NewQueryClient(clientCtx))
 	_ = routingtypes.RegisterQueryHandlerClient(context.Background(), mux, routingtypes.NewQueryClient(clientCtx))
 }
 
-// GetTxCmd returns the root tx command for the ibc module.
+// GetTxCmd returns the root tx command for the tibc module.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the ibc module.
+// GetQueryCmd returns no root query command for the tibc module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
@@ -89,7 +89,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	types.RegisterInterfaces(registry)
 }
 
-// AppModule implements an application module for the ibc module.
+// AppModule implements an application module for the tibc module.
 type AppModule struct {
 	AppModuleBasic
 	keeper *keeper.Keeper
@@ -105,27 +105,27 @@ func NewAppModule(k *keeper.Keeper) AppModule {
 	}
 }
 
-// Name returns the ibc module's name.
+// Name returns the tibc module's name.
 func (AppModule) Name() string {
 	return host.ModuleName
 }
 
-// RegisterInvariants registers the ibc module invariants.
+// RegisterInvariants registers the tibc module invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO:
 }
 
-// Route returns the message routing key for the ibc module.
+// Route returns the message routing key for the tibc module.
 func (am AppModule) Route() sdk.Route {
 	return sdk.NewRoute(host.RouterKey, NewHandler(*am.keeper))
 }
 
-// QuerierRoute returns the ibc module's querier route name.
+// QuerierRoute returns the tibc module's querier route name.
 func (AppModule) QuerierRoute() string {
 	return host.QuerierRoute
 }
 
-// LegacyQuerierHandler returns nil. IBC does not support the legacy querier.
+// LegacyQuerierHandler returns nil. TIBC does not support the legacy querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return nil
 }
@@ -137,7 +137,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the ibc module. It returns
+// InitGenesis performs genesis initialization for the tibc module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, bz json.RawMessage) []abci.ValidatorUpdate {
 	var gs types.GenesisState
@@ -149,17 +149,17 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, bz jso
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the ibc
+// ExportGenesis returns the exported genesis state as raw bytes for the tibc
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	return cdc.MustMarshalJSON(ExportGenesis(ctx, *am.keeper))
 }
 
-// BeginBlock returns the begin blocker for the ibc module.
+// BeginBlock returns the begin blocker for the tibc module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
-// EndBlock returns the end blocker for the ibc module. It returns no validator
+// EndBlock returns the end blocker for the tibc module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
@@ -169,7 +169,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the ibc module.
+// GenerateGenesisState creates a randomized GenState of the tibc module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -179,17 +179,17 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 	return nil
 }
 
-// RandomizedParams returns nil since IBC doesn't register parameter changes.
+// RandomizedParams returns nil since TIBC doesn't register parameter changes.
 func (AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 	return nil
 }
 
-// RegisterStoreDecoder registers a decoder for ibc module's types
+// RegisterStoreDecoder registers a decoder for tibc module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[host.StoreKey] = simulation.NewDecodeStore(*am.keeper)
 }
 
-// WeightedOperations returns the all the ibc module operations with their respective weights.
+// WeightedOperations returns the all the tibc module operations with their respective weights.
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }

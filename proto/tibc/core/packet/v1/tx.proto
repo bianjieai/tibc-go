@@ -22,7 +22,7 @@ service Msg {
   rpc RecvCleanPacket(MsgRecvCleanPacket) returns (MsgRecvCleanPacketResponse);
 }
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 message MsgRecvPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -37,7 +37,7 @@ message MsgRecvPacket {
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgRecvPacketResponse {}
 
-// MsgAcknowledgement receives incoming IBC acknowledgement
+// MsgAcknowledgement receives incoming TIBC acknowledgement
 message MsgAcknowledgement {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -53,7 +53,7 @@ message MsgAcknowledgement {
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
 message MsgAcknowledgementResponse {}
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 message MsgCleanPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -66,7 +66,7 @@ message MsgCleanPacket {
 message MsgCleanPacketResponse {}
 
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 message MsgRecvCleanPacket {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;

@@ -7,23 +7,23 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type TypesTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
 }
 
 func TestTypesTestSuite(t *testing.T) {
@@ -104,7 +104,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"invalid tendermint header",
 			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", &ibctmtypes.Header{}, suite.chainA.SenderAccount.GetAddress())
+				msg, err = types.NewMsgUpdateClient("tendermint", &tibctmtypes.Header{}, suite.chainA.SenderAccount.GetAddress())
 				suite.Require().NoError(err)
 			},
 			false,

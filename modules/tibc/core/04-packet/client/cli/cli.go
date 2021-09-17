@@ -31,11 +31,11 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// NewTxCmd returns the command to create and handle IBC clients
+// NewTxCmd returns the command to create and handle TIBC clients
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
-		Short:                      "IBC client transaction subcommands",
+		Short:                      "TIBC client transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
