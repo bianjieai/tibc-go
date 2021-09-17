@@ -10,7 +10,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// InitGenesis initializes the ibc client submodule's state from a provided genesis
+// InitGenesis initializes the tibc client submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	// Set all client metadata first. This will allow client keeper to overwrite client and consensus state keys
@@ -45,7 +45,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, gs types.GenesisState) {
 	k.SetChainName(ctx, gs.NativeChainName)
 }
 
-// ExportGenesis returns the ibc client submodule's exported genesis.
+// ExportGenesis returns the tibc client submodule's exported genesis.
 // NOTE: CreateLocalhost should always be false on export since a
 // created localhost will be included in the exported clients.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {

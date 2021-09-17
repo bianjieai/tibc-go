@@ -8,7 +8,7 @@ import (
 
 const moduleName = host.ModuleName + "-" + SubModuleName
 
-// IBC client sentinel errors
+// TIBC client sentinel errors
 var (
 	ErrClientExists                           = sdkerrors.Register(moduleName, 2, "light client already exists")
 	ErrInvalidClient                          = sdkerrors.Register(moduleName, 3, "light client is invalid")

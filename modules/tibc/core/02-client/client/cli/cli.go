@@ -8,11 +8,11 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
-// GetQueryCmd returns the query commands for IBC clients
+// GetQueryCmd returns the query commands for TIBC clients
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
-		Short:                      "IBC client query subcommands",
+		Short:                      "TIBC client query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -30,11 +30,11 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// NewTxCmd returns the command to create and handle IBC clients
+// NewTxCmd returns the command to create and handle TIBC clients
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
-		Short:                      "IBC client transaction subcommands",
+		Short:                      "TIBC client transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,

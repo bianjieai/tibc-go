@@ -5,7 +5,7 @@
 
  import "gogoproto/gogo.proto";
 
-// Msg defines the ibc/nftTransfer Msg service.
+// Msg defines the tibc/nftTransfer Msg service.
  service Msg {
   // NftTransfer defines a rpc handler method for MsgNftTransfer.
   rpc NftTransfer(MsgNftTransfer) returns (MsgNftTransferResponse);

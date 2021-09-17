@@ -21,7 +21,7 @@ type Keeper struct {
 	ck types.ClientKeeper
 }
 
-// NewKeeper creates a new IBC transfer Keeper instance
+// NewKeeper creates a new TIBC transfer Keeper instance
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper, nk types.NftKeeper,

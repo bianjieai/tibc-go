@@ -51,7 +51,7 @@ func (rtr *Router) HasRoute(port Port) bool {
 	return ok
 }
 
-// GetRoute returns a IBCModule for a given module.
+// GetRoute returns a TIBCModule for a given module.
 func (rtr *Router) GetRoute(port Port) (TIBCModule, bool) {
 	if !rtr.HasRoute(port) {
 		return nil, false

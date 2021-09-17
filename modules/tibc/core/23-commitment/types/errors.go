@@ -11,7 +11,7 @@ const SubModuleName string = "commitment"
 
 const moduleName = host.ModuleName + "-" + SubModuleName
 
-// IBC connection sentinel errors
+// TIBC connection sentinel errors
 var (
 	ErrInvalidProof       = sdkerrors.Register(moduleName, 2, "invalid proof")
 	ErrInvalidPrefix      = sdkerrors.Register(moduleName, 3, "invalid prefix")

@@ -22,7 +22,7 @@ var sdkSpecs = []*ics23.ProofSpec{ics23.IavlSpec, ics23.TendermintSpec}
 // This file defines Merkle commitment types that implements ICS 023.
 
 // Merkle proof implementation of the Proof interface
-// Applied on SDK-based IBC implementation
+// Applied on SDK-based TIBC implementation
 var _ exported.Root = (*MerkleRoot)(nil)
 
 // GetSDKSpecs is a getter function for the proofspecs of an sdk chain

@@ -31,10 +31,10 @@ func GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
-	// Group ibc queries under a subcommand
+	// Group tibc queries under a subcommand
 	ibcQueryCmd := &cobra.Command{
 		Use:                        host.ModuleName,
-		Short:                      "Querying commands for the IBC module",
+		Short:                      "Querying commands for the TIBC module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,

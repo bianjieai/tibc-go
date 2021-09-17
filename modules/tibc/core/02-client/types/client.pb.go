@@ -248,7 +248,7 @@ func (m *ClientConsensusStates) GetConsensusStates() []ConsensusStateWithHeight 
 	return nil
 }
 
-// CreateClientProposal defines a overnance proposal to create an IBC client
+// CreateClientProposal defines a overnance proposal to create an TIBC client
 type CreateClientProposal struct {
 	// the title of the update proposal
 	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -296,7 +296,7 @@ func (m *CreateClientProposal) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateClientProposal proto.InternalMessageInfo
 
-// UpgradeClientProposal defines a overnance proposal to overide an IBC client
+// UpgradeClientProposal defines a overnance proposal to overide an TIBC client
 // state
 type UpgradeClientProposal struct {
 	// the title of the update proposal

@@ -6,8 +6,8 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
-	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type caseAny struct {
@@ -25,7 +25,7 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	}{
 		{
 			"tendermint client",
-			ibctmtypes.NewClientState(chainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+			tibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 			true,
 		},
 		{

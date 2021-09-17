@@ -10,21 +10,21 @@ import (
 
 	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type RoutingTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
-	chain *ibctesting.TestChain
+	chain *tibctesting.TestChain
 }
 
 func (suite *RoutingTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 1)
 
-	suite.chain = suite.coordinator.GetChain(ibctesting.GetChainID(0))
+	suite.chain = suite.coordinator.GetChain(tibctesting.GetChainID(0))
 }
 
 func TestRoutingTestSuite(t *testing.T) {
@@ -45,7 +45,7 @@ func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 		{
 			"valid routing rules proposal",
 			func() {
-				content, err = routingtypes.NewSetRoutingRulesProposal(ibctesting.Title, ibctesting.Description, []string{"source.dest.dgsbl"})
+				content, err = routingtypes.NewSetRoutingRulesProposal(tibctesting.Title, tibctesting.Description, []string{"source.dest.dgsbl"})
 				suite.Require().NoError(err)
 			}, true,
 		},
@@ -58,7 +58,7 @@ func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 		{
 			"unsupported proposal type",
 			func() {
-				content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chain.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
+				content = distributiontypes.NewCommunityPoolSpendProposal(tibctesting.Title, tibctesting.Description, suite.chain.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
 			}, false,
 		},
 	}

@@ -177,7 +177,7 @@ type SimApp struct {
 	CrisisKeeper      crisiskeeper.Keeper
 	UpgradeKeeper     upgradekeeper.Keeper
 	ParamsKeeper      paramskeeper.Keeper
-	TIBCKeeper        *tibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	TIBCKeeper        *tibckeeper.Keeper // TIBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	NftTransferKeeper tibcnfttransferkeeper.Keeper
 	EvidenceKeeper    evidencekeeper.Keeper
 
@@ -244,11 +244,11 @@ func NewSimApp(
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 
-	// add capability keeper and ScopeToModule for ibc module
+	// add capability keeper and ScopeToModule for tibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(tibchost.ModuleName)
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
+	// note replicate if you do not need to test core TIBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(tibcmock.ModuleName)
 
 	// add keepers
@@ -283,7 +283,7 @@ func NewSimApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
-	// Create IBC Keeper
+	// Create TIBC Keeper
 	app.TIBCKeeper = tibckeeper.NewKeeper(
 		appCodec, keys[tibchost.StoreKey], app.GetSubspace(tibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
 	)
@@ -310,8 +310,8 @@ func NewSimApp(
 	)
 	nfttransferModule := tibcnfttransfer.NewAppModule(app.NftTransferKeeper)
 
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
+	// note replicate if you do not need to test core TIBC or light clients.
 	mockModule := tibcmock.NewAppModule()
 
 	// Create static TIBC router, add nft-transfer route, then set and seal it
@@ -441,8 +441,8 @@ func NewSimApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
+	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
+	// note replicate if you do not need to test core TIBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 
 	return app

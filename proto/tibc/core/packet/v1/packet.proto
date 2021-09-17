@@ -5,7 +5,7 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/ty
 
 import "gogoproto/gogo.proto";
 
-// Packet defines a type that carries data across different chains through IBC
+// Packet defines a type that carries data across different chains through TIBC
 message Packet {
   option (gogoproto.goproto_getters) = false;
 
@@ -25,7 +25,7 @@ message Packet {
   bytes data = 6;
 }
 
-// CleanPacket defines a type that carries data across different chains through IBC
+// CleanPacket defines a type that carries data across different chains through TIBC
 message CleanPacket {
   option (gogoproto.goproto_getters) = false;
 

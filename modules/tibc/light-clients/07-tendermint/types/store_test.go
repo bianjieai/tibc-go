@@ -5,13 +5,13 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {
 	var (
 		height exported.Height
-		path   *ibctesting.Path
+		path   *tibctesting.Path
 	)
 
 	testCases := []struct {
@@ -44,7 +44,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
 			clientState := path.EndpointA.GetClientState()
@@ -70,11 +70,11 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 
 func (suite *TendermintTestSuite) TestGetProcessedTime() {
 	// setup
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before creating client
-	expectedTime := suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	expectedTime := suite.chainA.CurrentHeader.Time.Add(tibctesting.TimeIncrement)
 
 	// Verify ProcessedTime on CreateClient
 	err := path.EndpointA.CreateClient()
@@ -90,7 +90,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before updating client
-	expectedTime = suite.chainA.CurrentHeader.Time.Add(ibctesting.TimeIncrement)
+	expectedTime = suite.chainA.CurrentHeader.Time.Add(tibctesting.TimeIncrement)
 
 	// Verify ProcessedTime on UpdateClient
 	err = path.EndpointA.UpdateClient()

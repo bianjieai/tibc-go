@@ -29,7 +29,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 type MsgRecvPacket struct {
 	Packet          Packet       `protobuf:"bytes,1,opt,name=packet,proto3" json:"packet"`
 	ProofCommitment []byte       `protobuf:"bytes,2,opt,name=proof_commitment,json=proofCommitment,proto3" json:"proof_commitment,omitempty" yaml:"proof_commitment"`
@@ -107,7 +107,7 @@ func (m *MsgRecvPacketResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRecvPacketResponse proto.InternalMessageInfo
 
-// MsgAcknowledgement receives incoming IBC acknowledgement
+// MsgAcknowledgement receives incoming TIBC acknowledgement
 type MsgAcknowledgement struct {
 	Packet          Packet       `protobuf:"bytes,1,opt,name=packet,proto3" json:"packet"`
 	Acknowledgement []byte       `protobuf:"bytes,2,opt,name=acknowledgement,proto3" json:"acknowledgement,omitempty"`
@@ -186,7 +186,7 @@ func (m *MsgAcknowledgementResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgAcknowledgementResponse proto.InternalMessageInfo
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 type MsgCleanPacket struct {
 	CleanPacket CleanPacket `protobuf:"bytes,1,opt,name=clean_packet,json=cleanPacket,proto3" json:"clean_packet"`
 	Signer      string      `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
@@ -262,7 +262,7 @@ func (m *MsgCleanPacketResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCleanPacketResponse proto.InternalMessageInfo
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives incoming TIBC packet
 type MsgRecvCleanPacket struct {
 	CleanPacket     CleanPacket  `protobuf:"bytes,1,opt,name=clean_packet,json=cleanPacket,proto3" json:"clean_packet"`
 	ProofCommitment []byte       `protobuf:"bytes,2,opt,name=proof_commitment,json=proofCommitment,proto3" json:"proof_commitment,omitempty" yaml:"proof_commitment"`

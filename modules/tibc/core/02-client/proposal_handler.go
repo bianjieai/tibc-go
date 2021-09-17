@@ -38,7 +38,7 @@ func NewClientProposalHandler(k keeper.Keeper) govtypes.Handler {
 		case *types.RegisterRelayerProposal:
 			return k.HandleRegisterRelayerProposal(ctx, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized ibc proposal content type: %T", c)
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized tibc proposal content type: %T", c)
 		}
 	}
 }
