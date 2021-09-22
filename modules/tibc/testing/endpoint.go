@@ -1,4 +1,4 @@
-package ibctesting
+package tibctesting
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ import (
 // Endpoint is a which represents a channel endpoint and its associated
 // client and connections. It contains client, connection, and channel
 // configuration parameters. Endpoint functions will utilize the parameters
-// set in the configuration structs when executing IBC messages.
+// set in the configuration structs when executing TIBC messages.
 type Endpoint struct {
 	Chain        *TestChain
 	Counterparty *Endpoint
@@ -54,18 +54,18 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client representing the chain associated with the endpoint
 	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.ChainName)
-	// query proof on the counterparty using the latest height of the IBC client
+	// query proof on the counterparty using the latest height of the TIBC client
 	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
 // providied
 func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
-	// query proof on the counterparty using the latest height of the IBC client
+	// query proof on the counterparty using the latest height of the TIBC client
 	return endpoint.Chain.QueryProofAtHeight(key, int64(height))
 }
 
-// CreateClient creates an IBC client on the endpoint. It will update the
+// CreateClient creates an TIBC client on the endpoint. It will update the
 // chainName for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() (err error) {
@@ -127,7 +127,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	return nil
 }
 
-// UpdateClient updates the IBC client associated with the endpoint.
+// UpdateClient updates the TIBC client associated with the endpoint.
 func (endpoint *Endpoint) UpdateClient() (err error) {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)

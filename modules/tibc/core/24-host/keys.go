@@ -7,25 +7,25 @@ import (
 )
 
 const (
-	// ModuleName is the name of the IBC module
+	// ModuleName is the name of the TIBC module
 	ModuleName = "tibc"
 
 	// StoreKey is the string store representation
 	StoreKey string = ModuleName
 
-	// QuerierRoute is the querier route for the IBC module
+	// QuerierRoute is the querier route for the TIBC module
 	QuerierRoute string = ModuleName
 
-	// RouterKey is the msg router key for the IBC module
+	// RouterKey is the msg router key for the TIBC module
 	RouterKey string = ModuleName
 )
 
-// KVStore key prefixes for IBC
+// KVStore key prefixes for TIBC
 var (
 	KeyClientStorePrefix = []byte("clients")
 )
 
-// KVStore key prefixes for IBC
+// KVStore key prefixes for TIBC
 const (
 	KeyClientState                 = "clientState"
 	KeyConsensusStatePrefix        = "consensusStates"

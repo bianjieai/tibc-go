@@ -1,4 +1,4 @@
-package ibc
+package tibc
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +9,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
 
-// NewHandler defines the IBC handler
+// NewHandler defines the TIBC handler
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
@@ -19,7 +19,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := k.UpdateClient(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		// IBC packet msgs get routed to the appropriate module callback
+		// TIBC packet msgs get routed to the appropriate module callback
 		case *packettypes.MsgRecvPacket:
 			res, err := k.RecvPacket(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
@@ -37,7 +37,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC message type: %T", msg)
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized TIBC message type: %T", msg)
 		}
 	}
 }

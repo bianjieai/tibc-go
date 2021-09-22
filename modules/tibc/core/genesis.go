@@ -1,4 +1,4 @@
-package ibc
+package tibc
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +11,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
-// InitGenesis initializes the ibc state from a provided genesis
+// InitGenesis initializes the tibc state from a provided genesis
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *types.GenesisState) {
 	client.InitGenesis(ctx, k.ClientKeeper, gs.ClientGenesis)
@@ -19,7 +19,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, createLocalhost bool, gs *typ
 	routing.InitGenesis(ctx, k.RoutingKeeper, gs.RoutingGenesis)
 }
 
-// ExportGenesis returns the ibc exported genesis.
+// ExportGenesis returns the tibc exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		ClientGenesis:  client.ExportGenesis(ctx, k.ClientKeeper),

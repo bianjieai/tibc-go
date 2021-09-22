@@ -44,7 +44,7 @@ message ClientConsensusStates {
       [ (gogoproto.nullable) = false ];
 }
 
-// CreateClientProposal defines a overnance proposal to create an IBC client
+// CreateClientProposal defines a overnance proposal to create an TIBC client
 message CreateClientProposal {
   option (gogoproto.goproto_getters) = false;
   // the title of the update proposal
@@ -60,7 +60,7 @@ message CreateClientProposal {
   google.protobuf.Any consensus_state = 5;
 }
 
-// UpgradeClientProposal defines a overnance proposal to overide an IBC client
+// UpgradeClientProposal defines a overnance proposal to overide an TIBC client
 // state
 message UpgradeClientProposal {
   option (gogoproto.goproto_getters) = false;

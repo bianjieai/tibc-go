@@ -32,7 +32,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
 }
 
-// SetRouter sets the Router in IBC Keeper and seals it. The method panics if
+// SetRouter sets the Router in TIBC Keeper and seals it. The method panics if
 // there is an existing router that's already sealed.
 func (k *Keeper) SetRouter(rtr *types.Router) {
 	if k.Router != nil && k.Router.Sealed() {

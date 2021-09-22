@@ -6,7 +6,7 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
-// IBC client events
+// TIBC client events
 const (
 	AttributeKeyChainName       = "chain_name"
 	AttributeKeyClientType      = "client_type"
@@ -14,7 +14,7 @@ const (
 	AttributeKeyHeader          = "header"
 )
 
-// IBC client events vars
+// TIBC client events vars
 var (
 	EventTypeCreateClientProposal  = "create_client_proposal"
 	EventTypeUpdateClient          = "update_client"

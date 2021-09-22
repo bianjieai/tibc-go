@@ -140,7 +140,7 @@ func GetCmdQueryConsensusState() *cobra.Command {
 		Use:   "consensus-state [chain-name] [height]",
 		Short: "Query the consensus state of a client at a given height",
 		Long: `Query the consensus state for a particular light client at a given height.
-If the '--latest' flag is included, the query returns the latest consensus state, overriding the height argument.`,
+If the 'latest-height' flag is included, the query returns the latest consensus state, overriding the height argument.`,
 		Example: fmt.Sprintf("%s query %s %s  consensus-state [chain-name] [height]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -175,7 +175,7 @@ If the '--latest' flag is included, the query returns the latest consensus state
 	}
 
 	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
-	cmd.Flags().Bool(flagLatestHeight, false, "return latest stored consensus state")
+	cmd.Flags().Bool(flagLatestHeight, false, "return latest stored consensus state, format: {revision}-{height}")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

@@ -1,4 +1,4 @@
-package ibctesting
+package tibctesting
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 )
 
-// Path contains two endpoints representing two chains connected over IBC
+// Path contains two endpoints representing two chains connected over TIBC
 type Path struct {
 	EndpointA *Endpoint
 	EndpointB *Endpoint

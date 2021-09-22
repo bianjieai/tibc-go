@@ -15,9 +15,9 @@ import (
 	"github.com/bianjieai/tibc-go/simapp"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	tibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
 
 const (
@@ -37,11 +37,11 @@ var (
 type TendermintTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
 	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
 
 	// TODO: deprecate usage in favor of testing package
 	ctx        sdk.Context
@@ -49,16 +49,16 @@ type TendermintTestSuite struct {
 	privVal    tmtypes.PrivValidator
 	valSet     *tmtypes.ValidatorSet
 	valsHash   tmbytes.HexBytes
-	header     *ibctmtypes.Header
+	header     *tibctmtypes.Header
 	now        time.Time
 	headerTime time.Time
 	clientTime time.Time
 }
 
 func (suite *TendermintTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
@@ -76,7 +76,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 	// Header time is intended to be time for any new header used for updates
 	suite.headerTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 
-	suite.privVal = ibctestingmock.NewPV()
+	suite.privVal = tibctestingmock.NewPV()
 
 	pubKey, err := suite.privVal.GetPubKey()
 	suite.Require().NoError(err)

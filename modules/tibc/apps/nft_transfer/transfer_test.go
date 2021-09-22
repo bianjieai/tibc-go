@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 const (
@@ -22,19 +22,19 @@ const (
 type TransferTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
 	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
+	chainC *tibctesting.TestChain
 }
 
 func (suite *TransferTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
+	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
 }
 
 /*
@@ -44,7 +44,7 @@ A->B B->C
 func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// setup between chainA and chainB
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 
 	suite.coordinator.SetupClients(path)
 
@@ -88,7 +88,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Equal("xiaomi", nft.GetID())
 
 	// setup between chainB to chainC
-	pathBtoC := ibctesting.NewPath(suite.chainB, suite.chainC)
+	pathBtoC := tibctesting.NewPath(suite.chainB, suite.chainC)
 	suite.coordinator.SetupClients(pathBtoC)
 
 	// send nft from chainB to chainC

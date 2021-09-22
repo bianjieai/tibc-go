@@ -11,13 +11,13 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/ty
 
 // Query provides defines the gRPC querier service
 service Query {
-  // ClientState queries an IBC light client.
+  // ClientState queries an TIBC light client.
   rpc ClientState(QueryClientStateRequest) returns (QueryClientStateResponse) {
     option (google.api.http).get =
         "/ibc/core/client/v1beta1/client_states/{chain_name}";
   }
 
-  // ClientStates queries all the IBC light clients of a chain.
+  // ClientStates queries all the TIBC light clients of a chain.
   rpc ClientStates(QueryClientStatesRequest)
       returns (QueryClientStatesResponse) {
     option (google.api.http).get = "/ibc/core/client/v1beta1/client_states";

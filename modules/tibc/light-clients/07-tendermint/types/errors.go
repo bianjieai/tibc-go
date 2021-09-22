@@ -11,7 +11,7 @@ const (
 	moduleName    = host.ModuleName + "-" + SubModuleName
 )
 
-// IBC tendermint client sentinel errors
+// TIBC tendermint client sentinel errors
 var (
 	ErrInvalidChainID         = sdkerrors.Register(moduleName, 2, "invalid chain-id")
 	ErrInvalidTrustingPeriod  = sdkerrors.Register(moduleName, 3, "invalid trusting period")

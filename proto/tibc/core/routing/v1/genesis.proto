@@ -3,7 +3,7 @@ package tibc.core.routing.v1;
 
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types";
 
-// GenesisState defines the ibc channel submodule's genesis state.
+// GenesisState defines the tibc channel submodule's genesis state.
 message GenesisState {
   repeated string  rules = 1;
 }

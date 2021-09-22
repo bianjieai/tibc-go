@@ -78,7 +78,7 @@ func (k Keeper) SetClientConsensusState(ctx sdk.Context, chainName string, heigh
 	store.Set(host.ConsensusStateKey(height), k.MustMarshalConsensusState(consensusState))
 }
 
-// SetChainName sets a chain name to the ibc module
+// SetChainName sets a chain name to the tibc module
 func (k Keeper) SetChainName(ctx sdk.Context, chainName string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set([]byte(types.KeyClientName), []byte(chainName))
@@ -227,7 +227,7 @@ func (k Keeper) IterateClients(ctx sdk.Context, cb func(chainName string, cs exp
 		}
 		clientState := k.MustUnmarshalClientState(iterator.Value())
 
-		// key is ibc/{clientid}/clientState
+		// key is tibc/{clientid}/clientState
 		// Thus, keySplit[1] is chainName
 		if cb(keySplit[1], clientState) {
 			break

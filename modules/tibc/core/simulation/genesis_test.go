@@ -41,8 +41,8 @@ func TestRandomizedGenState(t *testing.T) {
 	// This tests will pass for any value of r.
 	simulation.RandomizedGenState(&simState)
 
-	var ibcGenesis types.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[host.ModuleName], &ibcGenesis)
+	var tibcGenesis types.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[host.ModuleName], &tibcGenesis)
 
-	require.NotNil(t, ibcGenesis.ClientGenesis)
+	require.NotNil(t, tibcGenesis.ClientGenesis)
 }

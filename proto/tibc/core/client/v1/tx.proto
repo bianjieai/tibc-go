@@ -6,13 +6,13 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/ty
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 
-// Msg defines the ibc/client Msg service.
+// Msg defines the tibc/client Msg service.
 service Msg {
   // UpdateClient defines a rpc handler method for MsgUpdateClient.
   rpc UpdateClient(MsgUpdateClient) returns (MsgUpdateClientResponse);
 }
 
-// MsgUpdateClient defines an sdk.Msg to update a IBC client state using
+// MsgUpdateClient defines an sdk.Msg to update a TIBC client state using
 // the given header.
 message MsgUpdateClient {
   option (gogoproto.equal) = false;

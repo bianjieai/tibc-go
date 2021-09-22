@@ -9,8 +9,8 @@ import (
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 	"github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-	ibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
 
 var (
@@ -95,7 +95,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		},
 	}
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	err := path.EndpointA.CreateClient()
 	suite.Require().NoError(err)
 
@@ -153,7 +153,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 
 			suite.coordinator.SetupClients(path)
 
@@ -164,7 +164,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
 
 			// setup testing conditions
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", ibctesting.MockPort)
+			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", tibctesting.MockPort)
 
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
@@ -237,10 +237,10 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			suite.SetupTest() // reset
 
 			// setup testing conditions
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet := packettypes.NewPacket(ibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", ibctesting.MockPort)
+			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", tibctesting.MockPort)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)
@@ -269,7 +269,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 
 			err = clientState.VerifyPacketAcknowledgement(
 				ctx, store, suite.chainA.Codec, proofHeight, proof,
-				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ibcmock.MockAcknowledgement,
+				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), packettypes.CommitAcknowledgement(tibcmock.MockAcknowledgement),
 			)
 
 			if tc.expPass {

@@ -50,7 +50,7 @@ package keeper_test
 // 	suite.Run(t, new(KeeperTestSuite))
 // }
 
-// // tests the IBC handler receiving a packet on ordered and unordered channels.
+// // tests the TIBC handler receiving a packet on ordered and unordered channels.
 // // It verifies that the storing of an acknowledgement on success occurs. It
 // // tests high level properties like ordering and basic sanity checks. More
 // // rigorous testing of 'RecvPacket' can be found in the
@@ -168,7 +168,7 @@ package keeper_test
 // 	}
 // }
 
-// // tests the IBC handler acknowledgement of a packet on ordered and unordered
+// // tests the TIBC handler acknowledgement of a packet on ordered and unordered
 // // channels. It verifies that the deletion of packet commitments from state
 // // occurs. It test high level properties like ordering and basic sanity
 // // checks. More rigorous testing of 'AcknowledgePacket'
@@ -306,7 +306,7 @@ package keeper_test
 // 	}
 // }
 
-// // tests the IBC handler timing out a packet on ordered and unordered channels.
+// // tests the TIBC handler timing out a packet on ordered and unordered channels.
 // // It verifies that the deletion of a packet commitment occurs. It tests
 // // high level properties like ordering and basic sanity checks. More
 // // rigorous testing of 'TimeoutPacket' and 'TimeoutExecuted' can be found in
@@ -427,7 +427,7 @@ package keeper_test
 // 	}
 // }
 
-// // tests the IBC handler timing out a packet via channel closure on ordered
+// // tests the TIBC handler timing out a packet via channel closure on ordered
 // // and unordered channels. It verifies that the deletion of a packet
 // // commitment occurs. It tests high level properties like ordering and basic
 // // sanity checks. More rigorous testing of 'TimeoutOnClose' and

@@ -29,7 +29,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgUpdateClient defines an sdk.Msg to update a IBC client state using
+// MsgUpdateClient defines an sdk.Msg to update a TIBC client state using
 // the given header.
 type MsgUpdateClient struct {
 	// client unique identifier

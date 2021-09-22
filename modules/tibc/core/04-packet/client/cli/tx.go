@@ -20,7 +20,7 @@ func NewSendCleanPacketCmd() *cobra.Command {
 		Use:     "send-clean-packet [dest-chain-name] [sequence] [flags]",
 		Short:   "send a clean packet",
 		Long:    "send a clean packet",
-		Example: fmt.Sprintf("%s tx ibc %s send-clean-packet [dest-chain-name] [sequence] --source-chain-name test1 --relay-chain-name test2 --from node0", version.AppName, types.SubModuleName),
+		Example: fmt.Sprintf("%s tx tibc %s send-clean-packet [dest-chain-name] [sequence] --source-chain-name test1 --relay-chain-name test2 --from node0", version.AppName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -38,7 +38,7 @@ func NewSendCleanPacketCmd() *cobra.Command {
 				return err
 			}
 			destChain := args[0]
-			sequence, err := strconv.ParseUint(args[2], 10, 64)
+			sequence, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
