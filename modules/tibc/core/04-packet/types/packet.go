@@ -3,7 +3,8 @@ package types
 import (
 	"crypto/sha256"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -25,7 +26,10 @@ func CommitAcknowledgement(data []byte) []byte {
 	return hash[:]
 }
 
-var _ exported.PacketI = (*Packet)(nil)
+var (
+	_         exported.PacketI = (*Packet)(nil)
+	ModuleCdc                  = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+)
 
 // NewPacket creates a new Packet instance. It panics if the provided
 // packet data interface is not registered.
@@ -129,5 +133,5 @@ func NewErrorAcknowledgement(err string) Acknowledgement {
 
 // GetBytes is a helper for serialising acknowledgements
 func (ack Acknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
+	return ModuleCdc.MustMarshalBinaryBare(&ack)
 }
