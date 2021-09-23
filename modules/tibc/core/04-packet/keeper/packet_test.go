@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
