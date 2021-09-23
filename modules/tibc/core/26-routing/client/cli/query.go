@@ -14,7 +14,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
-// GetCmdQueryRoutingRulesCommitment defines the command to query a packet commitment
+// GetCmdQueryRoutingRulesCommitment defines the command to query routing rules
 func GetCmdQueryRoutingRulesCommitment() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "routing-rules",

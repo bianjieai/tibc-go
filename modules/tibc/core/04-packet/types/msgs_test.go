@@ -14,11 +14,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (

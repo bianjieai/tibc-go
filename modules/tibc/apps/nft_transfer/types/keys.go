@@ -12,6 +12,7 @@ const (
 
 	// StoreKey is the store key string for TIBC nft-transfer
 	StoreKey = ModuleName
+
 	// QuerierRoute is the querier route for TIBC nft-transfer
 	QuerierRoute = ModuleName
 )

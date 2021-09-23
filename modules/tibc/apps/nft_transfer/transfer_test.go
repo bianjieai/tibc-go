@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-
-	"github.com/stretchr/testify/suite"
-
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 

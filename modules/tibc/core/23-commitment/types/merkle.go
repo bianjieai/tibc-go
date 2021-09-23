@@ -14,12 +14,12 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
+// TICS 023 Merkle Types Implementation
+//
+// This file defines Merkle commitment types that implements TICS 023.
+
 // var representing the proofspecs for a SDK chain
 var sdkSpecs = []*ics23.ProofSpec{ics23.IavlSpec, ics23.TendermintSpec}
-
-// ICS 023 Merkle Types Implementation
-//
-// This file defines Merkle commitment types that implements ICS 023.
 
 // Merkle proof implementation of the Proof interface
 // Applied on SDK-based TIBC implementation

@@ -31,7 +31,7 @@ func init() {
 	govtypes.RegisterProposalType(ProposalTypeRelayerRegister)
 }
 
-// NewCreateClientProposal creates a new client proposal.
+// NewCreateClientProposal creates a new creating client proposal.
 func NewCreateClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*CreateClientProposal, error) {
 	clientStateAny, err := PackClientState(clientState)
 	if err != nil {
@@ -115,16 +115,16 @@ func NewUpgradeClientProposal(title, description, chainName string, clientState 
 	}, nil
 }
 
-// GetTitle returns the title of a client update proposal.
+// GetTitle returns the title of a client upgrade proposal.
 func (cup *UpgradeClientProposal) GetTitle() string { return cup.Title }
 
-// GetDescription returns the description of a client update proposal.
+// GetDescription returns the description of a client upgrade proposal.
 func (cup *UpgradeClientProposal) GetDescription() string { return cup.Description }
 
-// ProposalRoute returns the routing key of a client update proposal.
+// ProposalRoute returns the routing key of a client upgrade proposal.
 func (cup *UpgradeClientProposal) ProposalRoute() string { return RouterKey }
 
-// ProposalType returns the type of a client update proposal.
+// ProposalType returns the type of a client upgrade proposal.
 func (cup *UpgradeClientProposal) ProposalType() string { return ProposalTypeClientUpgrade }
 
 // ValidateBasic runs basic stateless validity checks
@@ -157,7 +157,7 @@ func (cup UpgradeClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return nil
 }
 
-// NewRegisterRelayerProposal creates a new client proposal.
+// NewRegisterRelayerProposal creates a new registering relayer proposal.
 func NewRegisterRelayerProposal(title, description, chainName string, relayers []string) *RegisterRelayerProposal {
 	return &RegisterRelayerProposal{
 		Title:       title,
@@ -167,16 +167,16 @@ func NewRegisterRelayerProposal(title, description, chainName string, relayers [
 	}
 }
 
-// GetTitle returns the title of a client update proposal.
+// GetTitle returns the title of a registering relayer proposal.
 func (rrp *RegisterRelayerProposal) GetTitle() string { return rrp.Title }
 
-// GetDescription returns the description of a client update proposal.
+// GetDescription returns the description of a registering relayer proposal.
 func (rrp *RegisterRelayerProposal) GetDescription() string { return rrp.Description }
 
-// ProposalRoute returns the routing key of a client update proposal.
+// ProposalRoute returns the routing key of a registering relayer proposal.
 func (rrp *RegisterRelayerProposal) ProposalRoute() string { return RouterKey }
 
-// ProposalType returns the type of a client update proposal.
+// ProposalType returns the type of a client registering relayer proposal.
 func (rrp *RegisterRelayerProposal) ProposalType() string { return ProposalTypeRelayerRegister }
 
 // ValidateBasic runs basic stateless validity checks

@@ -22,7 +22,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the ibc channel submodule's genesis state.
+// GenesisState defines the tibc channel submodule's genesis state.
 type GenesisState struct {
 	Rules []string `protobuf:"bytes,1,rep,name=rules,proto3" json:"rules,omitempty"`
 }

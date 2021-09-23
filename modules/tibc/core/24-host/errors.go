@@ -4,7 +4,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// SubModuleName defines the ICS 24 host
+// SubModuleName defines the TICS 24 host
 const SubModuleName = "host"
 
 const moduleName = ModuleName + "-" + SubModuleName
