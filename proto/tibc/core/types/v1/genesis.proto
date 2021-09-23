@@ -8,7 +8,7 @@ import "tibc/core/client/v1/genesis.proto";
 import "tibc/core/packet/v1/genesis.proto";
 import "tibc/core/routing/v1/genesis.proto";
 
-// GenesisState defines the ibc module's genesis state.
+// GenesisState defines the tibc module's genesis state.
 message GenesisState {
   // ICS002 - Clients genesis state
   tibc.core.client.v1.GenesisState client_genesis = 1

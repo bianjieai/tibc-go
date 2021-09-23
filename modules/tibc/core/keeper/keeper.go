@@ -16,7 +16,7 @@ import (
 
 var _ types.QueryServer = (*Keeper)(nil)
 
-// Keeper defines each ICS keeper for IBC
+// Keeper defines each ICS keeper for TIBC
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
@@ -28,7 +28,7 @@ type Keeper struct {
 	RoutingKeeper routingkeeper.Keeper
 }
 
-// NewKeeper creates a new ibc Keeper
+// NewKeeper creates a new tibc Keeper
 func NewKeeper(
 	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
@@ -45,7 +45,7 @@ func NewKeeper(
 	}
 }
 
-// Codec returns the IBC module codec.
+// Codec returns the TIBC module codec.
 func (k Keeper) Codec() codec.BinaryMarshaler {
 	return k.cdc
 }

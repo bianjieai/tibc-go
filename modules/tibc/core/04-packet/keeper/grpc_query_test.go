@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expCommitment = []byte("hash")
@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expCommitments = make([]*types.PacketState, 9)
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 		{
 			"success: receipt not found",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 		{
 			"success: receipt found",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
@@ -370,7 +370,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expAck = []byte("hash")
@@ -454,7 +454,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expAcknowledgements = make([]*types.PacketState, 9)
@@ -551,7 +551,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 		{
 			"basic success unreceived packet commitments",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				// no ack exists
@@ -568,7 +568,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 		{
 			"basic success unreceived packet commitments, nothing to relay",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
@@ -585,7 +585,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 		{
 			"success multiple unreceived packet commitments",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expSeq = []uint64{} // reset
@@ -684,7 +684,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"basic success unreceived packet acks",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, []byte("commitment"))
@@ -701,7 +701,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"basic success unreceived packet acknowledgements, nothing to relay",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expSeq = []uint64{}
@@ -716,7 +716,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"success multiple unreceived packet acknowledgements",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 
 				expSeq = []uint64{} // reset
@@ -811,7 +811,7 @@ func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := tibctesting.NewPath(suite.chainA, suite.chainB)
 				suite.coordinator.SetupClients(path)
 				suite.chainA.App.TIBCKeeper.PacketKeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 

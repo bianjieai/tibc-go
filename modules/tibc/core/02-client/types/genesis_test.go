@@ -9,8 +9,8 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )
 
 const (
@@ -27,7 +27,7 @@ var clientHeight = types.NewHeight(0, 10)
 
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
@@ -44,7 +44,7 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 }
 
 func (suite *TypesTestSuite) TestValidateGenesis() {
-	privVal := ibctestingmock.NewPV()
+	privVal := tibctestingmock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	suite.Require().NoError(err)
 
@@ -71,7 +71,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						tmChainName0, ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -105,7 +105,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						invalidChainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						invalidChainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -131,7 +131,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -157,7 +157,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -183,7 +183,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -209,7 +209,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						chainName, ibctmtypes.NewClientState(chainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						chainName, ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -243,7 +243,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						chainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						chainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{
@@ -276,7 +276,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
 					types.NewIdentifiedClientState(
-						"my-client", ibctmtypes.NewClientState(chainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+						"my-client", ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
 					),
 				},
 				[]types.ClientConsensusStates{

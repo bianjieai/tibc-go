@@ -45,7 +45,7 @@ func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config cl
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
@@ -53,7 +53,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the ibc module.
+// GetQueryCmd returns no root query command for the tibc-transfer module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
 }
@@ -172,7 +172,7 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sd
 		),
 	)
 
-	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
+	// NOTE: acknowledgement will be written synchronously during TIBC handler execution.
 	return &sdk.Result{
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, acknowledgement.GetBytes(), nil
@@ -180,12 +180,12 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sd
 
 func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet packettypes.Packet, acknowledgement []byte) (*sdk.Result, error) {
 	var ack packettypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	if err := ack.Unmarshal(acknowledgement); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet acknowledgement: %v", err)
 	}
 	var data types.NonFungibleTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet data: %s", err.Error())
 	}
 
 	if err := a.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {

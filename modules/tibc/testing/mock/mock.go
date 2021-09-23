@@ -121,17 +121,17 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 
 // ____________________________________________________________________________
 
-// OnRecvPacket implements the IBCModule interface.
+// OnRecvPacket implements the TIBCModule interface.
 func (am AppModule) OnRecvPacket(sdk.Context, packettypes.Packet) (*sdk.Result, []byte, error) {
 	return nil, MockAcknowledgement, nil
 }
 
-// OnAcknowledgementPacket implements the IBCModule interface.
+// OnAcknowledgementPacket implements the TIBCModule interface.
 func (am AppModule) OnAcknowledgementPacket(sdk.Context, packettypes.Packet, []byte) (*sdk.Result, error) {
 	return nil, nil
 }
 
-// OnTimeoutPacket implements the IBCModule interface.
+// OnTimeoutPacket implements the TIBCModule interface.
 func (am AppModule) OnTimeoutPacket(sdk.Context, packettypes.Packet) (*sdk.Result, error) {
 	return nil, nil
 }

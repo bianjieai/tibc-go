@@ -11,7 +11,7 @@ import (
 // in validation of identifiers including the client, connection, port and
 // channel identifiers.
 //
-// NOTE: this restriction is specific to this golang implementation of IBC. If
+// NOTE: this restriction is specific to this golang implementation of TIBC. If
 // your use case demands a higher limit, please open an issue and we will consider
 // adjusting this restriction.
 const DefaultMaxCharacterLength = 64

@@ -1,13 +1,13 @@
 package types
 
 const (
-	// SubModuleName defines the IBC client name
+	// SubModuleName defines the TIBC client name
 	SubModuleName string = "client"
 
-	// RouterKey is the message route for IBC client
+	// RouterKey is the message route for TIBC client
 	RouterKey string = SubModuleName
 
-	// QuerierRoute is the querier route for IBC client
+	// QuerierRoute is the querier route for TIBC client
 	QuerierRoute string = SubModuleName
 
 	// KeyClientName is the key used to store the chain name in

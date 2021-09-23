@@ -25,7 +25,7 @@ func ZeroHeight() Height {
 	return Height{}
 }
 
-// NewHeight is a constructor for the IBC height type
+// NewHeight is a constructor for the TIBC height type
 func NewHeight(revisionNumber, revisionHeight uint64) Height {
 	return Height{
 		RevisionNumber: revisionNumber,

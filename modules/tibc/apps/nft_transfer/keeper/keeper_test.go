@@ -8,25 +8,25 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
 	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
+	chainC *tibctesting.TestChain
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
+	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
 }
 
 func (suite *KeeperTestSuite) TestGetTransferMoudleAddr() {
@@ -38,8 +38,8 @@ func (suite *KeeperTestSuite) TestGetTransferMoudleAddr() {
 	suite.Require().Equal(expectedMaccAddr, macc)
 }
 
-func NewTransferPath(scChain, destChain *ibctesting.TestChain) *ibctesting.Path {
-	path := ibctesting.NewPath(scChain, destChain)
+func NewTransferPath(scChain, destChain *tibctesting.TestChain) *tibctesting.Path {
+	path := tibctesting.NewPath(scChain, destChain)
 	// setport
 	return path
 }

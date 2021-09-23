@@ -83,7 +83,7 @@ func NewGenesisState(
 	}
 }
 
-// DefaultGenesisState returns the ibc client submodule's default genesis state.
+// DefaultGenesisState returns the tibc client submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Clients:          []IdentifiedClientState{},

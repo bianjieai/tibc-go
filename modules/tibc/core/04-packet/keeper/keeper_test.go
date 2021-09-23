@@ -6,18 +6,18 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
 	suite.Suite
 
-	coordinator *ibctesting.Coordinator
+	coordinator *tibctesting.Coordinator
 
 	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
 }
 
 // TestKeeperTestSuite runs all the tests within this package.
@@ -27,9 +27,9 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(0))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 2)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
@@ -38,7 +38,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 // TestGetAllSequences sets all packet sequences for two different channels on chain A and
 // tests their retrieval.
 func (suite KeeperTestSuite) TestGetAllSequences() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
 	seq1 := types.NewPacketSequence(path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
@@ -62,7 +62,7 @@ func (suite KeeperTestSuite) TestGetAllSequences() {
 // TestGetAllPacketState creates a set of acks, packet commitments, and receipts on two different
 // channels on chain A and tests their retrieval.
 func (suite KeeperTestSuite) TestGetAllPacketState() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
 	// channel 0 acks
@@ -117,7 +117,7 @@ func (suite KeeperTestSuite) TestGetAllPacketState() {
 
 // TestSetSequence verifies that the keeper correctly sets the sequence counters.
 func (suite *KeeperTestSuite) TestSetSequence() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
 	ctxA := suite.chainA.GetContext()
@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestSetSequence() {
 // value of "seq" and then add non-consecutive up to the value of "maxSeq". A final commitment
 // with the value maxSeq + 1 is set on a different channel.
 func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
 	ctxA := suite.chainA.GetContext()
@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestGetAllPacketCommitmentsAtChannel() {
 // TestSetPacketAcknowledgement verifies that packet acknowledgements are correctly
 // set in the keeper.
 func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
 	ctxA := suite.chainA.GetContext()

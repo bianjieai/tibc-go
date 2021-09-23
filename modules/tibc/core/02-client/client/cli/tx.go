@@ -27,7 +27,7 @@ func NewCreateClientProposalCmd() *cobra.Command {
 		Use:   "client-create [chain-name] [path/to/client_state.json] [path/to/consensus_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
 		Short: "Submit a client create proposal",
-		Long:  "create a new IBC client with the specified client state and consensus state",
+		Long:  "create a new TIBC client with the specified client state and consensus state",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -103,13 +103,13 @@ func NewCreateClientProposalCmd() *cobra.Command {
 	return cmd
 }
 
-// NewUpdateClientCmd defines the command to update an IBC client.
+// NewUpdateClientCmd defines the command to update an TIBC client.
 func NewUpdateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update [chain-name] [path/to/header.json]",
 		Short:   "update existing client with a header",
 		Long:    "update existing client with a header",
-		Example: fmt.Sprintf("%s tx ibc %s update [chain-name] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
+		Example: fmt.Sprintf("%s tx tibc %s update [chain-name] [path/to/header.json] --from node0 --home ../node0/<app>cli --chain-id $CID", version.AppName, types.SubModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -153,7 +153,7 @@ func NewUpgradeClientProposalCmd() *cobra.Command {
 		Use:   "client-upgrade [chain-name] [path/to/client_state.json] [path/to/consensus_state.json] [flags]",
 		Args:  cobra.ExactArgs(3),
 		Short: "Submit a client upgrade proposal",
-		Long:  "upgrade a IBC client with the specified client state and consensus state",
+		Long:  "upgrade a TIBC client with the specified client state and consensus state",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
