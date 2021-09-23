@@ -269,7 +269,7 @@ func (k Keeper) GetAllPacketReceipts(ctx sdk.Context) (receipts []types.PacketSt
 }
 
 // IteratePacketAcknowledgement provides an iterator over all PacketAcknowledgement objects. For each
-// aknowledgement, cb will be called. If the cb returns true, the iterator will close
+// acknowledgement, cb will be called. If the cb returns true, the iterator will close
 // and stop.
 func (k Keeper) IteratePacketAcknowledgement(ctx sdk.Context, cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -316,14 +316,14 @@ func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) erro
 }
 
 func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
-	paccketSeq := cleanPacket.GetSequence()
+	packetSeq := cleanPacket.GetSequence()
 	sourceChain := cleanPacket.GetSourceChain()
 	destChain := cleanPacket.GetDestChain()
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	if paccketSeq <= currentCleanSeq {
+	if packetSeq <= currentCleanSeq {
 		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
-	for seq := currentCleanSeq; seq <= paccketSeq; seq++ {
+	for seq := currentCleanSeq; seq <= packetSeq; seq++ {
 		if k.HasPacketCommitment(ctx, sourceChain, destChain, seq) {
 			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
 		}
