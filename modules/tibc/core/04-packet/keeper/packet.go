@@ -366,6 +366,17 @@ func (k Keeper) CleanPacket(
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
+
+	targetChain := cleanPacket.GetDestChain()
+	if len(cleanPacket.GetRelayChain()) > 0 {
+		targetChain = cleanPacket.GetRelayChain()
+	}
+
+	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
+	if !found {
+		return clienttypes.ErrConsensusStateNotFound
+	}
+
 	sourceChain := cleanPacket.GetSourceChain()
 	if len(sourceChain) == 0 {
 		sourceChain = k.clientKeeper.GetChainName(ctx)
@@ -437,6 +448,7 @@ func (k Keeper) RecvCleanPacket(
 
 	k.cleanAcknowledgementBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 	k.cleanReceiptBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+	k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 
 	// emit an event that the relayer can query for
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -454,7 +466,6 @@ func (k Keeper) RecvCleanPacket(
 	})
 
 	if isRelay {
-		k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 		targetClient, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
 		if !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
