@@ -21,9 +21,8 @@ func (suite *TendermintTestSuite) TestGetTime() {
 }
 
 func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
-	var (
-		header *types.Header
-	)
+	var header *types.Header
+
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -63,20 +62,23 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 	for _, tc := range testCases {
 		tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		suite.Run(
+			tc.name,
+			func() {
+				suite.SetupTest()
 
-			header = suite.chainA.LastHeader // must be explicitly changed in malleate
+				header = suite.chainA.LastHeader // must be explicitly changed in malleate
 
-			tc.malleate()
+				tc.malleate()
 
-			err := header.ValidateBasic()
+				err := header.ValidateBasic()
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			},
+		)
 	}
 }

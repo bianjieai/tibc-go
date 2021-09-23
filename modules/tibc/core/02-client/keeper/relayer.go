@@ -13,7 +13,7 @@ func (k Keeper) RegisterRelayers(ctx sdk.Context, chainName string, relayers []s
 		ChainName: chainName,
 		Relayers:  relayers,
 	}
-	irBz := k.cdc.MustMarshalBinaryBare(ir)
+	irBz := k.cdc.MustMarshal(ir)
 	store.Set([]byte(chainName), irBz)
 }
 
@@ -33,7 +33,7 @@ func (k Keeper) GetRelayers(ctx sdk.Context, chainName string) (relayers []strin
 	bz := store.Get([]byte(chainName))
 
 	var ir = &types.IdentifiedRelayers{}
-	k.cdc.MustUnmarshalBinaryBare(bz, ir)
+	k.cdc.MustUnmarshal(bz, ir)
 	return ir.Relayers
 }
 
@@ -45,7 +45,7 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context) (relayers []types.IdentifiedRela
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var ir = &types.IdentifiedRelayers{}
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), ir)
+		k.cdc.MustUnmarshal(iterator.Value(), ir)
 		relayers = append(relayers, *ir)
 	}
 	return

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -16,8 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -25,6 +24,7 @@ import (
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (
@@ -52,7 +52,7 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	cdc            codec.Marshaler
+	cdc            codec.Codec
 	ctx            sdk.Context
 	keeper         *keeper.Keeper
 	consensusState *ibctmtypes.ConsensusState
@@ -108,7 +108,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdk.NewInt(rand.Int63())
 		validators = append(validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators)
+		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
 		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
 

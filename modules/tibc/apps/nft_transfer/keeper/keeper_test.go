@@ -3,9 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/tendermint/tendermint/crypto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"

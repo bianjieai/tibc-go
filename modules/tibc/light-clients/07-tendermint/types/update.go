@@ -39,22 +39,17 @@ import (
 // Tendermint client validity checking uses the bisection algorithm described
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
 func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryMarshaler, clientStore sdk.KVStore,
-	header exported.Header,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header exported.Header,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	tmHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
-		)
+		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
 	}
 
 	// get consensus state from clientStore
 	tmConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
-		)
+		return nil, nil, sdkerrors.Wrapf(err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight)
 	}
 
 	if err := checkValidity(&cs, tmConsState, tmHeader, ctx.BlockTime()); err != nil {

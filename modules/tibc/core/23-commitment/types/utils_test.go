@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 

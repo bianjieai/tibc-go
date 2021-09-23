@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -71,7 +72,7 @@ func (m ClientState) GetPrefix() exported.Prefix {
 
 func (m ClientState) Initialize(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
@@ -91,7 +92,7 @@ func (m ClientState) Initialize(
 func (m ClientState) Status(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 ) exported.Status {
 	onsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
 	if err != nil {
@@ -123,7 +124,7 @@ func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadat
 func (m ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
@@ -151,7 +152,7 @@ func (m ClientState) VerifyPacketCommitment(
 func (m ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
@@ -164,7 +165,7 @@ func (m ClientState) VerifyPacketAcknowledgement(
 func (m ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
@@ -178,15 +179,20 @@ func (m ClientState) VerifyPacketCleanCommitment(
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	cs ClientState,
 	height exported.Height,
 	proof []byte,
-) (merkleProof Proof, consensusState *ConsensusState, err error) {
+) (
+	merkleProof Proof,
+	consensusState *ConsensusState,
+	err error,
+) {
 	if cs.GetLatestHeight().LT(height) {
 		return Proof{}, nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d)",
+			cs.GetLatestHeight(), height,
 		)
 	}
 
@@ -205,7 +211,8 @@ func produceVerificationArgs(
 	return merkleProof, consensusState, nil
 }
 
-func verifyMerkleProof(bscProof Proof,
+func verifyMerkleProof(
+	bscProof Proof,
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
@@ -220,7 +227,10 @@ func verifyMerkleProof(bscProof Proof,
 
 	addr := common.FromHex(bscProof.Address)
 	if !bytes.Equal(addr, contractAddr) {
-		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", bscProof.Address, hex.EncodeToString(contractAddr))
+		return fmt.Errorf(
+			"verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s",
+			bscProof.Address, hex.EncodeToString(contractAddr),
+		)
 	}
 	acctKey := crypto.Keccak256(addr)
 

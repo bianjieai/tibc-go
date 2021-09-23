@@ -37,8 +37,7 @@ func IteratorTraversal(store sdk.KVStore, keyType string, cb func(key, val []byt
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore,
-	cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, error) {
+func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(
@@ -56,7 +55,8 @@ func GetConsensusState(store sdk.KVStore,
 	if !ok {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidConsensus,
-			"invalid consensus type %T, expected %T", consensusState, &ConsensusState{},
+			"invalid consensus type %T, expected %T",
+			consensusState, &ConsensusState{},
 		)
 	}
 
@@ -100,26 +100,21 @@ func GetRecentSigners(store sdk.KVStore) (recentSingers []Signer, err error) {
 }
 
 // SetPendingValidators sets the validators to be updated in the client prefixed store
-func SetPendingValidators(store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
-	validators [][]byte,
+func SetPendingValidators(store sdk.KVStore, cdc codec.BinaryCodec, validators [][]byte,
 ) {
 	validatorSet := ValidatorSet{
 		Validators: validators,
 	}
-	bz := cdc.MustMarshalBinaryBare(&validatorSet)
+	bz := cdc.MustMarshal(&validatorSet)
 	store.Set([]byte(PrefixPendingValidators), bz)
 }
 
 // GetPendingValidators retrieves the validators to be updated from the client prefixed store
-func GetPendingValidators(
-	cdc codec.BinaryMarshaler,
-	store sdk.KVStore,
-) ValidatorSet {
+func GetPendingValidators(cdc codec.BinaryCodec, store sdk.KVStore) ValidatorSet {
 	bz := store.Get([]byte(PrefixPendingValidators))
 
 	var validatorSet ValidatorSet
-	cdc.MustUnmarshalBinaryBare(bz, &validatorSet)
+	cdc.MustUnmarshal(bz, &validatorSet)
 	return validatorSet
 }
 

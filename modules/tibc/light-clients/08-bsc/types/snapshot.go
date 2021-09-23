@@ -17,7 +17,7 @@ func (s validatorsAscending) Less(i, j int) bool { return bytes.Compare(s[i][:],
 func (s validatorsAscending) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type snapshot struct {
-	cdc   codec.BinaryMarshaler
+	cdc   codec.BinaryCodec
 	store sdk.KVStore
 	// Block number where the snapshot was created
 	Number uint64
@@ -26,10 +26,7 @@ type snapshot struct {
 	Recents    map[uint64]common.Address
 }
 
-func (m ClientState) snapshot(
-	cdc codec.BinaryMarshaler,
-	store sdk.KVStore,
-) (*snapshot, error) {
+func (m ClientState) snapshot(cdc codec.BinaryCodec, store sdk.KVStore) (*snapshot, error) {
 
 	recentSingers, err := GetRecentSigners(store)
 	if err != nil {

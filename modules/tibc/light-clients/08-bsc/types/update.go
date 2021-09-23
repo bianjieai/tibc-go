@@ -12,10 +12,14 @@ import (
 
 func (m ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	header exported.Header,
-) (exported.ClientState, exported.ConsensusState, error) {
+) (
+	exported.ClientState,
+	exported.ConsensusState,
+	error,
+) {
 	bscHeader, ok := header.(*Header)
 	if !ok {
 		return nil, nil, sdkerrors.Wrapf(
@@ -43,12 +47,11 @@ func (m ClientState) CheckHeaderAndUpdateState(
 
 // checkValidity checks if the bsc header is valid.
 func checkValidity(
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	consState *ConsensusState,
 	header Header,
-
 ) error {
 	if err := header.ValidateBasic(); err != nil {
 		return err
@@ -58,11 +61,16 @@ func checkValidity(
 }
 
 // update the RecentSingers and the ConsensusState.
-func update(cdc codec.BinaryMarshaler,
+func update(
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header *Header,
-) (*ClientState, *ConsensusState, error) {
+) (
+	*ClientState,
+	*ConsensusState,
+	error,
+) {
 	// The validator set change occurs at `header.Number % cs.Epoch == 0`
 	number := header.Height.RevisionHeight
 	if number%clientState.Epoch == 0 {

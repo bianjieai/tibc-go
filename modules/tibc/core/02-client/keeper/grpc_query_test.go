@@ -6,7 +6,6 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"

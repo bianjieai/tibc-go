@@ -8,10 +8,10 @@ import (
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
-var (
-	validPort   = "validportid"
-	invalidPort = "(invalidPortID)"
-)
+// var (
+// 	validPort   = "validportid"
+// 	invalidPort = "(invalidPortID)"
+// )
 
 type KeeperTestSuite struct {
 	suite.Suite

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -26,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/bianjieai/tibc-go/simapp/helpers"
@@ -55,7 +57,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	encCdc := MakeTestEncodingConfig()
 	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
 	if withGenesis {
-		return app, NewDefaultGenesisState(encCdc.Marshaler)
+		return app, NewDefaultGenesisState(encCdc.Codec)
 	}
 	return app, GenesisState{}
 }
@@ -228,25 +230,6 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 	return addresses
 }
 
-// AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func AddTestAddrsFromPubKeys(app *SimApp, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
-	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
-
-	setTotalSupply(app, ctx, accAmt, len(pubKeys))
-
-	// fill all the addresses with some coins, set the loose pool tokens simultaneously
-	for _, pubKey := range pubKeys {
-		saveAccount(app, ctx, sdk.AccAddress(pubKey.Address()), initCoins)
-	}
-}
-
-// setTotalSupply provides the total supply based on accAmt * totalAccounts.
-func setTotalSupply(app *SimApp, ctx sdk.Context, accAmt sdk.Int, totalAccounts int) {
-	totalSupply := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt.MulRaw(int64(totalAccounts))))
-	prevSupply := app.BankKeeper.GetSupply(ctx)
-	app.BankKeeper.SetSupply(ctx, banktypes.NewSupply(prevSupply.GetTotal().Add(totalSupply...)))
-}
-
 // AddTestAddrs constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
 func AddTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
@@ -262,23 +245,21 @@ func AddTestAddrsIncremental(app *SimApp, ctx sdk.Context, accNum int, accAmt sd
 func addTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
-	setTotalSupply(app, ctx, accAmt, accNum)
+	initCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, accAmt))
 
-	// fill all the addresses with some coins, set the loose pool tokens simultaneously
 	for _, addr := range testAddrs {
-		saveAccount(app, ctx, addr, initCoins)
+		initAccountWithCoins(app, ctx, addr, initCoins)
 	}
 
 	return testAddrs
 }
 
-// saveAccount saves the provided account into the simapp with balance based on initCoins.
-func saveAccount(app *SimApp, ctx sdk.Context, addr sdk.AccAddress, initCoins sdk.Coins) {
-	acc := app.AccountKeeper.NewAccountWithAddress(ctx, addr)
-	app.AccountKeeper.SetAccount(ctx, acc)
-	err := app.BankKeeper.AddCoins(ctx, addr, initCoins)
-	if err != nil {
+func initAccountWithCoins(app *SimApp, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+	if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
+		panic(err)
+	}
+
+	if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, coins); err != nil {
 		panic(err)
 	}
 }

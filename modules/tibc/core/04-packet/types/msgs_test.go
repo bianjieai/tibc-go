@@ -14,11 +14,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (
@@ -74,7 +73,7 @@ func (suite *TypesTestSuite) SetupTest() {
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	suite.Require().NoError(err)
-	proof, err := app.AppCodec().MarshalBinaryBare(&merkleProof)
+	proof, err := app.AppCodec().Marshal(&merkleProof)
 	suite.Require().NoError(err)
 
 	suite.proof = proof

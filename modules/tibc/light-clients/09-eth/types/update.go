@@ -16,15 +16,17 @@ import (
 
 func (m ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	header exported.Header,
-) (exported.ClientState, exported.ConsensusState, error) {
+) (
+	exported.ClientState,
+	exported.ConsensusState,
+	error,
+) {
 	ethHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
-		)
+		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
 	}
 	height := m.GetLatestHeight()
 	// get consensus state from clientStore
@@ -34,12 +36,11 @@ func (m ClientState) CheckHeaderAndUpdateState(
 			err, "could not get consensus state from clientstore at TrustedHeight: %s,please upgrade", m.GetLatestHeight(),
 		)
 	}
-	for {
-		if err := checkValidity(ctx, cdc, store, &m, ethConsState, *ethHeader); err != nil {
-			return nil, nil, err
-		}
-		break
+
+	if err := checkValidity(ctx, cdc, store, &m, ethConsState, *ethHeader); err != nil {
+		return nil, nil, err
 	}
+
 	newClientState, consensusState, err := update(cdc, store, &m, ethHeader)
 	if err != nil {
 		return nil, nil, err
@@ -56,8 +57,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 		// set all consensusState by struct (prefix+hash , consensusState)
 		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStatetmp)
 	} else {
-		err := m.RestructChain(cdc, store, *ethHeader)
-		if err != nil {
+		if err := m.RestructChain(cdc, store, *ethHeader); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -67,27 +67,29 @@ func (m ClientState) CheckHeaderAndUpdateState(
 // checkValidity checks if the eth header is valid.
 func checkValidity(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	consState *ConsensusState,
 	header Header,
-
 ) error {
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
-
 	return verifyHeader(ctx, cdc, store, clientState, header)
 }
 
 // update the RecentSingers and the ConsensusState.
-func update(cdc codec.BinaryMarshaler,
+func update(
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header *Header,
-) (*ClientState, *ConsensusState, error) {
-
+) (
+	*ClientState,
+	*ConsensusState,
+	error,
+) {
 	cs := &ConsensusState{
 		Timestamp: header.Time,
 		Number:    header.Height,
@@ -99,7 +101,7 @@ func update(cdc codec.BinaryMarshaler,
 	return clientState, cs, nil
 }
 
-func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore, new Header) error {
+func (m ClientState) RestructChain(cdc codec.BinaryCodec, store sdk.KVStore, new Header) error {
 	si, ti := m.Header.Height, new.Height
 	var err error
 	current := m.Header

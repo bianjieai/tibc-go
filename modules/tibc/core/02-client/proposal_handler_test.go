@@ -3,10 +3,11 @@ package client_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/suite"
 
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"

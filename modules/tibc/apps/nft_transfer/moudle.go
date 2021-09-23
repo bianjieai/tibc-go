@@ -5,6 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,10 +18,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
@@ -34,11 +36,11 @@ var (
 // AppModuleBasic is the TIBC nft Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
-func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
-func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
+func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONCodec, config client.TxEncodingConfig, message json.RawMessage) error {
 	return nil
 }
 
@@ -105,11 +107,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return nil
 }
 
-func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler) json.RawMessage {
+func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
