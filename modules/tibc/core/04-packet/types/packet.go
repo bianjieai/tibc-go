@@ -29,9 +29,7 @@ var _ exported.PacketI = (*Packet)(nil)
 // NewPacket creates a new Packet instance. It panics if the provided
 // packet data interface is not registered.
 func NewPacket(
-	data []byte,
-	sequence uint64, sourceChain, destinationChain, relayChain,
-	port string,
+	data []byte, sequence uint64, sourceChain, destinationChain, relayChain, port string,
 ) Packet {
 	return Packet{
 		Data:             data,

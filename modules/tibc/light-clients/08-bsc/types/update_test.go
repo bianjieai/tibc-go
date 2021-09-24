@@ -171,7 +171,6 @@ type blockRsp struct {
 }
 
 func getBlockHeight(rc *RestClient) (height uint64, err error) {
-
 	req := &heightReq{
 		JsonRpc: "2.0",
 		Method:  "eth_blockNumber",

@@ -10,25 +10,22 @@ import (
 )
 
 func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
-	var (
-		cswh types.ConsensusStateWithHeight
-	)
+	var cswh types.ConsensusStateWithHeight
 
 	testCases := []struct {
 		name     string
 		malleate func()
-	}{
-		{
-			"tendermint client", func() {
-				// setup testing conditions
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState()
-				consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
-				cswh = types.NewConsensusStateWithHeight(clientState.GetLatestHeight().(types.Height), consensusState)
-			},
+	}{{
+		"tendermint client",
+		func() {
+			// setup testing conditions
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			clientState := path.EndpointA.GetClientState()
+			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
+			cswh = types.NewConsensusStateWithHeight(clientState.GetLatestHeight().(types.Height), consensusState)
 		},
-	}
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -68,9 +65,7 @@ func TestValidateClientType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := types.ValidateClientType(tc.clientType)
-
 		if tc.expPass {
 			require.NoError(t, err, tc.name)
 		} else {

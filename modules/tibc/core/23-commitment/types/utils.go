@@ -23,7 +23,5 @@ func ConvertProofs(tmProof *crypto.ProofOps) (MerkleProof, error) {
 		}
 		proofs[i] = &p
 	}
-	return MerkleProof{
-		Proofs: proofs,
-	}, nil
+	return MerkleProof{Proofs: proofs}, nil
 }

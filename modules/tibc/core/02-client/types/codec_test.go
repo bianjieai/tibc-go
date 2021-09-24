@@ -22,18 +22,19 @@ func (suite *TypesTestSuite) TestPackClientState() {
 		name        string
 		clientState exported.ClientState
 		expPass     bool
-	}{
-		{
-			"tendermint client",
-			tibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-			true,
-		},
-		{
-			"nil",
-			nil,
-			false,
-		},
-	}
+	}{{
+		"tendermint client",
+		tibctmtypes.NewClientState(
+			chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod,
+			tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+			commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
+		),
+		true,
+	}, {
+		"nil",
+		nil,
+		false,
+	}}
 
 	testCasesAny := []caseAny{}
 
@@ -64,18 +65,15 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 		name           string
 		consensusState exported.ConsensusState
 		expPass        bool
-	}{
-		{
-			"tendermint consensus",
-			suite.chainA.LastHeader.ConsensusState(),
-			true,
-		},
-		{
-			"nil",
-			nil,
-			false,
-		},
-	}
+	}{{
+		"tendermint consensus",
+		suite.chainA.LastHeader.ConsensusState(),
+		true,
+	}, {
+		"nil",
+		nil,
+		false,
+	}}
 
 	testCasesAny := []caseAny{}
 
@@ -105,22 +103,17 @@ func (suite *TypesTestSuite) TestPackHeader() {
 		name    string
 		header  exported.Header
 		expPass bool
-	}{
-
-		{
-			"tendermint header",
-			suite.chainA.LastHeader,
-			true,
-		},
-		{
-			"nil",
-			nil,
-			false,
-		},
-	}
+	}{{
+		"tendermint header",
+		suite.chainA.LastHeader,
+		true,
+	}, {
+		"nil",
+		nil,
+		false,
+	}}
 
 	testCasesAny := []caseAny{}
-
 	for _, tc := range testCases {
 		clientAny, err := types.PackHeader(tc.header)
 		if tc.expPass {
@@ -128,7 +121,6 @@ func (suite *TypesTestSuite) TestPackHeader() {
 		} else {
 			suite.Require().Error(err, tc.name)
 		}
-
 		testCasesAny = append(testCasesAny, caseAny{tc.name, clientAny, tc.expPass})
 	}
 

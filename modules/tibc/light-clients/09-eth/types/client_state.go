@@ -153,7 +153,8 @@ func produceVerificationArgs(
 	if cs.GetLatestHeight().LT(height) {
 		return Proof{}, nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d)",
+			cs.GetLatestHeight(), height,
 		)
 	}
 
@@ -188,7 +189,10 @@ func verifyMerkleProof(
 
 	addr := common.FromHex(ethProof.Address)
 	if !bytes.Equal(addr, contractAddr) {
-		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", ethProof.Address, hex.EncodeToString(contractAddr))
+		return fmt.Errorf(
+			"verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s",
+			ethProof.Address, hex.EncodeToString(contractAddr),
+		)
 	}
 	acctKey := crypto.Keccak256(addr)
 

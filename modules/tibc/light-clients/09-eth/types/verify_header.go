@@ -10,16 +10,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/params"
-
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // verifySeal checks whether a block satisfies the PoW difficulty requirements,
 // either using the usual ethash cache for it, or alternatively using a full DAG
 // to make remote mining fast.
 func (ethash *Ethash) VerifySeal(header *types.Header, fulldag bool) error {
-
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
 		return ErrWrongDifficulty
@@ -200,7 +198,6 @@ func VerifyGaslimit(parentGasLimit, headerGasLimit uint64) error {
 
 // CalcBaseFee calculates the basefee of the header.
 func CalcBaseFee(parent *Header) *big.Int {
-
 	var (
 		parentGasTarget          = parent.ToEthHeader().GasLimit / ElasticityMultiplier
 		parentGasTargetBig       = new(big.Int).SetUint64(parentGasTarget)

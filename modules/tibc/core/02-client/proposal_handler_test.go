@@ -44,61 +44,64 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"valid create client proposal", func() {
-				// setup testing conditions
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState()
-				consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
+	}{{
+		"valid create client proposal",
+		func() {
+			// setup testing conditions
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			clientState := path.EndpointA.GetClientState()
+			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
-				content, err = clienttypes.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, "test-chain-name", clientState, consensusState)
-				suite.Require().NoError(err)
-			}, true,
+			content, err = clienttypes.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, "test-chain-name", clientState, consensusState)
+			suite.Require().NoError(err)
 		},
-		{
-			"valid create client proposal", func() {
-				// setup testing conditions
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				clientState := path.EndpointA.GetClientState()
-				consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
+		true,
+	}, {
+		"valid create client proposal",
+		func() {
+			// setup testing conditions
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			clientState := path.EndpointA.GetClientState()
+			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
-				content, err = clienttypes.NewUpgradeClientProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, clientState, consensusState)
-				suite.Require().NoError(err)
-			}, true,
+			content, err = clienttypes.NewUpgradeClientProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, clientState, consensusState)
+			suite.Require().NoError(err)
 		},
-		{
-			"valid create client proposal", func() {
+		true,
+	}, {
+		"valid create client proposal",
+		func() {
 
-				// setup testing conditions
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+			// setup testing conditions
+			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				relayers := []string{
-					suite.chainB.SenderAccount.GetAddress().String(),
-				}
+			relayers := []string{
+				suite.chainB.SenderAccount.GetAddress().String(),
+			}
 
-				content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, relayers)
-				suite.Require().NoError(err)
-			}, true,
+			content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, relayers)
+			suite.Require().NoError(err)
 		},
-		{
-			"nil proposal", func() {
-				content = nil
-			}, false,
+		true,
+	}, {
+		"nil proposal",
+		func() {
+			content = nil
 		},
-		{
-			"unsupported proposal type", func() {
-				content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
-			}, false,
+		false,
+	}, {
+		"unsupported proposal type",
+		func() {
+			content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
 		},
-	}
+		false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -115,5 +118,4 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			}
 		})
 	}
-
 }

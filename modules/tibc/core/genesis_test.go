@@ -48,78 +48,90 @@ func TestIBCTestSuite(t *testing.T) {
 }
 
 func (suite *TIBCTestSuite) TestValidateGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(
+		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
+		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
+		suite.chainA.Signers,
+	)
 
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
 		expPass  bool
-	}{
-		{
-			name:     "default",
-			genState: types.DefaultGenesisState(),
-			expPass:  true,
-		},
-		{
-			name: "valid genesis",
-			genState: &types.GenesisState{
-				ClientGenesis: clienttypes.NewGenesisState(
-					[]clienttypes.IdentifiedClientState{
-						clienttypes.NewIdentifiedClientState(
-							chainName, tibctmtypes.NewClientState(suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
+	}{{
+		name:     "default",
+		genState: types.DefaultGenesisState(),
+		expPass:  true,
+	}, {
+		name: "valid genesis",
+		genState: &types.GenesisState{
+			ClientGenesis: clienttypes.NewGenesisState(
+				[]clienttypes.IdentifiedClientState{
+					clienttypes.NewIdentifiedClientState(
+						chainName, tibctmtypes.NewClientState(
+							suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel,
+							tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod,
+							tibctesting.MaxClockDrift, clientHeight,
+							commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 						),
-					},
-					[]clienttypes.ClientConsensusStates{
-						clienttypes.NewClientConsensusStates(
-							chainName,
-							[]clienttypes.ConsensusStateWithHeight{
-								clienttypes.NewConsensusStateWithHeight(
-									header.GetHeight().(clienttypes.Height),
-									tibctmtypes.NewConsensusState(
-										header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
-									),
+					),
+				},
+				[]clienttypes.ClientConsensusStates{
+					clienttypes.NewClientConsensusStates(
+						chainName,
+						[]clienttypes.ConsensusStateWithHeight{
+							clienttypes.NewConsensusStateWithHeight(
+								header.GetHeight().(clienttypes.Height),
+								tibctmtypes.NewConsensusState(
+									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
 								),
-							},
-						),
-					},
-					[]clienttypes.IdentifiedGenesisMetadata{
-						clienttypes.NewIdentifiedGenesisMetadata(
-							chainName,
-							[]clienttypes.GenesisMetadata{
-								clienttypes.NewGenesisMetadata([]byte("key1"), []byte("val1")),
-								clienttypes.NewGenesisMetadata([]byte("key2"), []byte("val2")),
-							},
-						),
-					},
-					chainName2,
-				),
-			},
-			expPass: true,
+							),
+						},
+					),
+				},
+				[]clienttypes.IdentifiedGenesisMetadata{
+					clienttypes.NewIdentifiedGenesisMetadata(
+						chainName,
+						[]clienttypes.GenesisMetadata{
+							clienttypes.NewGenesisMetadata([]byte("key1"), []byte("val1")),
+							clienttypes.NewGenesisMetadata([]byte("key2"), []byte("val2")),
+						},
+					),
+				},
+				chainName2,
+			),
 		},
-		{
-			name: "invalid client genesis",
-			genState: &types.GenesisState{
-				ClientGenesis: clienttypes.NewGenesisState(
-					[]clienttypes.IdentifiedClientState{
-						clienttypes.NewIdentifiedClientState(
-							chainName, tibctmtypes.NewClientState(suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
+		expPass: true,
+	}, {
+		name: "invalid client genesis",
+		genState: &types.GenesisState{
+			ClientGenesis: clienttypes.NewGenesisState(
+				[]clienttypes.IdentifiedClientState{
+					clienttypes.NewIdentifiedClientState(
+						chainName, tibctmtypes.NewClientState(
+							suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel,
+							tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod,
+							tibctesting.MaxClockDrift, clientHeight,
+							commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 						),
-					},
-					nil,
-					[]clienttypes.IdentifiedGenesisMetadata{
-						clienttypes.NewIdentifiedGenesisMetadata(
-							chainName,
-							[]clienttypes.GenesisMetadata{
-								clienttypes.NewGenesisMetadata([]byte(""), []byte("val1")),
-								clienttypes.NewGenesisMetadata([]byte("key2"), []byte("")),
-							},
-						),
-					},
-					chainName2,
-				),
-			},
-			expPass: false,
+					),
+				},
+				nil,
+				[]clienttypes.IdentifiedGenesisMetadata{
+					clienttypes.NewIdentifiedGenesisMetadata(
+						chainName,
+						[]clienttypes.GenesisMetadata{
+							clienttypes.NewGenesisMetadata([]byte(""), []byte("val1")),
+							clienttypes.NewGenesisMetadata([]byte("key2"), []byte("")),
+						},
+					),
+				},
+				chainName2,
+			),
 		},
+		expPass: false,
+	},
 	}
 
 	for _, tc := range testCases {
@@ -134,52 +146,59 @@ func (suite *TIBCTestSuite) TestValidateGenesis() {
 }
 
 func (suite *TIBCTestSuite) TestInitGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.CurrentHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)), suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+	header := suite.chainA.CreateTMClientHeader(
+		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
+		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.Vals, suite.chainA.Signers,
+	)
 
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
-	}{
-		{
-			name:     "default",
-			genState: types.DefaultGenesisState(),
-		},
-		{
-			name: "valid genesis",
-			genState: &types.GenesisState{
-				ClientGenesis: clienttypes.NewGenesisState(
-					[]clienttypes.IdentifiedClientState{
-						clienttypes.NewIdentifiedClientState(
-							chainName, tibctmtypes.NewClientState(suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
+	}{{
+		name:     "default",
+		genState: types.DefaultGenesisState(),
+	}, {
+		name: "valid genesis",
+		genState: &types.GenesisState{
+			ClientGenesis: clienttypes.NewGenesisState(
+				[]clienttypes.IdentifiedClientState{
+					clienttypes.NewIdentifiedClientState(
+						chainName, tibctmtypes.NewClientState(
+							suite.chainA.ChainID, tibctmtypes.DefaultTrustLevel,
+							tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod,
+							tibctesting.MaxClockDrift, clientHeight,
+							commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 						),
-					},
-					[]clienttypes.ClientConsensusStates{
-						clienttypes.NewClientConsensusStates(
-							chainName,
-							[]clienttypes.ConsensusStateWithHeight{
-								clienttypes.NewConsensusStateWithHeight(
-									header.GetHeight().(clienttypes.Height),
-									tibctmtypes.NewConsensusState(
-										header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
-									),
+					),
+				},
+				[]clienttypes.ClientConsensusStates{
+					clienttypes.NewClientConsensusStates(
+						chainName,
+						[]clienttypes.ConsensusStateWithHeight{
+							clienttypes.NewConsensusStateWithHeight(
+								header.GetHeight().(clienttypes.Height),
+								tibctmtypes.NewConsensusState(
+									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
 								),
-							},
-						),
-					},
-					[]clienttypes.IdentifiedGenesisMetadata{
-						clienttypes.NewIdentifiedGenesisMetadata(
-							chainName,
-							[]clienttypes.GenesisMetadata{
-								clienttypes.NewGenesisMetadata([]byte("key1"), []byte("val1")),
-								clienttypes.NewGenesisMetadata([]byte("key2"), []byte("val2")),
-							},
-						),
-					},
-					chainName2,
-				),
-			},
+							),
+						},
+					),
+				},
+				[]clienttypes.IdentifiedGenesisMetadata{
+					clienttypes.NewIdentifiedGenesisMetadata(
+						chainName,
+						[]clienttypes.GenesisMetadata{
+							clienttypes.NewGenesisMetadata([]byte("key1"), []byte("val1")),
+							clienttypes.NewGenesisMetadata([]byte("key2"), []byte("val2")),
+						},
+					),
+				},
+				chainName2,
+			),
 		},
-	}
+	}}
 
 	for _, tc := range testCases {
 		app := simapp.Setup(false)
@@ -194,18 +213,16 @@ func (suite *TIBCTestSuite) TestExportGenesis() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-	}{
-		{
-			"success",
-			func() {
-				// creates clients
-				suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
-				// create extra clients
-				suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
-				suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
-			},
+	}{{
+		"success",
+		func() {
+			// creates clients
+			suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
+			// create extra clients
+			suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
+			suite.coordinator.SetupClients(tibctesting.NewPath(suite.chainA, suite.chainB))
 		},
-	}
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {

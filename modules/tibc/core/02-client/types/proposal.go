@@ -95,7 +95,13 @@ func (cup CreateClientProposal) UnpackInterfaces(unpacker codectypes.AnyUnpacker
 }
 
 // NewUpgradeClientProposal create a upgrade client proposal.
-func NewUpgradeClientProposal(title, description, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState) (*UpgradeClientProposal, error) {
+func NewUpgradeClientProposal(
+	title, description, chainName string,
+	clientState exported.ClientState,
+	consensusState exported.ConsensusState,
+) (
+	*UpgradeClientProposal, error,
+) {
 	clientStateAny, err := PackClientState(clientState)
 	if err != nil {
 		return nil, err
@@ -181,8 +187,7 @@ func (rrp *RegisterRelayerProposal) ProposalType() string { return ProposalTypeR
 
 // ValidateBasic runs basic stateless validity checks
 func (rrp *RegisterRelayerProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(rrp)
-	if err != nil {
+	if err := govtypes.ValidateAbstract(rrp); err != nil {
 		return err
 	}
 
@@ -195,8 +200,7 @@ func (rrp *RegisterRelayerProposal) ValidateBasic() error {
 	}
 
 	for _, relayer := range rrp.Relayers {
-		_, err := sdk.AccAddressFromBech32(relayer)
-		if err != nil {
+		if _, err := sdk.AccAddressFromBech32(relayer); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
 	}

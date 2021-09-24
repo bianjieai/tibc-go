@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	nftexported "github.com/irisnet/irismod/modules/nft/exported"
 	"github.com/irisnet/irismod/modules/nft/types"
 

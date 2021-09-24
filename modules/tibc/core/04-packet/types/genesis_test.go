@@ -18,91 +18,82 @@ func TestValidateGenesis(t *testing.T) {
 		name     string
 		genState types.GenesisState
 		expPass  bool
-	}{
-		{
-			name:     "default",
-			genState: types.DefaultGenesisState(),
-			expPass:  true,
-		},
-		{
-			name: "valid genesis",
-			genState: types.NewGenesisState(
-				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("ack")),
-				},
-				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("commit_hash")),
-				},
-				[]types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, []byte("")),
-				},
-				[]types.PacketSequence{
-					types.NewPacketSequence(testChain1, testChain2, 1),
-				},
-				[]types.PacketSequence{
-					types.NewPacketSequence(testChain1, testChain2, 1),
-				},
-				[]types.PacketSequence{
-					types.NewPacketSequence(testChain1, testChain2, 1),
-				},
-			),
-			expPass: true,
-		},
-		{
-			name: "invalid ack",
-			genState: types.GenesisState{
-				Acknowledgements: []types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, nil),
-				},
+	}{{
+		name:     "default",
+		genState: types.DefaultGenesisState(),
+		expPass:  true,
+	}, {
+		name: "valid genesis",
+		genState: types.NewGenesisState(
+			[]types.PacketState{
+				types.NewPacketState(testChain1, testChain2, 1, []byte("ack")),
 			},
-			expPass: false,
-		},
-		{
-			name: "invalid commitment",
-			genState: types.GenesisState{
-				Commitments: []types.PacketState{
-					types.NewPacketState(testChain1, testChain2, 1, nil),
-				},
+			[]types.PacketState{
+				types.NewPacketState(testChain1, testChain2, 1, []byte("commit_hash")),
 			},
-			expPass: false,
-		},
-		{
-			name: "invalid send seq",
-			genState: types.GenesisState{
-				SendSequences: []types.PacketSequence{
-					types.NewPacketSequence(testChain1, testChain2, 0),
-				},
+			[]types.PacketState{
+				types.NewPacketState(testChain1, testChain2, 1, []byte("")),
 			},
-			expPass: false,
-		},
-		{
-			name: "invalid recv seq",
-			genState: types.GenesisState{
-				RecvSequences: []types.PacketSequence{
-					types.NewPacketSequence(testChain1, "(testChannel1)", 1),
-				},
+			[]types.PacketSequence{
+				types.NewPacketSequence(testChain1, testChain2, 1),
 			},
-			expPass: false,
-		},
-		{
-			name: "invalid recv seq 2",
-			genState: types.GenesisState{
-				RecvSequences: []types.PacketSequence{
-					types.NewPacketSequence("(testChain1)", testChain2, 1),
-				},
+			[]types.PacketSequence{
+				types.NewPacketSequence(testChain1, testChain2, 1),
 			},
-			expPass: false,
-		},
-		{
-			name: "invalid ack seq",
-			genState: types.GenesisState{
-				AckSequences: []types.PacketSequence{
-					types.NewPacketSequence(testChain1, "(testChain2)", 1),
-				},
+			[]types.PacketSequence{
+				types.NewPacketSequence(testChain1, testChain2, 1),
 			},
-			expPass: false,
+		),
+		expPass: true,
+	}, {
+		name: "invalid ack",
+		genState: types.GenesisState{
+			Acknowledgements: []types.PacketState{
+				types.NewPacketState(testChain1, testChain2, 1, nil),
+			},
 		},
-	}
+		expPass: false,
+	}, {
+		name: "invalid commitment",
+		genState: types.GenesisState{
+			Commitments: []types.PacketState{
+				types.NewPacketState(testChain1, testChain2, 1, nil),
+			},
+		},
+		expPass: false,
+	}, {
+		name: "invalid send seq",
+		genState: types.GenesisState{
+			SendSequences: []types.PacketSequence{
+				types.NewPacketSequence(testChain1, testChain2, 0),
+			},
+		},
+		expPass: false,
+	}, {
+		name: "invalid recv seq",
+		genState: types.GenesisState{
+			RecvSequences: []types.PacketSequence{
+				types.NewPacketSequence(testChain1, "(testChannel1)", 1),
+			},
+		},
+		expPass: false,
+	}, {
+		name: "invalid recv seq 2",
+		genState: types.GenesisState{
+			RecvSequences: []types.PacketSequence{
+				types.NewPacketSequence("(testChain1)", testChain2, 1),
+			},
+		},
+		expPass: false,
+	}, {
+		name: "invalid ack seq",
+		genState: types.GenesisState{
+			AckSequences: []types.PacketSequence{
+				types.NewPacketSequence(testChain1, "(testChain2)", 1),
+			},
+		},
+		expPass: false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc

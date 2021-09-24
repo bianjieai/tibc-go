@@ -40,7 +40,9 @@ import (
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
 func (cs ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header exported.Header,
-) (exported.ClientState, exported.ConsensusState, error) {
+) (
+	exported.ClientState, exported.ConsensusState, error,
+) {
 	tmHeader, ok := header.(*Header)
 	if !ok {
 		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
@@ -111,8 +113,7 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 // checkValidity checks if the Tendermint header is valid.
 // CONTRACT: consState.Height == header.TrustedHeight
 func checkValidity(
-	clientState *ClientState, consState *ConsensusState,
-	header *Header, currentTimestamp time.Time,
+	clientState *ClientState, consState *ConsensusState, header *Header, currentTimestamp time.Time,
 ) error {
 	if err := checkTrustedHeader(header, consState); err != nil {
 		return err
@@ -147,7 +148,8 @@ func checkValidity(
 	if header.GetHeight().LTE(header.TrustedHeight) {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
-			"header height ≤ consensus state height (%s ≤ %s)", header.GetHeight(), header.TrustedHeight,
+			"header height ≤ consensus state height (%s ≤ %s)",
+			header.GetHeight(), header.TrustedHeight,
 		)
 	}
 
@@ -179,12 +181,11 @@ func checkValidity(
 	// - assert header timestamp is not past the trusting period
 	// - assert header timestamp is past latest stored consensus state timestamp
 	// - assert that a TrustLevel proportion of TrustedValidators signed new Commit
-	err = light.Verify(
-		&signedHeader,
-		tmTrustedValidators, tmSignedHeader, tmValidatorSet,
-		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift, clientState.TrustLevel.ToTendermint(),
-	)
-	if err != nil {
+	if err = light.Verify(
+		&signedHeader, tmTrustedValidators, tmSignedHeader, tmValidatorSet,
+		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift,
+		clientState.TrustLevel.ToTendermint(),
+	); err != nil {
 		return sdkerrors.Wrap(err, "failed to verify header")
 	}
 	return nil

@@ -27,6 +27,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdNodeConsensusState(),
 		GetCmdQueryRelayers(),
 	)
+
 	return queryCmd
 }
 
@@ -43,5 +44,6 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewUpdateClientCmd(),
 	)
+
 	return txCmd
 }

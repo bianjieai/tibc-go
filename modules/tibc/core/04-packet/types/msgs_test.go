@@ -83,12 +83,6 @@ func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
 }
 
-func (suite *TypesTestSuite) TestMsgRecvPacketType() {
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
-
-	suite.Equal("recv_packet", msg.Type())
-}
-
 func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	testCases := []struct {
 		name    string

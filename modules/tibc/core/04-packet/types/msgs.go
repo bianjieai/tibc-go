@@ -8,16 +8,16 @@ import (
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
 
 var _ sdk.Msg = &MsgRecvPacket{}
+var _ sdk.Msg = &MsgAcknowledgement{}
+var _ sdk.Msg = &MsgRecvCleanPacket{}
 
 // NewMsgRecvPacket constructs new MsgRecvPacket
 // nolint:interfacer
 func NewMsgRecvPacket(
-	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height,
-	signer sdk.AccAddress,
+	packet Packet, proofCommitment []byte, proofHeight clienttypes.Height, signer sdk.AccAddress,
 ) *MsgRecvPacket {
 	return &MsgRecvPacket{
 		Packet:          packet,
@@ -25,11 +25,6 @@ func NewMsgRecvPacket(
 		ProofHeight:     proofHeight,
 		Signer:          signer.String(),
 	}
-}
-
-// Route implements sdk.Msg
-func (msg MsgRecvPacket) Route() string {
-	return host.RouterKey
 }
 
 // ValidateBasic implements sdk.Msg
@@ -45,12 +40,6 @@ func (msg MsgRecvPacket) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
-}
-
-// GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which TIBC does not support.
-func (msg MsgRecvPacket) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")
 }
 
 // GetDataSignBytes returns the base64-encoded bytes used for the
@@ -69,13 +58,6 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements sdk.Msg
-func (msg MsgRecvPacket) Type() string {
-	return "recv_packet"
-}
-
-var _ sdk.Msg = &MsgAcknowledgement{}
-
 // NewMsgAcknowledgement constructs a new MsgAcknowledgement
 // nolint:interfacer
 func NewMsgAcknowledgement(
@@ -91,11 +73,6 @@ func NewMsgAcknowledgement(
 		ProofHeight:     proofHeight,
 		Signer:          signer.String(),
 	}
-}
-
-// Route implements sdk.Msg
-func (msg MsgAcknowledgement) Route() string {
-	return host.RouterKey
 }
 
 // ValidateBasic implements sdk.Msg
@@ -116,12 +93,6 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 	return msg.Packet.ValidateBasic()
 }
 
-// GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which TIBC does not support.
-func (msg MsgAcknowledgement) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")
-}
-
 // GetSigners implements sdk.Msg
 func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -131,28 +102,15 @@ func (msg MsgAcknowledgement) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-// Type implements sdk.Msg
-func (msg MsgAcknowledgement) Type() string {
-	return "acknowledge_packet"
-}
-
 var _ sdk.Msg = &MsgCleanPacket{}
 
 // NewMsgCleanPacket constructs new MsgCleanPacket
 // nolint:interfacer
-func NewMsgCleanPacket(
-	packet CleanPacket,
-	signer sdk.AccAddress,
-) *MsgCleanPacket {
+func NewMsgCleanPacket(packet CleanPacket, signer sdk.AccAddress) *MsgCleanPacket {
 	return &MsgCleanPacket{
 		CleanPacket: packet,
 		Signer:      signer.String(),
 	}
-}
-
-// Route implements sdk.Msg
-func (msg MsgCleanPacket) Route() string {
-	return host.RouterKey
 }
 
 // ValidateBasic implements sdk.Msg
@@ -164,12 +122,6 @@ func (msg MsgCleanPacket) ValidateBasic() error {
 	return msg.CleanPacket.ValidateBasic()
 }
 
-// GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which TIBC does not support.
-func (msg MsgCleanPacket) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")
-}
-
 // GetSigners implements sdk.Msg
 func (msg MsgCleanPacket) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -178,13 +130,6 @@ func (msg MsgCleanPacket) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{signer}
 }
-
-// Type implements sdk.Msg
-func (msg MsgCleanPacket) Type() string {
-	return "clean_packet"
-}
-
-var _ sdk.Msg = &MsgRecvCleanPacket{}
 
 // NewMsgCleanPacket constructs new MsgCleanPacket
 // nolint:interfacer
@@ -202,11 +147,6 @@ func NewMsgRecvCleanPacket(
 	}
 }
 
-// Route implements sdk.Msg
-func (msg MsgRecvCleanPacket) Route() string {
-	return host.RouterKey
-}
-
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvCleanPacket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -216,12 +156,6 @@ func (msg MsgRecvCleanPacket) ValidateBasic() error {
 	return msg.CleanPacket.ValidateBasic()
 }
 
-// GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which TIBC does not support.
-func (msg MsgRecvCleanPacket) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")
-}
-
 // GetSigners implements sdk.Msg
 func (msg MsgRecvCleanPacket) GetSigners() []sdk.AccAddress {
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -229,9 +163,4 @@ func (msg MsgRecvCleanPacket) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{signer}
-}
-
-// Type implements sdk.Msg
-func (msg MsgRecvCleanPacket) Type() string {
-	return "recv_clean_packet"
 }

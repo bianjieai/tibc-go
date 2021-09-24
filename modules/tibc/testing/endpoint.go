@@ -82,7 +82,8 @@ func (endpoint *Endpoint) CreateClient() error {
 
 	height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 	clientState := ibctmtypes.NewClientState(
-		endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+		endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel,
+		tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 		height, commitmenttypes.GetSDKSpecs(), Prefix, 0,
 	)
 	consensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()

@@ -27,35 +27,53 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{"valid header", func() {}, true},
-		{"header is nil", func() {
+	}{{
+		"valid header",
+		func() {},
+		true,
+	}, {
+		"header is nil", func() {
 			header.Header = nil
-		}, false},
-		{"signed header is nil", func() {
+		},
+		false,
+	}, {
+		"signed header is nil", func() {
 			header.SignedHeader = nil
-		}, false},
-		{"SignedHeaderFromProto failed", func() {
+		},
+		false,
+	}, {
+		"SignedHeaderFromProto failed", func() {
 			header.SignedHeader.Commit.Height = -1
-		}, false},
-		{"signed header failed tendermint ValidateBasic", func() {
+		},
+		false,
+	}, {
+		"signed header failed tendermint ValidateBasic", func() {
 			header = suite.chainA.LastHeader
 			header.SignedHeader.Commit = nil
-		}, false},
-		{"trusted height is greater than header height", func() {
+		},
+		false,
+	}, {
+		"trusted height is greater than header height", func() {
 			header.TrustedHeight = header.GetHeight().(clienttypes.Height).Increment().(clienttypes.Height)
-		}, false},
-		{"validator set nil", func() {
+		},
+		false,
+	}, {
+		"validator set nil", func() {
 			header.ValidatorSet = nil
-		}, false},
-		{"ValidatorSetFromProto failed", func() {
+		},
+		false,
+	}, {
+		"ValidatorSetFromProto failed", func() {
 			header.ValidatorSet.Validators[0].PubKey = tmprotocrypto.PublicKey{}
-		}, false},
-		{"header validator hash does not equal hash of validator set", func() {
+		},
+		false,
+	}, {
+		"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
 			header.ValidatorSet = suite.chainB.LastHeader.ValidatorSet
-		}, false},
-	}
+		},
+		false,
+	}}
 
 	suite.Require().Equal(exported.Tendermint, suite.header.ClientType())
 

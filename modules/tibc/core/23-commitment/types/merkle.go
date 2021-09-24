@@ -142,8 +142,11 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 		return sdkerrors.Wrapf(ErrInvalidProof, "path %v is not of type MerklePath", path)
 	}
 	if len(mpath.KeyPath) != len(specs) {
-		return sdkerrors.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+		return sdkerrors.Wrapf(
+			ErrInvalidProof,
+			"path length %d not same as proof %d",
+			len(mpath.KeyPath), len(specs),
+		)
 	}
 	if len(value) == 0 {
 		return sdkerrors.Wrap(ErrInvalidProof, "empty value in membership proof")
@@ -171,8 +174,10 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 		return sdkerrors.Wrapf(ErrInvalidProof, "path %v is not of type MerkleProof", path)
 	}
 	if len(mpath.KeyPath) != len(specs) {
-		return sdkerrors.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+		return sdkerrors.Wrapf(
+			ErrInvalidProof, "path length %d not same as proof %d",
+			len(mpath.KeyPath), len(specs),
+		)
 	}
 
 	switch proof.Proofs[0].Proof.(type) {
@@ -196,11 +201,16 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 			return err
 		}
 	case *ics23.CommitmentProof_Exist:
-		return sdkerrors.Wrapf(ErrInvalidProof,
-			"got ExistenceProof in VerifyNonMembership. If this is unexpected, please ensure that proof was queried with the correct key.")
+		return sdkerrors.Wrapf(
+			ErrInvalidProof,
+			"got ExistenceProof in VerifyNonMembership. If this is unexpected, please ensure that proof was queried with the correct key.",
+		)
 	default:
-		return sdkerrors.Wrapf(ErrInvalidProof,
-			"expected proof type: %T, got: %T", &ics23.CommitmentProof_Exist{}, proof.Proofs[0].Proof)
+		return sdkerrors.Wrapf(
+			ErrInvalidProof,
+			"expected proof type: %T, got: %T",
+			&ics23.CommitmentProof_Exist{}, proof.Proofs[0].Proof,
+		)
 	}
 	return nil
 }
@@ -247,26 +257,35 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 
 			// verify membership of the proof at this index with appropriate key and value
 			if ok := ics23.VerifyMembership(specs[i], subroot, proofs[i], key, value); !ok {
-				return sdkerrors.Wrapf(ErrInvalidProof,
+				return sdkerrors.Wrapf(
+					ErrInvalidProof,
 					"chained membership proof failed to verify membership of value: %X in subroot %X at index %d. Please ensure the path and value are both correct.",
-					value, subroot, i)
+					value, subroot, i,
+				)
 			}
 			// Set value to subroot so that we verify next proof in chain commits to this subroot
 			value = subroot
 		case *ics23.CommitmentProof_Nonexist:
-			return sdkerrors.Wrapf(ErrInvalidProof,
+			return sdkerrors.Wrapf(
+				ErrInvalidProof,
 				"chained membership proof contains nonexistence proof at index %d. If this is unexpected, please ensure that proof was queried from the height that contained the value in store and was queried with the correct key.",
-				i)
+				i,
+			)
 		default:
-			return sdkerrors.Wrapf(ErrInvalidProof,
-				"expected proof type: %T, got: %T", &ics23.CommitmentProof_Exist{}, proofs[i].Proof)
+			return sdkerrors.Wrapf(
+				ErrInvalidProof,
+				"expected proof type: %T, got: %T",
+				&ics23.CommitmentProof_Exist{}, proofs[i].Proof,
+			)
 		}
 	}
 	// Check that chained proof root equals passed-in root
 	if !bytes.Equal(root, subroot) {
-		return sdkerrors.Wrapf(ErrInvalidProof,
+		return sdkerrors.Wrapf(
+			ErrInvalidProof,
 			"proof did not commit to expected root: %X, got: %X. Please ensure proof was submitted with correct proofHeight and to the correct chain.",
-			root, subroot)
+			root, subroot,
+		)
 	}
 	return nil
 }
@@ -300,9 +319,11 @@ func (proof MerkleProof) validateVerificationArgs(specs []*ics23.ProofSpec, root
 	}
 
 	if len(specs) != len(proof.Proofs) {
-		return sdkerrors.Wrapf(ErrInvalidMerkleProof,
+		return sdkerrors.Wrapf(
+			ErrInvalidMerkleProof,
 			"length of specs: %d not equal to length of proof: %d",
-			len(specs), len(proof.Proofs))
+			len(specs), len(proof.Proofs),
+		)
 	}
 
 	for i, spec := range specs {

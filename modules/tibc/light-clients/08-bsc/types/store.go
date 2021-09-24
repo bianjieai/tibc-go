@@ -42,7 +42,8 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
-			"consensus state does not exist for height %s", height,
+			"consensus state does not exist for height %s",
+			height,
 		)
 	}
 

@@ -92,9 +92,7 @@ func (a AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 	return nil
 }
 
-func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	return
-}
+func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {}
 
 func (a AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	panic("implement me")

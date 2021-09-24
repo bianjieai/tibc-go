@@ -3,12 +3,13 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 type BSCTestSuite struct {
