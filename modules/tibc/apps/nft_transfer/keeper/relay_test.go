@@ -76,7 +76,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			tc.malleate()
 			if !tc.awayFromSource {
-				newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
+				newClass ="tibc-5F88F7B2F39E49BB64D9682E6D7F8E10F8AA7DD10F6438FBAF1D4C659025F691"
+				//newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
 				// send nft from chainB to chainA
 				err := suite.chainB.App.NftTransferKeeper.SendNftTransfer(
 					suite.chainB.GetContext(), newClass, "taidy",
@@ -176,6 +177,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		failedAck = packettypes.NewErrorAcknowledgement("failed packet transfer")
 		path      *ibctesting.Path
 		newClass  string
+		fullClassPath string
 	)
 
 	testCases := []struct {
@@ -215,8 +217,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
 			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
 
-			newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
-
 		}, true, false, true},
 	}
 
@@ -246,14 +246,16 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				}
 			} else {
 
-				newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
+
+				fullClassPath = "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + CLASS
+				newClass = "tibc-5F88F7B2F39E49BB64D9682E6D7F8E10F8AA7DD10F6438FBAF1D4C659025F691"
 				// send nft from chainB to chainA
 				_ = suite.chainB.App.NftTransferKeeper.SendNftTransfer(
 					suite.chainB.GetContext(), newClass, "taidy",
 					suite.chainB.SenderAccount.GetAddress(), suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainA.ChainID, "")
 
-				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), false)
+				data := types.NewNonFungibleTokenPacketData(fullClassPath, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), false)
 				err := suite.chainB.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), data, tc.ack)
 
 				if tc.expPass {

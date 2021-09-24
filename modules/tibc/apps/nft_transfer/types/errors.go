@@ -6,4 +6,5 @@ var (
 	ErrInvalidDenom            = sdkerrors.Register(ModuleName, 2, "invalid denom")
 	ErrUnknownNFT              = sdkerrors.Register(ModuleName, 3, "unknown nft")
 	ErrScChainEqualToDestChain = sdkerrors.Register(ModuleName, 4, "scChain equals to destChain")
+	ErrTraceNotFound           = sdkerrors.Register(ModuleName, 5, "class trace not found")
 )

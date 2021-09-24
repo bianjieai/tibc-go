@@ -14,4 +14,13 @@ const (
 	StoreKey = ModuleName
 	// QuerierRoute is the querier route for TIBC nft-transfer
 	QuerierRoute = ModuleName
+
+	// ClassPrefix is the prefix used for nft class.
+	ClassPrefix = "tibc"
+)
+
+
+var (
+	// ClassTraceKey defines the key to store the class trace info in store
+	ClassTraceKey = []byte{0x01}
 )
