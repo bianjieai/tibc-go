@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -183,13 +185,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			},
 			true,
 		},
-		// {"port not found", func() {
-		// 	// use wrong port naming
-		// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		// 	suite.coordinator.SetupClients(path)
-		// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
-		// 	ack = ibctesting.TestHash
-		// }, false},
 		{
 			"no-op, already acked",
 			func() {
@@ -283,6 +278,116 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				suite.Nil(pc)
 			} else {
 				suite.Error(err, "Invalid Case %d passed: %s", i, tc.msg)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCleanPacket() {
+	var (
+		commitment  []byte
+		cleanPacket exported.CleanPacketI
+	)
+
+	testCases := []testCase{
+		{"success", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			preCleanPacket := types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			path.EndpointA.CleanPacket(preCleanPacket)
+			cleanPacket = types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+		}, true},
+		{"client state not found", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, tibctesting.InvalidID, relayChain)
+		}, false},
+		{"clean sequence illegal", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			preCleanPacket := types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			path.EndpointA.CleanPacket(preCleanPacket)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+		}, false},
+		{"commitment haven't been acked", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			commitment = tibctesting.TestHash
+
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence(), commitment)
+		}, false},
+	}
+	for i, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			err := suite.chainA.App.TIBCKeeper.PacketKeeper.CleanPacket(suite.chainA.GetContext(), cleanPacket)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestRecvCleanPacket() {
+	var (
+		ack         []byte
+		cleanPacket types.CleanPacket
+	)
+
+	testCases := []testCase{
+		{"success", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			err := path.EndpointA.CleanPacket(cleanPacket)
+			suite.Require().NoError(err)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			ack = tibcmock.MockAcknowledgement
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, ack)
+		}, true},
+		{"client state not found", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
+			cleanPacket = types.NewCleanPacket(1, tibctesting.InvalidID, path.EndpointB.ChainName, relayChain)
+		}, false},
+	}
+	for i, tc := range testCases {
+		tc := tc
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
+			suite.SetupTest() // reset
+			tc.malleate()
+
+			// get proof of packet commitment from chainA
+			cleanPacketKey := host.CleanPacketCommitmentKey(cleanPacket.GetSourceChain(), cleanPacket.GetDestChain())
+			proof, proofHeight := suite.chainA.QueryProof(cleanPacketKey)
+
+			err := suite.chainB.App.TIBCKeeper.PacketKeeper.RecvCleanPacket(suite.chainB.GetContext(), cleanPacket, proof, proofHeight)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+
+				_, receiptStored := suite.chainB.App.TIBCKeeper.PacketKeeper.GetPacketReceipt(suite.chainB.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+				suite.Require().False(receiptStored, "packet receipt has not been cleaned")
+
+				_, ackStored := suite.chainB.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+				suite.Require().False(ackStored, "packet ack has not been cleaned")
+
+				currentCleanSeq := sdk.BigEndianToUint64(suite.chainB.App.TIBCKeeper.PacketKeeper.GetCleanPacketCommitment(suite.chainB.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain()))
+				suite.Require().Equal(uint64(1), currentCleanSeq)
+			} else {
+				suite.Require().Error(err)
 			}
 		})
 	}

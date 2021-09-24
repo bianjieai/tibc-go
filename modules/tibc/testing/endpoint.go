@@ -220,8 +220,12 @@ func (endpoint *Endpoint) CleanPacket(cleanPacket packettypes.CleanPacket) error
 	// commit changes since no message was sent
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
 	cleanMsg := packettypes.NewMsgCleanPacket(cleanPacket, endpoint.Chain.SenderAccount.GetAddress())
+	endpoint.Chain.sendMsgs(cleanMsg)
 
-	return endpoint.Chain.sendMsgs(cleanMsg)
+	// commit changes since no message was sent
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	return endpoint.Counterparty.UpdateClient()
 }
 
 // AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
