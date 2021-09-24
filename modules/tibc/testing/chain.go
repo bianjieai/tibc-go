@@ -118,13 +118,13 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
 	}
 
-	app := simapp.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
 		ChainID: chainID,
 		Height:  1,
-		Time:    globalStartTime,
+		Time:    coord.CurrentTime.UTC(),
 	}
 
 	txConfig := simapp.MakeTestEncodingConfig().TxConfig
@@ -290,7 +290,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
-	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	_ = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
 
 	chain.Coordinator.IncrementTime()
 
@@ -463,9 +463,11 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctmtypes.Header {
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
 func (chain *TestChain) CreateTMClientHeader(
-	chainID string, blockHeight int64,
+	chainID string,
+	blockHeight int64,
 	trustedHeight clienttypes.Height,
-	timestamp time.Time, tmValSet,
+	timestamp time.Time,
+	tmValSet *tmtypes.ValidatorSet,
 	tmTrustedVals *tmtypes.ValidatorSet,
 	signers []tmtypes.PrivValidator,
 ) *ibctmtypes.Header {

@@ -37,7 +37,7 @@ func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
 	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
 
 		// packet found, relay from A to B
-		path.EndpointB.UpdateClient()
+		_ = path.EndpointB.UpdateClient()
 
 		if err := path.EndpointB.RecvPacket(packet); err != nil {
 			return err
@@ -54,7 +54,7 @@ func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
 	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
 
 		// packet found, relay B to A
-		path.EndpointA.UpdateClient()
+		_ = path.EndpointA.UpdateClient()
 
 		if err := path.EndpointA.RecvPacket(packet); err != nil {
 			return err
