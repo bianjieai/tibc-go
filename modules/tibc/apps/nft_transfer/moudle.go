@@ -180,12 +180,12 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sd
 
 func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet packettypes.Packet, acknowledgement []byte) (*sdk.Result, error) {
 	var ack packettypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	if err := ack.Unmarshal(acknowledgement); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet acknowledgement: %v", err)
 	}
 	var data types.NonFungibleTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet data: %s", err.Error())
 	}
 
 	if err := a.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {

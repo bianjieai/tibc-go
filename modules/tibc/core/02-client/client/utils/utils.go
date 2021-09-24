@@ -71,6 +71,18 @@ func QueryClientStateABCI(
 func QueryConsensusState(
 	clientCtx client.Context, chainName string, height exported.Height, prove, latestHeight bool,
 ) (*types.QueryConsensusStateResponse, error) {
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+	if height == nil || height.IsZero() {
+		res, err := QueryClientState(clientCtx, chainName, false)
+		if err != nil {
+			return nil, err
+		}
+		var clientState exported.ClientState
+		if err := cdc.UnpackAny(res.ClientState, &clientState); err != nil {
+			return nil, err
+		}
+		height = clientState.GetLatestHeight()
+	}
 	if prove {
 		return QueryConsensusStateABCI(clientCtx, chainName, height)
 	}
@@ -92,17 +104,6 @@ func QueryConsensusStateABCI(
 	clientCtx client.Context, chainName string, height exported.Height,
 ) (*types.QueryConsensusStateResponse, error) {
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
-	if height == nil || height.IsZero() {
-		res, err := QueryClientState(clientCtx, chainName, false)
-		if err != nil {
-			return nil, err
-		}
-		var clientState exported.ClientState
-		if err := cdc.UnpackAny(res.ClientState, clientState); err != nil {
-			return nil, err
-		}
-		height = clientState.GetLatestHeight()
-	}
 	key := host.FullConsensusStateKey(chainName, height)
 
 	value, proofBz, proofHeight, err := tibcclient.QueryTendermintProof(clientCtx, key)
