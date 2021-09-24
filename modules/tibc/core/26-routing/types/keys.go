@@ -13,3 +13,8 @@ const (
 	// QuerierRoute is the querier route for TIBC ports
 	QuerierRoute = SubModuleName
 )
+
+const (
+	// RulePattern format "source.dest.port"
+	RulePattern = "^([^.]{1,50}\\.){2}[^.]{1,50}$"
+)

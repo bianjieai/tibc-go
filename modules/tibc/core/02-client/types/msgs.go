@@ -20,47 +20,6 @@ var (
 	_ codectypes.UnpackInterfacesMessage = MsgUpdateClient{}
 )
 
-// ValidateBasic implements sdk.Msg
-// func (msg MsgCreateClient) ValidateBasic() error {
-// 	_, err := sdk.AccAddressFromBech32(msg.Signer)
-// 	if err != nil {
-// 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-// 	}
-// 	clientState, err := UnpackClientState(msg.ClientState)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if err := clientState.Validate(); err != nil {
-// 		return err
-// 	}
-// 	if clientState.ClientType() == exported.Localhost {
-// 		return sdkerrors.Wrap(ErrInvalidClient, "localhost client can only be created on chain initialization")
-// 	}
-// 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if clientState.ClientType() != consensusState.ClientType() {
-// 		return sdkerrors.Wrap(ErrInvalidClientType, "client type for client state and consensus state do not match")
-// 	}
-// 	if err := ValidateClientType(clientState.ClientType()); err != nil {
-// 		return sdkerrors.Wrap(err, "client type does not meet naming constraints")
-// 	}
-// 	return consensusState.ValidateBasic()
-// }
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-// func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-// 	var clientState exported.ClientState
-// 	err := unpacker.UnpackAny(msg.ClientState, &clientState)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	var consensusState exported.ConsensusState
-// 	return unpacker.UnpackAny(msg.ConsensusState, &consensusState)
-// }
-
 // NewMsgUpdateClient creates a new MsgUpdateClient instance
 //nolint:interfacer
 func NewMsgUpdateClient(chainName string, header exported.Header, signer sdk.AccAddress) (*MsgUpdateClient, error) {

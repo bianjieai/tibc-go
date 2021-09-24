@@ -28,11 +28,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the tibc module's genesis state.
 type GenesisState struct {
-	// ICS002 - Clients genesis state
+	// TICS002 - Clients genesis state
 	ClientGenesis types.GenesisState `protobuf:"bytes,1,opt,name=client_genesis,json=clientGenesis,proto3" json:"client_genesis" yaml:"client_genesis"`
-	// ICS004 - Packet genesis state
+	// TICS004 - Packet genesis state
 	PacketGenesis types1.GenesisState `protobuf:"bytes,3,opt,name=packet_genesis,json=packetGenesis,proto3" json:"packet_genesis" yaml:"packet_genesis"`
-	// ICS026 - Routing genesis state
+	// TICS026 - Routing genesis state
 	RoutingGenesis types2.GenesisState `protobuf:"bytes,4,opt,name=routing_genesis,json=routingGenesis,proto3" json:"routing_genesis" yaml:"routing_genesis"`
 }
 
