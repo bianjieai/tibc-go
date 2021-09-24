@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			tc.malleate()
 			if !tc.awayFromSource {
-				newClass ="tibc-5F88F7B2F39E49BB64D9682E6D7F8E10F8AA7DD10F6438FBAF1D4C659025F691"
+				newClass = "tibc-5F88F7B2F39E49BB64D9682E6D7F8E10F8AA7DD10F6438FBAF1D4C659025F691"
 				//newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
 				// send nft from chainB to chainA
 				err := suite.chainB.App.NftTransferKeeper.SendNftTransfer(
@@ -174,9 +174,9 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		//successAck = packettypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck = packettypes.NewErrorAcknowledgement("failed packet transfer")
-		path      *ibctesting.Path
-		newClass  string
+		failedAck     = packettypes.NewErrorAcknowledgement("failed packet transfer")
+		path          *ibctesting.Path
+		newClass      string
 		fullClassPath string
 	)
 
@@ -245,7 +245,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					}
 				}
 			} else {
-
 
 				fullClassPath = "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + CLASS
 				newClass = "tibc-5F88F7B2F39E49BB64D9682E6D7F8E10F8AA7DD10F6438FBAF1D4C659025F691"

@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
+
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"strings"
 )
 
 // ParseClassTrace parses a string with the ibc prefix (class trace) and the base class
@@ -31,7 +32,6 @@ func ParseClassTrace(rawClass string) ClassTrace {
 		BaseClass: classSplit[len(classSplit)-1],
 	}
 }
-
 
 // Hash returns the hex bytes of the SHA256 hash of the ClassTrace fields using the following formula:
 //

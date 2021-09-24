@@ -55,7 +55,6 @@ func (k Keeper) GetNftTransferModuleAddr(name string) sdk.AccAddress {
 	return k.ak.GetModuleAddress(name)
 }
 
-
 // HasClassTrace checks if a the key with the given class trace hash exists on the store.
 func (k Keeper) HasClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
@@ -76,7 +75,7 @@ func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) 
 	if bz == nil {
 		return types.ClassTrace{}, false
 	}
-	var  classTrace types.ClassTrace
+	var classTrace types.ClassTrace
 	k.cdc.MustUnmarshalBinaryBare(bz, &classTrace)
 	return classTrace, true
 }

@@ -18,7 +18,6 @@ const (
 	DoNotModify = "[do-not-modify]"
 )
 
-
 func (k Keeper) SendNftTransfer(
 	ctx sdk.Context,
 	class, id string,
@@ -178,11 +177,11 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		if strings.HasPrefix(data.Class, "nft") {
 			classSplit := strings.Split(data.Class, "/")
 
-			if len(classSplit) == 5 {
-				// tibc/nft/A/B/class -> class
+			if len(classSplit) == 4 {
+				// nft/A/B/class -> class
 				newClass = classSplit[len(classSplit)-1]
 			} else {
-				// tibc/nft/A/B/C/class -> tibc/nft/A/B/class
+				// nft/A/B/C/class -> nft/A/B/class
 				classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
 				newClass = strings.Join(classSplit, "/")
 			}
@@ -265,13 +264,11 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	return true
 }
 
-
-
 // ClassPathFromHash returns the full class path prefix from an ibc class with a hash
 // component.
 func (k Keeper) ClassPathFromHash(ctx sdk.Context, class string) (string, error) {
 	// trim the class prefix, by default "tibc-"
-	hexHash := class[len(types.ClassPrefix + "-"):]
+	hexHash := class[len(types.ClassPrefix+"-"):]
 
 	hash, err := types.ParseHexHash(hexHash)
 	if err != nil {

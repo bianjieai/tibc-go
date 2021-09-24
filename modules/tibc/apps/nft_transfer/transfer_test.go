@@ -128,7 +128,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
 	suite.Require().NoError(err2) // message committed
 
-	fullClassPathFromCToB := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/"+ "mobile"
+	fullClassPathFromCToB := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + "mobile"
 	// relay send
 	nftPacket := types.NewNonFungibleTokenPacketData(fullClassPathFromCToB, "xiaomi",
 		"", suite.chainC.SenderAccount.GetAddress().String(),
@@ -150,8 +150,9 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
 	suite.Require().NoError(err) // message committed
 
+	fullClassPathFromBToA := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
 	// relay send
-	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(classInchainB, "xiaomi",
+	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(fullClassPathFromBToA, "xiaomi",
 		"", suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(), false,
 	)
