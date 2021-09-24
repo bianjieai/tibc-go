@@ -14,5 +14,5 @@ var (
 	ErrInvalidRule          = sdkerrors.Register(moduleName, 3, "invalid rule")
 	ErrFailMarshalRules     = sdkerrors.Register(moduleName, 4, "failed to marshal rules")
 	ErrFailUnmarshalRules   = sdkerrors.Register(moduleName, 5, "failed to unmarshal rules")
-	ErrRoutingRulesNotFound = sdkerrors.Register(moduleName, 22, "routing rules not found")
+	ErrRoutingRulesNotFound = sdkerrors.Register(moduleName, 6, "routing rules not found")
 )

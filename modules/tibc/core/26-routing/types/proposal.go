@@ -18,7 +18,7 @@ func init() {
 	govtypes.RegisterProposalType(ProposalTypeSetRoutingRules)
 }
 
-// NewSetRoutingRulesProposal creates a new routing proposal.
+// NewSetRoutingRulesProposal creates a new setting rules proposal.
 func NewSetRoutingRulesProposal(title, description string, rules []string) (*SetRoutingRulesProposal, error) {
 	return &SetRoutingRulesProposal{
 		Title:       title,
@@ -27,16 +27,16 @@ func NewSetRoutingRulesProposal(title, description string, rules []string) (*Set
 	}, nil
 }
 
-// GetTitle returns the title of a client update proposal.
+// GetTitle returns the title of a setting rules proposal.
 func (cup *SetRoutingRulesProposal) GetTitle() string { return cup.Title }
 
-// GetDescription returns the description of a client update proposal.
+// GetDescription returns the description of a setting rules proposal.
 func (cup *SetRoutingRulesProposal) GetDescription() string { return cup.Description }
 
-// ProposalRoute returns the routing key of a client update proposal.
+// ProposalRoute returns the routing key of a setting rules proposal.
 func (cup *SetRoutingRulesProposal) ProposalRoute() string { return RouterKey }
 
-// ProposalType returns the type of a client update proposal.
+// ProposalType returns the type of a setting rules proposal.
 func (cup *SetRoutingRulesProposal) ProposalType() string { return ProposalTypeSetRoutingRules }
 
 // ValidateBasic runs basic stateless validity checks

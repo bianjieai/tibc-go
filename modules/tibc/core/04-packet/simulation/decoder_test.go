@@ -9,10 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/simulation"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 func TestDecodeStore(t *testing.T) {

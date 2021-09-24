@@ -13,8 +13,8 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// CreateClient creates a new client state and populates it with a given consensus
-// state as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#create
+// CreateClient creates a new client state and populates it with a given
+// client state and consensus state
 func (k Keeper) CreateClient(
 	ctx sdk.Context, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) error {
@@ -104,7 +104,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 	return nil
 }
 
-// UpgradeClient upgrades the client to a new client state
+// UpgradeClient upgrades the client to a new client state.
 func (k Keeper) UpgradeClient(ctx sdk.Context, chainName string, upgradedClientState exported.ClientState, upgradedConsState exported.ConsensusState) error {
 	clientState, found := k.GetClientState(ctx, chainName)
 	if !found {

@@ -16,7 +16,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
-// NewSetRoutingRulesProposalCmd implements a command handler for submitting a client create proposal transaction.
+// NewSetRoutingRulesProposalCmd implements a command handler for submitting a setting rules proposal transaction.
 func NewSetRoutingRulesProposalCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-rules [path/to/routing_rules.json] [flags]",
