@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"strconv"
 	"strings"
 
@@ -270,7 +269,7 @@ func (k Keeper) GetAllPacketReceipts(ctx sdk.Context) (receipts []types.PacketSt
 }
 
 // IteratePacketAcknowledgement provides an iterator over all PacketAcknowledgement objects. For each
-// aknowledgement, cb will be called. If the cb returns true, the iterator will close
+// acknowledgement, cb will be called. If the cb returns true, the iterator will close
 // and stop.
 func (k Keeper) IteratePacketAcknowledgement(ctx sdk.Context, cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -317,22 +316,15 @@ func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) erro
 }
 
 func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
-	store := ctx.KVStore(k.storeKey)
-	paccketSeq := cleanPacket.GetSequence()
+	packetSeq := cleanPacket.GetSequence()
 	sourceChain := cleanPacket.GetSourceChain()
 	destChain := cleanPacket.GetDestChain()
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	if paccketSeq <= currentCleanSeq {
+	if packetSeq <= currentCleanSeq {
 		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		seq := binary.BigEndian.Uint64(iterator.Key())
-		if paccketSeq < seq {
-			break
-		}
-		if !k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
+	for seq := currentCleanSeq; seq <= packetSeq; seq++ {
+		if k.HasPacketCommitment(ctx, sourceChain, destChain, seq) {
 			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
 		}
 	}
@@ -340,19 +332,19 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanP
 }
 
 func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.ReverseIterator(host.PacketAcknowledgementKey(sourceChain, destChain, 0), host.PacketAcknowledgementKey(sourceChain, destChain, sequence+1))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
+	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	for seq := currentCleanSeq; seq <= sequence; seq++ {
+		if k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
+			k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
+		}
 	}
 }
 
 func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := store.ReverseIterator(host.PacketReceiptKey(sourceChain, destChain, 0), host.PacketReceiptKey(sourceChain, destChain, sequence+1))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
+	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	for seq := currentCleanSeq; seq <= sequence; seq++ {
+		if k.HasPacketReceipt(ctx, sourceChain, destChain, seq) {
+			k.deletePacketReceipt(ctx, sourceChain, destChain, seq)
+		}
 	}
 }

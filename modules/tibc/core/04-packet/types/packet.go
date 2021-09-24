@@ -79,6 +79,18 @@ func (p Packet) ValidateBasic() error {
 
 var _ exported.CleanPacketI = (*CleanPacket)(nil)
 
+// NewCleanPacket creates a new CleanPacket instance.
+func NewCleanPacket(
+	sequence uint64, sourceChain, destinationChain, relayChain string,
+) CleanPacket {
+	return CleanPacket{
+		Sequence:         sequence,
+		SourceChain:      sourceChain,
+		DestinationChain: destinationChain,
+		RelayChain:       relayChain,
+	}
+}
+
 // GetSequence implements PacketI interface
 func (p CleanPacket) GetSequence() uint64 { return p.Sequence }
 
