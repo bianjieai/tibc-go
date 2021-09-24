@@ -188,6 +188,7 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 	}, nil
 }
 
+// Relayers implements the Query/Relayers gRPC method
 func (q Keeper) Relayers(c context.Context, req *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")

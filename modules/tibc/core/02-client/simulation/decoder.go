@@ -13,7 +13,7 @@ import (
 
 var _ ClientUnmarshaler = (*keeper.Keeper)(nil)
 
-// ClientUnmarshaler defines an interface for unmarshaling ICS02 interfaces.
+// ClientUnmarshaler defines an interface for unmarshaling TICS02 interfaces.
 type ClientUnmarshaler interface {
 	MustUnmarshalClientState([]byte) exported.ClientState
 	MustUnmarshalConsensusState([]byte) exported.ConsensusState

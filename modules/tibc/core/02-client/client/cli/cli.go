@@ -8,7 +8,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
 
-// GetQueryCmd returns the query commands for TIBC clients
+// GetQueryCmd returns a root CLI command handler for all tibc/client query commands.
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
@@ -30,7 +30,7 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// NewTxCmd returns the command to create and handle TIBC clients
+// NewTxCmd returns a root CLI command handler for all tibc/client transaction commands.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.SubModuleName,

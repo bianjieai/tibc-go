@@ -27,7 +27,6 @@ func NewKeeper(
 	ak types.AccountKeeper, nk types.NftKeeper,
 	pk types.PacketKeeper, ck types.ClientKeeper,
 ) Keeper {
-
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the TIBC nft-transfer module account has not been set")
 	}

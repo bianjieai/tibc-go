@@ -52,8 +52,8 @@ func FullClientKey(chainName string, path []byte) []byte {
 	return []byte(FullClientPath(chainName, string(path)))
 }
 
-// ICS02
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#path-space
+// TICS02
+// The following paths are the keys to the store as defined in https://github.com/bianjieai/tics/tree/master/spec/tics-002-client-semantics#path-space
 
 // FullClientStatePath takes a client identifier and returns a Path under which to store a
 // particular client state
@@ -97,8 +97,8 @@ func ConsensusStateKey(height exported.Height) []byte {
 	return []byte(ConsensusStatePath(height))
 }
 
-// ICS04
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-004-channel-and-packet-semantics#store-paths
+// TICS04
+// The following paths are the keys to the store as defined in https://github.com/bianjieai/tics/tree/master/spec/tics-004-channel-and-packet-semantics#store-paths
 
 // NextSequenceSendPath defines the next send sequence counter store path
 func NextSequenceSendPath(sourceChain, destChain string) string {
@@ -162,14 +162,6 @@ func PacketReceiptPrefixPath(sourceChain, destinationChain string) string {
 
 func packetPath(sourceChain, destinationChain string) string {
 	return fmt.Sprintf("%s/%s", sourceChain, destinationChain)
-}
-
-// ICS05
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ics/tree/master/spec/ics-026-routing-allocation#store-paths
-
-// PortPath defines the path under which ports paths are stored on the capability module
-func PortPath(portID string) string {
-	return fmt.Sprintf("%s/%s", KeyPortPrefix, portID)
 }
 
 // CleanPacketCommitmentKey returns the store key of under which a clean packet commitment

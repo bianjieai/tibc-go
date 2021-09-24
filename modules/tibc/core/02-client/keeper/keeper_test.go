@@ -16,8 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -25,6 +23,7 @@ import (
 	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	ibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (
