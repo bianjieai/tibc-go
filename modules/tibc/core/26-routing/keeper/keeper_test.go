@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -8,6 +9,21 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
+
+//used by TestSetRoutingRules
+type testCase1 struct {
+	msg     string
+	rules   []string
+	expPass bool
+}
+
+// used by TestAuthenticate
+type testCase2 struct {
+	msg                string
+	rules              []string
+	source, dest, port string
+	expPass            bool
+}
 
 var (
 	validPort   = "validportid"
@@ -23,6 +39,7 @@ type KeeperTestSuite struct {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 1)
 	suite.chain = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.coordinator.CommitNBlocks(suite.chain, 2)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -40,8 +57,70 @@ func (suite *KeeperTestSuite) TestSetRouter() {
 	suite.Require().Equal(router, suite.chain.App.TIBCKeeper.RoutingKeeper.Router)
 }
 
+func (suite KeeperTestSuite) TestSetRoutingRules() {
+	testCases := []testCase1{
+		{
+			"1 include *",
+			[]string{"xxx,*,**"},
+			true,
+		},
+		{
+			"2 include ?",
+			[]string{"xxx,?,???"},
+			true,
+		},
+		{
+			"3 include * and ?",
+			[]string{"xxx,*dd,??dd"},
+			true,
+		},
+		{
+			"4 not inclde wildcard character",
+			[]string{"a,bbb,c"},
+			true,
+		},
+		{
+			"5 fail due to -1",
+			[]string{"a.b,c"},
+			false,
+		},
+		{
+			"6 fail due to -2",
+			[]string{"a,b,c,d"},
+			false,
+		},
+		{
+			"7 fail due to no content",
+			[]string{",dd,"},
+			false,
+		},
+		{
+			"8 fail no content",
+			[]string{""},
+			false,
+		},
+		{
+			"9 success no rule",
+			[]string{},
+			true,
+		},
+	}
+
+	for i, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i+1, len(testCases)), func() {
+			suite.SetupTest() // reset the context
+			rules := tc.rules
+			err := suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
 func (suite KeeperTestSuite) TestGetRoutingRules() {
-	rules := []string{"xxx.xxx.xxx", "yyy.yyy.yyy"}
+	rules := []string{"xxx,xxx,xxx", "yyy,yyy,yyy"}
 	ctx := suite.chain.GetContext()
 	err := suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(ctx, rules)
 	suite.Require().NoError(err)
@@ -51,12 +130,77 @@ func (suite KeeperTestSuite) TestGetRoutingRules() {
 }
 
 func (suite KeeperTestSuite) TestAuthenticate() {
-	ctx := suite.chain.GetContext()
-	rules := []string{"a*b*.c*d*.tt", "b.c.d"}
-	err := suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(ctx, rules)
-	suite.Require().NoError(err)
-	ok := suite.chain.App.TIBCKeeper.RoutingKeeper.Authenticate(ctx, "aabb", "ccdd", "tt")
-	suite.Require().True(ok)
-	ok = suite.chain.App.TIBCKeeper.RoutingKeeper.Authenticate(ctx, "aadb", "ccbe", "tt")
-	suite.Require().False(ok)
+	testCases := []testCase2{
+		{
+			"1 success, null",
+			[]string{"*,*,*"},
+			"",
+			"",
+			"",
+			true,
+		},
+		{
+			"2 fail,?",
+			[]string{"?,???,tt"},
+			"dd",
+			"d",
+			"tt",
+			false,
+		},
+		{
+			"3 success,?",
+			[]string{"?,??,???"},
+			"a",
+			"bb",
+			"ccc",
+			true,
+		},
+		{
+			"4 fail,*",
+			[]string{"*,*dd,p**"},
+			"",
+			"lsjdd",
+			"ddd",
+			false,
+		},
+		{
+			"5 success,* inner",
+			[]string{"ab*x,c*d,tt"},
+			"abddljdfx",
+			"ccd",
+			"tt",
+			true,
+		},
+		{
+			"6 success,* by side",
+			[]string{"ab*,*dd,t"},
+			"abfvs",
+			"lwjdd",
+			"t",
+			true,
+		},
+		{
+			"7 fail,null rules",
+			[]string{},
+			"aabb",
+			"cc",
+			"dd",
+			false,
+		},
+	}
+
+	for i, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i+1, len(testCases)), func() {
+			suite.SetupTest() // reset the context
+			rules := tc.rules
+			err := suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
+			suite.Require().NoError(err)
+			ok := suite.chain.App.TIBCKeeper.RoutingKeeper.Authenticate(suite.chain.GetContext(), tc.source, tc.dest, tc.port)
+			if tc.expPass {
+				suite.Require().True(ok)
+			} else {
+				suite.Require().False(ok)
+			}
+		})
+	}
 }
