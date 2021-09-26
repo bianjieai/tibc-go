@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"github.com/armon/go-metrics"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +11,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+    coretypes "github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
 const (
@@ -59,6 +62,11 @@ func (k Keeper) SendNftTransfer(
 		}
 	}
 
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelSourceChain, sourceChain),
+		telemetry.NewLabel(coretypes.LabelDestinationChain, destChain),
+	}
+
 	// determine whether nft is sent from the source chain or sent back to the source chain from other chains
 	awayFromOrigin := k.determineAwayFromOrigin(fullClassPath, destChain)
 
@@ -66,6 +74,7 @@ func (k Keeper) SendNftTransfer(
 	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	if awayFromOrigin {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 		// Two conversion scenarios
 		// 1. nftClass -> tibc-hash(nft/A/B/nftClass)
 		// 2. tibc-hash(nft/A/B/nftClass) -> tibc-hash(nft/A/B/C/nftClass)
@@ -79,6 +88,7 @@ func (k Keeper) SendNftTransfer(
 			return err
 		}
 	} else {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 		// burn nft
 		if err := k.nk.BurnNFT(ctx, class, id, sender); err != nil {
 			return err
@@ -102,6 +112,19 @@ func (k Keeper) SendNftTransfer(
 		return err
 	}
 
+	defer func() {
+		telemetry.SetGaugeWithLabels(
+			[]string{"tx", "msg", "tibc", "nfttransfer"},
+			1,
+			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullClassPath)},
+		)
+
+		telemetry.IncrCounterWithLabels(
+			[]string{"tibc", types.ModuleName, "send"},
+			1,
+			labels,
+		)
+	}()
 	return nil
 }
 
@@ -126,10 +149,16 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		return err
 	}
 
-	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
 
+	labels := []metrics.Label{
+		telemetry.NewLabel(coretypes.LabelSourceChain, packet.SourceChain),
+		telemetry.NewLabel(coretypes.LabelDestinationChain, packet.DestinationChain),
+	}
+
+	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
 	var newClass string
 	if data.AwayFromOrigin {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 		if strings.HasPrefix(data.Class, "nft") {
 			// nft/A/B/class -> nft/A/B/C/class
 			// [nft][A][B][class] -> [nft][A][B][C][class]
@@ -143,7 +172,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 
 		// construct the class trace from the full raw class
 		classTrace := types.ParseClassTrace(newClass)
-
 		traceHash := classTrace.Hash()
 
 		if !k.HasClassTrace(ctx, traceHash) {
@@ -174,6 +202,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		}
 
 	} else {
+		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 		if strings.HasPrefix(data.Class, "nft") {
 			classSplit := strings.Split(data.Class, "/")
 
@@ -196,6 +225,21 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 	}
+
+	defer func() {
+		telemetry.SetGaugeWithLabels(
+			[]string{"tx", "msg", "ibc", "transfer"},
+			1,
+			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, newClass)},
+		)
+
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", types.ModuleName, "send"},
+			1,
+			labels,
+		)
+	}()
+
 	return nil
 }
 
