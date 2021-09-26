@@ -58,7 +58,7 @@ func (m ClientState) Initialize(
 	consensusState := state.(*ConsensusState)
 	header := consensusState.Header.ToEthHeader()
 	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
-
+	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
 	return nil
 }
 
@@ -71,7 +71,7 @@ func (m ClientState) Status(
 	if err != nil {
 		return exported.Unknown
 	}
-	if onsState.Timestamp+m.GetDelayTime() < uint64(ctx.BlockTime().Nanosecond()) {
+	if onsState.Timestamp+m.TrustingPeriod < uint64(ctx.BlockTime().Nanosecond()) {
 		return exported.Expired
 	}
 	return exported.Active

@@ -37,8 +37,36 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	if err := checkValidity(ctx, cdc, store, &m, ethConsState, *ethHeader); err != nil {
 		return nil, nil, err
 	}
+	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+	// so that we can delete consensus state and all associated metadata.
+	var (
+		pruneHeight exported.Height
+		pruneError  error
+	)
+	pruneCb := func(height exported.Height) bool {
+		consState, err := GetConsensusState(store, cdc, height)
+		// this error should never occur
+		if err != nil {
+			pruneError = err
+			return true
+		}
+		bloclTime := uint64(ctx.BlockTime().Unix())
+		if consState.Timestamp+m.TrustingPeriod < bloclTime {
+			pruneHeight = height
+		}
+		return true
+	}
+	IterateConsensusStateAscending(store, pruneCb)
+	if pruneError != nil {
+		return nil, nil, pruneError
+	}
+	// if pruneHeight is set, delete consensus state and metadata
+	if pruneHeight != nil {
+		deleteConsensusState(store, pruneHeight)
+		deleteConsensusMetadata(store, pruneHeight)
+	}
 
-	newClientState, consensusState, err := update(cdc, store, &m, ethHeader)
+	newClientState, consensusState, err := update(ctx, cdc, store, &m, ethHeader)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -61,6 +89,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	}
 	m.Header = *ethHeader
 	newClientState.Header = *ethHeader
+
 	return newClientState, consensusState, nil
 }
 
@@ -82,7 +111,8 @@ func checkValidity(
 }
 
 // update the RecentSingers and the ConsensusState.
-func update(cdc codec.BinaryMarshaler,
+func update(ctx sdk.Context,
+	cdc codec.BinaryMarshaler,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header *Header,
@@ -94,6 +124,7 @@ func update(cdc codec.BinaryMarshaler,
 		Root:      header.Root,
 		Header:    *header,
 	}
+	setConsensusMetadata(ctx, store, header.GetHeight())
 	return clientState, cs, nil
 }
 

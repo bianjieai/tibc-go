@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/json"
 	"io/ioutil"
+	"time"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -28,7 +29,9 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 		Header:          header.ToHeader(),
 		ChainId:         1,
 		ContractAddress: []byte("0x00"),
-		TrustingPeriod:  200,
+		TrustingPeriod:  30,
+		TimeDelay:       0,
+		BlockDelay:      1,
 	})
 
 	consensusState := exported.ConsensusState(&tibcethtypes.ConsensusState{
@@ -44,6 +47,9 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	marshalInterface, err := suite.app.AppCodec().MarshalInterface(consensusState)
 	suite.NoError(err)
 	store.Set(tibcethtypes.ConsensusStateIndexKey(header.Hash()), marshalInterface)
+
+	tibcethtypes.SetProcessedTime(store, header.ToHeader().Height, uint64(time.Now().UnixNano()))
+	tibcethtypes.SetIterationKey(store, header.ToHeader().Height)
 
 	for _, updateHeader := range updateHeaders[1:] {
 		protoHeader := updateHeader.ToHeader()
