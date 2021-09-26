@@ -12,9 +12,8 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-// SendPacket is called by a module in order to send an TIBC packet on a channel
-// end owned by the calling module to the corresponding module on the counterparty
-// chain.
+// SendPacket is called by a module to send an TIBC packet on a port owned
+// by the calling module to the corresponding module on the counterparty chain.
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	packet exported.PacketI,
@@ -75,8 +74,8 @@ func (k Keeper) SendPacket(
 	return nil
 }
 
-// RecvPacket is called by a module in order to receive & process an TIBC packet
-// sent on the corresponding channel end on the counterparty chain.
+// RecvPacket is called by a module to receive & process an TIBC packet
+// sent on the corresponding port on the counterparty chain.
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
 	packet exported.PacketI,
@@ -193,7 +192,7 @@ func (k Keeper) RecvPacket(
 // For async handling, it needs to be called directly by the module which originally
 // processed the packet.
 //
-// 2) Assumes that packet receipt has been written (unordered), or nextSeqRecv was incremented (ordered)
+// 2) Assumes that packet receipt has been written.
 // previously by RecvPacket.
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
@@ -252,11 +251,10 @@ func (k Keeper) WriteAcknowledgement(
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a
-// packet previously sent by the calling module on a channel to a counterparty
+// packet previously sent by the calling module on a port to a counterparty
 // module on the counterparty chain. Its intended usage is within the ante
 // handler. AcknowledgePacket will clean up the packet commitment,
 // which is no longer necessary since the packet has been received and acted upon.
-// It will also increment NextSequenceAck in case of ORDERED channels.
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	packet exported.PacketI,
@@ -325,7 +323,7 @@ func (k Keeper) AcknowledgePacket(
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
-		clientState, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
+		_, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
 		if !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 		}
@@ -366,6 +364,17 @@ func (k Keeper) CleanPacket(
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
+
+	targetChain := cleanPacket.GetDestChain()
+	if len(cleanPacket.GetRelayChain()) > 0 {
+		targetChain = cleanPacket.GetRelayChain()
+	}
+
+	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
+	if !found {
+		return clienttypes.ErrConsensusStateNotFound
+	}
+
 	sourceChain := cleanPacket.GetSourceChain()
 	if len(sourceChain) == 0 {
 		sourceChain = k.clientKeeper.GetChainName(ctx)
@@ -386,8 +395,6 @@ func (k Keeper) CleanPacket(
 			sdk.NewAttribute(types.AttributeKeySrcChain, sourceChain),
 			sdk.NewAttribute(types.AttributeKeyDstChain, cleanPacket.GetDestChain()),
 			sdk.NewAttribute(types.AttributeKeyRelayChain, cleanPacket.GetRelayChain()),
-			// we only support 1-hop packets now, and that is the most important hop for a relayer
-			// (is it going to a chain I am connected to)
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -437,6 +444,7 @@ func (k Keeper) RecvCleanPacket(
 
 	k.cleanAcknowledgementBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 	k.cleanReceiptBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
+	k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 
 	// emit an event that the relayer can query for
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -454,7 +462,6 @@ func (k Keeper) RecvCleanPacket(
 	})
 
 	if isRelay {
-		k.SetCleanPacketCommitment(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 		targetClient, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
 		if !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
@@ -468,8 +475,6 @@ func (k Keeper) RecvCleanPacket(
 				sdk.NewAttribute(types.AttributeKeySrcChain, cleanPacket.GetSourceChain()),
 				sdk.NewAttribute(types.AttributeKeyDstChain, cleanPacket.GetDestChain()),
 				sdk.NewAttribute(types.AttributeKeyRelayChain, cleanPacket.GetRelayChain()),
-				// we only support 1-hop packets now, and that is the most important hop for a relayer
-				// (is it going to a chain I am connected to)
 			),
 			sdk.NewEvent(
 				sdk.EventTypeMessage,

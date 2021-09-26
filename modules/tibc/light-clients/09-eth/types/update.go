@@ -34,12 +34,10 @@ func (m ClientState) CheckHeaderAndUpdateState(
 			err, "could not get consensus state from clientstore at TrustedHeight: %s,please upgrade", m.GetLatestHeight(),
 		)
 	}
-	for {
-		if err := checkValidity(ctx, cdc, store, &m, ethConsState, *ethHeader); err != nil {
-			return nil, nil, err
-		}
-		break
+	if err := checkValidity(ctx, cdc, store, &m, ethConsState, *ethHeader); err != nil {
+		return nil, nil, err
 	}
+
 	newClientState, consensusState, err := update(cdc, store, &m, ethHeader)
 	if err != nil {
 		return nil, nil, err
@@ -61,6 +59,8 @@ func (m ClientState) CheckHeaderAndUpdateState(
 			return nil, nil, err
 		}
 	}
+	m.Header = *ethHeader
+	newClientState.Header = *ethHeader
 	return newClientState, consensusState, nil
 }
 
@@ -94,8 +94,6 @@ func update(cdc codec.BinaryMarshaler,
 		Root:      header.Root,
 		Header:    *header,
 	}
-
-	clientState.Header = *header
 	return clientState, cs, nil
 }
 
@@ -110,12 +108,12 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		var currenttmp exported.Header
+		var currenttmp exported.ConsensusState
 		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
 			return err
 		}
-		current = *currenttmp.(*Header)
-
+		tmpconsensus := currenttmp.(*ConsensusState)
+		current = tmpconsensus.Header
 		si = ti
 	}
 	newHashs := make([]common.Hash, 0)
@@ -127,37 +125,36 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		var currenttmp exported.Header
+		var currenttmp exported.ConsensusState
 		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
 			return err
 		}
-		new = *currenttmp.(*Header)
+		tmpconsensus := currenttmp.(*ConsensusState)
+		new = tmpconsensus.Header
 		ti.RevisionHeight--
 	}
-	// si.parent == ti.parent
-	for bytes.Equal(current.ParentHash, new.ParentHash) {
+	// si.parent != ti.parent
+	for !bytes.Equal(current.ParentHash, new.ParentHash) {
 		newHashs = append(newHashs, new.Hash())
 		newTmp := store.Get(ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
 			err = errors.New("no found ConsensusState")
 			return err
 		}
-		var currenttmp exported.Header
+		var currenttmp exported.ConsensusState
 		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
 			return err
 		}
-		new = *currenttmp.(*Header)
-
-		if err != nil {
-			return err
-		}
+		tmpconsensus := currenttmp.(*ConsensusState)
+		new = tmpconsensus.Header
 		ti.RevisionHeight--
 		si.RevisionHeight--
 		currentTmp := store.Get(host.ConsensusStateKey(si))
 		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
 			return err
 		}
-		current = *currenttmp.(*Header)
+		tmpconsensus = currenttmp.(*ConsensusState)
+		current = tmpconsensus.Header
 	}
 	for i := len(newHashs) - 1; i >= 0; i-- {
 		newTmp := store.Get(ConsensusStateIndexKey(newHashs[i]))

@@ -72,3 +72,7 @@ func (q Keeper) CleanPacketCommitment(c context.Context, req *packettypes.QueryC
 func (q Keeper) RoutingRules(c context.Context, req *routingtypes.QueryRoutingRulesRequest) (*routingtypes.QueryRoutingRulesResponse, error) {
 	return q.RoutingKeeper.RoutingRules(c, req)
 }
+
+func (q Keeper) Relayers(c context.Context, req *clienttypes.QueryRelayersRequest) (*clienttypes.QueryRelayersResponse, error) {
+	return q.ClientKeeper.Relayers(c, req)
+}

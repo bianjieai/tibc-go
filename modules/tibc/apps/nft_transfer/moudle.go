@@ -5,6 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,10 +18,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
@@ -45,7 +47,7 @@ func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config cl
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-transfer module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-nft-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
@@ -53,7 +55,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the tibc-transfer module.
+// GetQueryCmd returns no root query command for the tibc-nft-transfer module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
 }
@@ -98,7 +100,7 @@ func (a AppModule) WeightedOperations(simState module.SimulationState) []simtype
 	panic("implement me")
 }
 
-// NewAppModule creates a new 30-nft-transfer module
+// NewAppModule creates a new tibc-nft-transfer module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,

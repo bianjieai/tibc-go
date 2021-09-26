@@ -24,11 +24,11 @@ const DefaultMaxCharacterLength = 64
 var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchString
 var IsValidRule = regexp.MustCompile(`^([^.]{1,50}\.){2}[^.]{1,50}$`).MatchString
 
-// ICS 024 Identifier and Path Validation Implementation
+// TICS 024 Identifier and Path Validation Implementation
 //
 // This file defines ValidateFn to validate identifier and path strings
-// The spec for ICS 024 can be located here:
-// https://github.com/cosmos/ics/tree/master/spec/ics-024-host-requirements
+// The spec for TICS 024 can be located here:
+// https://github.com/bianjieai/tics/tree/master/spec/tics-024-host-requirements
 
 // ValidateFn function type to validate path and identifier bytestrings
 type ValidateFn func(string) error

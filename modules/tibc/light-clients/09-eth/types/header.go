@@ -115,13 +115,6 @@ func verifyHeader(
 	header Header,
 ) error {
 	height := header.Height.RevisionHeight
-	exist, err := IsHeaderExist(store, header.Hash())
-	if err != nil {
-		return sdkerrors.Wrap(ErrUnknownBlock, fmt.Errorf("SyncBlockHeader, check header exist err: %v", err).Error())
-	}
-	if exist == true {
-		return sdkerrors.Wrap(ErrHeaderIsExist, "header"+header.String())
-	}
 
 	parentbytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	var parentConsInterface exported.ConsensusState
@@ -160,7 +153,7 @@ func verifyHeader(
 	if header.GasUsed > header.GasLimit {
 		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit).Error())
 	}
-	err = VerifyEip1559Header(&parent.Header, &header)
+	err := VerifyEip1559Header(&parent.Header, &header)
 	if err != nil {
 		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}

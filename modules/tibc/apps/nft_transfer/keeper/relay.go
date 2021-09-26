@@ -249,6 +249,12 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 		-- not has prefix
 		1. A -> B  class:class | sourceChain:A  | destChain:B |awayFromOrigin = true
 		-- has prefix
+		 First take the source chain from the path
+	    (this path represents the path generated from the source chain in the target chain),
+	    and then judge whether the source chain is equal to the target chain,
+	    if it is equal, it means it is close to the source chain,
+	    if it is not equal then Indicates that we continue to stay away from the source chain
+
 		1. B -> C    class:nft/A/B/class 	| sourceChain:B  | destChain:C |awayFromOrigin = true
 		2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
 		3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false

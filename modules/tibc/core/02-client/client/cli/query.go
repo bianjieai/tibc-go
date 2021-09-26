@@ -60,7 +60,7 @@ func GetCmdQueryClientStates() *cobra.Command {
 }
 
 // GetCmdQueryClientState defines the command to query the state of a client with
-// a given id as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#query
+// a given chain name.
 func GetCmdQueryClientState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "state [chain-name]",
@@ -92,11 +92,11 @@ func GetCmdQueryClientState() *cobra.Command {
 }
 
 // GetCmdQueryConsensusStates defines the command to query all the consensus states from a given
-// client state.
+// chain name.
 func GetCmdQueryConsensusStates() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "consensus-states [chain-name]",
-		Short:   "Query all the consensus states of a client.",
+		Short:   "Query all the consensus states of a client",
 		Long:    "Query all the consensus states from a given client state.",
 		Example: fmt.Sprintf("%s query %s %s consensus-states [chain-name]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
@@ -133,8 +133,8 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryConsensusState defines the command to query the consensus state of
-// the chain as defined in https://github.com/cosmos/ics/tree/master/spec/ics-002-client-semantics#query
+// GetCmdQueryConsensusState defines the command to query the consensus state from a given
+// chain name and height.
 func GetCmdQueryConsensusState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "consensus-state [chain-name] [height]",
@@ -181,7 +181,7 @@ If the 'latest-height' flag is included, the query returns the latest consensus 
 	return cmd
 }
 
-// GetCmdQueryHeader defines the command to query the latest header on the chain
+// GetCmdQueryHeader defines the command to query the latest header on the chain.
 func GetCmdQueryHeader() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "header",
@@ -209,8 +209,8 @@ func GetCmdQueryHeader() *cobra.Command {
 	return cmd
 }
 
-// GetCmdNodeConsensusState defines the command to query the latest consensus state of a node
-// The result is feed to client creation
+// GetCmdNodeConsensusState defines the command to query the latest consensus state of a node.
+// The result is feed to client creation.
 func GetCmdNodeConsensusState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "node-state",
@@ -239,7 +239,7 @@ func GetCmdNodeConsensusState() *cobra.Command {
 }
 
 // GetCmdQueryRelayers defines the command to query all the relayers from a given
-// client.
+// chain name.
 func GetCmdQueryRelayers() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "relayers [chain-name]",

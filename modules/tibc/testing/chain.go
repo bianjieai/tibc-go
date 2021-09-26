@@ -6,6 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
+	tmtypes "github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -16,15 +25,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"

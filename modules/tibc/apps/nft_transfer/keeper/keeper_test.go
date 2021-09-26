@@ -40,7 +40,6 @@ func (suite *KeeperTestSuite) TestGetTransferMoudleAddr() {
 
 func NewTransferPath(scChain, destChain *tibctesting.TestChain) *tibctesting.Path {
 	path := tibctesting.NewPath(scChain, destChain)
-	// setport
 	return path
 }
 
