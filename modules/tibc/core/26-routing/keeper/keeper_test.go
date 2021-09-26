@@ -80,12 +80,12 @@ func (suite KeeperTestSuite) TestSetRoutingRules() {
 			true,
 		},
 		{
-			"5 fail due to -1",
+			"5 fail due to number of commas -1",
 			[]string{"a.b,c"},
 			false,
 		},
 		{
-			"6 fail due to -2",
+			"6 fail due to number of commas -2",
 			[]string{"a,b,c,d"},
 			false,
 		},
