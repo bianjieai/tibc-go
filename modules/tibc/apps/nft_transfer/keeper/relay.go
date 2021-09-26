@@ -11,11 +11,13 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-    coretypes "github.com/bianjieai/tibc-go/modules/tibc/core/types"
+	coretypes "github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
 const (
-	PREFIX = "tibc/nft"
+	CLASSPREFIX = "tibc-"
+
+	CLASSPATHPREFIX = "nft"
 
 	// DoNotModify used to indicate that some field should not be updated
 	DoNotModify = "[do-not-modify]"
@@ -27,26 +29,16 @@ func (k Keeper) SendNftTransfer(
 	sender sdk.AccAddress,
 	receiver, destChain, relayChain string,
 ) error {
-	// class must be existed
 	_, found := k.nk.GetDenom(ctx, class)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
 	}
-	// get nft
+
 	nft, err := k.nk.GetNFT(ctx, class, id)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrUnknownNFT, "invalid NFT %s from collection %s", id, class)
 	}
 
-	// decode the sender address
-	sender, err = sdk.AccAddressFromBech32(sender.String())
-	if err != nil {
-		return err
-	}
-
-	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
-
-	// sourceChain cannot be equal to destChain
 	sourceChain := k.ck.GetChainName(ctx)
 	if sourceChain == destChain {
 		return sdkerrors.Wrapf(types.ErrScChainEqualToDestChain, "invalid destChain %s equals to scChain %s", destChain, sourceChain)
@@ -55,7 +47,7 @@ func (k Keeper) SendNftTransfer(
 	fullClassPath := class
 
 	// deconstruct the nft class into the class trace info to determine if the sender is the source chain
-	if strings.HasPrefix(class, "tibc-") {
+	if strings.HasPrefix(class, CLASSPREFIX) {
 		fullClassPath, err = k.ClassPathFromHash(ctx, class)
 		if err != nil {
 			return err
@@ -72,6 +64,9 @@ func (k Keeper) SendNftTransfer(
 
 	// get the next sequence
 	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
+
+	// get moudle address
+	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
 
 	if awayFromOrigin {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
@@ -125,6 +120,7 @@ func (k Keeper) SendNftTransfer(
 			labels,
 		)
 	}()
+
 	return nil
 }
 
@@ -143,12 +139,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		return err
 	}
 
-	// decode the sender address
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return err
 	}
-
 
 	labels := []metrics.Label{
 		telemetry.NewLabel(coretypes.LabelSourceChain, packet.SourceChain),
@@ -156,29 +150,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 	}
 
 	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
-	var newClass string
+	var newClassPath string
 	if data.AwayFromOrigin {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
-		if strings.HasPrefix(data.Class, "nft") {
-			// nft/A/B/class -> nft/A/B/C/class
-			// [nft][A][B][class] -> [nft][A][B][C][class]
-			classSplit := strings.Split(data.Class, "/")
-			classSplit = append(classSplit[:len(classSplit)-1], append([]string{packet.DestinationChain}, classSplit[len(classSplit)-1:]...)...)
-			newClass = strings.Join(classSplit, "/")
-		} else {
-			// class -> nft/A/B/class
-			newClass = "nft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
-		}
 
-		// construct the class trace from the full raw class
-		classTrace := types.ParseClassTrace(newClass)
-		traceHash := classTrace.Hash()
+		newClassPath = k.getAwayNewClassPath(packet.SourceChain, packet.DestinationChain, data.Class)
 
-		if !k.HasClassTrace(ctx, traceHash) {
-			k.SetClassTrace(ctx, classTrace)
-		}
-
-		voucherClass := classTrace.IBCClass()
+		voucherClass := k.getIBCClassFromClassPath(ctx, newClassPath)
 
 		_, found := k.nk.GetDenom(ctx, voucherClass)
 		if !found {
@@ -200,29 +178,19 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, DoNotModify, DoNotModify, DoNotModify, moudleAddr, receiver); err != nil {
 			return err
 		}
-
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
-		if strings.HasPrefix(data.Class, "nft") {
-			classSplit := strings.Split(data.Class, "/")
 
-			if len(classSplit) == 4 {
-				// nft/A/B/class -> class
-				newClass = classSplit[len(classSplit)-1]
-			} else {
-				// nft/A/B/C/class -> nft/A/B/class
-				classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
-				newClass = strings.Join(classSplit, "/")
-			}
-
-			classTrace := types.ParseClassTrace(newClass)
-			voucherClass := classTrace.IBCClass()
-			// unlock
-			if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, DoNotModify, DoNotModify, DoNotModify, moudleAddr, receiver); err != nil {
-				return err
-			}
-		} else {
+		if !strings.HasPrefix(data.Class, "nft"){
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
+		}
+
+		newClassPath = k.getBackNewClassPath(data.Class)
+		classTrace := types.ParseClassTrace(newClassPath)
+		voucherClass := classTrace.IBCClass()
+		// unlock
+		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, DoNotModify, DoNotModify, DoNotModify, moudleAddr, receiver); err != nil {
+			return err
 		}
 	}
 
@@ -230,7 +198,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		telemetry.SetGaugeWithLabels(
 			[]string{"tx", "msg", "ibc", "transfer"},
 			1,
-			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, newClass)},
+			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, newClassPath)},
 		)
 
 		telemetry.IncrCounterWithLabels(
@@ -255,7 +223,6 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, data types.NonFungibleT
 }
 
 func (k Keeper) refundPacketToken(ctx sdk.Context, data types.NonFungibleTokenPacketData) error {
-	// decode the sender address
 	sender, err := sdk.AccAddressFromBech32(data.Sender)
 	if err != nil {
 		return err
@@ -313,6 +280,64 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	}
 	return true
 }
+
+//fullClassPath = "nft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
+func (k Keeper) concatClassPath(scChain, destChain, class string) string {
+	var b strings.Builder
+	b.WriteString(CLASSPATHPREFIX)
+	b.WriteString("/")
+	b.WriteString(scChain)
+	b.WriteString("/")
+	b.WriteString(destChain)
+	b.WriteString("/")
+	b.WriteString(class)
+	return b.String()
+}
+
+// getAwayNewClassPath
+func (k Keeper) getAwayNewClassPath(scChain, destChain, class string) (newClassPath string) {
+	if strings.HasPrefix(class, CLASSPATHPREFIX) {
+		// nft/A/B/class -> nft/A/B/C/class
+		// [nft][A][B][class] -> [nft][A][B][C][class]
+		classSplit := strings.Split(class, "/")
+		classSplit = append(classSplit[:len(classSplit)-1], append([]string{destChain}, classSplit[len(classSplit)-1:]...)...)
+		newClassPath = strings.Join(classSplit, "/")
+	} else {
+		// class -> nft/A/B/class
+		newClassPath = k.concatClassPath(scChain, destChain, class)
+	}
+	return
+}
+
+// getBackNewClassPath
+func (k Keeper) getBackNewClassPath(class string) (newClassPath string) {
+	classSplit := strings.Split(class, "/")
+
+	if len(classSplit) == 4 {
+		// nft/A/B/class -> class
+		newClassPath = classSplit[len(classSplit)-1]
+	} else {
+		// nft/A/B/C/class -> nft/A/B/class
+		classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
+		newClassPath = strings.Join(classSplit, "/")
+	}
+	return
+}
+
+
+// example : nft/A/B/class -> tibc-hash(nft/A/B/class)
+func (k Keeper) getIBCClassFromClassPath(ctx sdk.Context, classPath string) string {
+	// construct the class trace from the full raw class
+	classTrace := types.ParseClassTrace(classPath)
+	traceHash := classTrace.Hash()
+
+	if !k.HasClassTrace(ctx, traceHash) {
+		k.SetClassTrace(ctx, classTrace)
+	}
+
+	return classTrace.IBCClass()
+}
+
 
 // ClassPathFromHash returns the full class path prefix from an ibc class with a hash
 // component.
