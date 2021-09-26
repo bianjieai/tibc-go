@@ -127,6 +127,22 @@ func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), sdk.Uint64ToBigEndian(sequence))
 }
 
+// SetMaxAckSequence sets the max ack height to the store
+func (k Keeper) SetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+	store := ctx.KVStore(k.storeKey)
+	currentMaxSeq := sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+	if sequence > currentMaxSeq {
+		currentMaxSeq = sequence
+	}
+	store.Set(host.MaxAckHeightKey(sourceChain, destChain), sdk.Uint64ToBigEndian(currentMaxSeq))
+}
+
+// GetMaxAckSequence gets the max ack height from the store
+func (k Keeper) GetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+}
+
 // SetPacketAcknowledgement sets the packet ack hash to the store
 func (k Keeper) SetPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64, ackHash []byte) {
 	store := ctx.KVStore(k.storeKey)
@@ -320,7 +336,8 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanP
 	sourceChain := cleanPacket.GetSourceChain()
 	destChain := cleanPacket.GetDestChain()
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	if packetSeq <= currentCleanSeq {
+	currentMaxAckSeq := k.GetMaxAckSequence(ctx, sourceChain, destChain)
+	if packetSeq <= currentCleanSeq || packetSeq > currentMaxAckSeq {
 		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
 	for seq := currentCleanSeq; seq <= packetSeq; seq++ {
