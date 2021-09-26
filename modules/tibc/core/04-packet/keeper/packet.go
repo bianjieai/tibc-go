@@ -211,7 +211,7 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	targetChain := packet.GetSourceChain()
-	if len(packet.GetRelayChain()) > 0 && packet.GetRelayChain() != k.clientKeeper.GetChainName(ctx) {
+	if len(packet.GetRelayChain()) > 0 && packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		targetChain = packet.GetRelayChain()
 	}
 
