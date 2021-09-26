@@ -86,7 +86,8 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 
 // ConvWildcardToRegular wildcard => regular
 func ConvWildcardToRegular(wildcard string) string {
-	regular := strings.Replace(wildcard, "*", ".*", -1)
+	regular := strings.Replace(wildcard, ".", "\\.", -1)
+	regular = strings.Replace(regular, "*", ".*", -1)
 	regular = strings.Replace(regular, "?", ".", -1)
 	regular = "^" + regular + "$"
 	return regular

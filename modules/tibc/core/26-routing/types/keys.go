@@ -15,6 +15,6 @@ const (
 )
 
 const (
-	// RulePattern format "source.dest.port"
-	RulePattern = "^([^.,]{1,50},){2}[^.,]{1,50}$"
+	// RulePattern format "source,dest,port"
+	RulePattern = "^([^,]{1,50},){2}[^,]{1,50}$"
 )
