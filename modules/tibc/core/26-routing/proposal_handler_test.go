@@ -45,7 +45,7 @@ func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 		{
 			"valid routing rules proposal",
 			func() {
-				content, err = routingtypes.NewSetRoutingRulesProposal(tibctesting.Title, tibctesting.Description, []string{"source.dest.dgsbl"})
+				content, err = routingtypes.NewSetRoutingRulesProposal(tibctesting.Title, tibctesting.Description, []string{"source,dest,dgsbl"})
 				suite.Require().NoError(err)
 			}, true,
 		},
