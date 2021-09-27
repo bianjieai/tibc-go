@@ -225,6 +225,7 @@ func (k Keeper) WriteAcknowledgement(
 		ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
 		types.CommitAcknowledgement(acknowledgement),
 	)
+	k.SetMaxAckSequence(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 	// log that a packet acknowledgement has been written
 	k.Logger(ctx).Info("acknowledged written", "packet", fmt.Sprintf("%v", packet))
