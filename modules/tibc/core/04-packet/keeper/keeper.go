@@ -129,17 +129,17 @@ func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 // SetMaxAckSequence sets the max ack height to the store
 func (k Keeper) SetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	currentMaxSeq := sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+	currentMaxSeq := sdk.BigEndianToUint64(store.Get(host.MaxAckSeqKey(sourceChain, destChain)))
 	if sequence > currentMaxSeq {
 		currentMaxSeq = sequence
 	}
-	store.Set(host.MaxAckHeightKey(sourceChain, destChain), sdk.Uint64ToBigEndian(currentMaxSeq))
+	store.Set(host.MaxAckSeqKey(sourceChain, destChain), sdk.Uint64ToBigEndian(currentMaxSeq))
 }
 
 // GetMaxAckSequence gets the max ack height from the store
 func (k Keeper) GetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+	return sdk.BigEndianToUint64(store.Get(host.MaxAckSeqKey(sourceChain, destChain)))
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store

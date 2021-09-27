@@ -59,11 +59,10 @@ type ClientState interface {
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
-
 	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
 
 	// State verification functions
-
+	// Verify the commitment of the cross-chain data package
 	VerifyPacketCommitment(
 		ctx sdk.Context,
 		store sdk.KVStore,
@@ -76,6 +75,7 @@ type ClientState interface {
 		commitmentBytes []byte,
 	) error
 
+	// Verify the Acknowledgement of the cross-chain data package
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
 		store sdk.KVStore,
@@ -88,6 +88,7 @@ type ClientState interface {
 		ackBytes []byte,
 	) error
 
+	// Verify the CleanCommitment of the cross-chain data package
 	VerifyPacketCleanCommitment(
 		ctx sdk.Context,
 		store sdk.KVStore,
