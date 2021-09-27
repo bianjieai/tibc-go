@@ -25,12 +25,12 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 		},
 		{
 			name:     "invalid genesis2",
-			genState: types.NewGenesisState([]string{"1a.2b"}),
+			genState: types.NewGenesisState([]string{"1a,2b"}),
 			expPass:  false,
 		},
 		{
 			name:     "valid genesis",
-			genState: types.NewGenesisState([]string{fmt.Sprintf("source.dest.port")}),
+			genState: types.NewGenesisState([]string{fmt.Sprintf("source,dest,port")}),
 			expPass:  true,
 		},
 	}
