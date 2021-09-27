@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -42,7 +43,7 @@ func (m ClientState) GetDelayBlock() uint64 {
 }
 
 func (m ClientState) GetPrefix() exported.Prefix {
-	return commitmenttypes.MerklePrefix{}
+	return commitmenttypes.MerklePrefix{KeyPrefix: m.ContractAddress}
 }
 
 func (m ClientState) Initialize(
@@ -55,7 +56,10 @@ func (m ClientState) Initialize(
 	if err != nil {
 		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
-	consensusState := state.(*ConsensusState)
+	consensusState, ok := state.(*ConsensusState)
+	if !ok {
+		return clienttypes.ErrInvalidConsensus
+	}
 	header := consensusState.Header.ToEthHeader()
 	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
 	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
@@ -106,8 +110,9 @@ func (m ClientState) VerifyPacketCommitment(
 			delayBlock, m.GetDelayBlock(),
 		)
 	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment, constructor.GetCleanPacketCommitmentProofKey())
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -120,7 +125,21 @@ func (m ClientState) VerifyPacketAcknowledgement(
 	sequence uint64,
 	ackBytes []byte,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, ackBytes, constructor.GetAckProofKey())
 }
 
 func (m ClientState) VerifyPacketCleanCommitment(
@@ -132,7 +151,21 @@ func (m ClientState) VerifyPacketCleanCommitment(
 	sourceChain, destChain string,
 	sequence uint64,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, sdk.Uint64ToBigEndian(sequence), constructor.GetCleanPacketCommitmentProofKey())
 }
 
 // produceVerificationArgs performs the basic checks on the arguments that are
@@ -171,6 +204,7 @@ func verifyMerkleProof(ethProof Proof,
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
+	ProofKey []byte,
 ) error {
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
@@ -222,6 +256,9 @@ func verifyMerkleProof(ethProof Proof,
 
 	sp := ethProof.StorageProof[0]
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
+	if !bytes.Equal(storageKey, ProofKey) {
+		return fmt.Errorf("verifyMerkleProof,storageKey is error, storage key: %s, Key path: %s", storageKey, ProofKey)
+	}
 
 	for _, prf := range sp.Proof {
 		_ = nodeList.Put(nil, common.FromHex(prf))
