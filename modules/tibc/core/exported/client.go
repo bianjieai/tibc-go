@@ -20,10 +20,11 @@ const (
 	// BSC is the client type for a bianance smart chain client.
 	BSC string = "008-bsc"
 
+	// ETH is the client type for a Ethereum client.
 	ETH string = "009-eth"
 
 	// Fabric is the client type for a hyperledge fabric client.
-	//Fabric string = "009-fabric"
+	// Fabric string = "009-fabric"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
