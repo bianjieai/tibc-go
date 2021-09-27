@@ -29,7 +29,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 		Header:          header.ToHeader(),
 		ChainId:         1,
 		ContractAddress: []byte("0x00"),
-		TrustingPeriod:  30,
+		TrustingPeriod:  24 * 60 * 60,
 		TimeDelay:       0,
 		BlockDelay:      1,
 	})

@@ -137,35 +137,26 @@ func verifyHeader(
 		)
 	}
 	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
-		return sdkerrors.Wrap(ErrUnknownAncestor, "")
+		return ErrUnknownAncestor
 	}
 
 	//verify whether parent hash validity
 	ethHeader := parent.Header.ToEthHeader()
 	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
-		return fmt.Errorf("SyncBlockHeader, parent header is not right. Header: %s", header.String())
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader,
+			"parent hash  not equal, header.parent: %s ,parent : %s",
+			header.ToEthHeader().ParentHash,
+			ethHeader.Hash(),
+		)
 	}
-	//verify whether extra size validity
-	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
-		return sdkerrors.Wrap(ErrExtraLenth, fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String()).Error())
-	}
+
 	// Verify the header's timestamp
 	if header.Time > uint64(ctx.BlockTime().Add(allowedFutureBlockTime).Unix()) {
 		return ErrFutureBlock
 	}
 	if header.Time <= parent.Header.Time {
 		return ErrHeader
-	}
-
-	// Verify that the gas limit is <= 2^63-1
-	capacity := uint64(0x7fffffffffffffff)
-	if header.GasLimit > capacity {
-		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, capacity).Error())
-
-	}
-	// Verify that the gasUsed is <= gasLimit
-	if header.GasUsed > header.GasLimit {
-		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit).Error())
 	}
 	err := VerifyEip1559Header(&parent.Header, &header)
 	if err != nil {
