@@ -118,15 +118,15 @@ func verifyHeader(
 ) error {
 	height := header.Height.RevisionHeight
 
-	parentbytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
-	if parentbytes == nil {
+	parentBytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	if parentBytes == nil {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
 	var parentConsInterface exported.ConsensusState
-	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
+	if err := cdc.UnmarshalInterface(parentBytes, &parentConsInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
 	}
 	parent, ok := parentConsInterface.(*ConsensusState)
