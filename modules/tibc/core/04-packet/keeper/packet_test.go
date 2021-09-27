@@ -331,6 +331,7 @@ func (suite *KeeperTestSuite) TestCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
 			preCleanPacket := types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
 			path.EndpointA.CleanPacket(preCleanPacket)
 			cleanPacket = types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
@@ -339,14 +340,22 @@ func (suite *KeeperTestSuite) TestCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
 			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, tibctesting.InvalidID, relayChain)
 		}, false},
 		{"clean sequence illegal", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
 			preCleanPacket := types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
 			path.EndpointA.CleanPacket(preCleanPacket)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+		}, false},
+		{"clean sequence too big", func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+
 			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
 		}, false},
 		{"commitment haven't been acked", func() {
@@ -354,6 +363,7 @@ func (suite *KeeperTestSuite) TestCleanPacket() {
 			suite.coordinator.SetupClients(path)
 			commitment = tibctesting.TestHash
 
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
 			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
 			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence(), commitment)
 		}, false},
@@ -386,6 +396,8 @@ func (suite *KeeperTestSuite) TestRecvCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
 			err := path.EndpointA.CleanPacket(cleanPacket)
 			suite.Require().NoError(err)
@@ -397,6 +409,7 @@ func (suite *KeeperTestSuite) TestRecvCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 			cleanPacket = types.NewCleanPacket(1, tibctesting.InvalidID, path.EndpointB.ChainName, relayChain)
 		}, false},
 	}

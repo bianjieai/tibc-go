@@ -55,7 +55,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 		if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
 			return nil, err2
 		}
-		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+		return &packettypes.MsgRecvPacketResponse{}, nil
 	}
 
 	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx) {
@@ -66,7 +66,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
 				return nil, err2
 			}
-			return nil, err
+			return &packettypes.MsgRecvPacketResponse{}, nil
 		}
 
 		// Perform application logic callback
@@ -75,7 +75,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
 				return nil, err2
 			}
-			return nil, sdkerrors.Wrap(err, "receive packet callback failed")
+			return &packettypes.MsgRecvPacketResponse{}, nil
 		}
 
 		// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -145,7 +145,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPacket) (*packettypes.MsgCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := k.PacketKeeper.CleanPacket(ctx, msg.CleanPacket); err != nil {
-		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+		return nil, sdkerrors.Wrap(err, "send clean packet failed")
 	}
 
 	defer func() {
@@ -167,7 +167,7 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvCleanPacket) (*packettypes.MsgRecvCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := k.PacketKeeper.RecvCleanPacket(ctx, msg.CleanPacket, msg.ProofCommitment, msg.ProofHeight); err != nil {
-		return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+		return nil, sdkerrors.Wrap(err, "receive clean packet failed")
 	}
 
 	defer func() {
