@@ -152,9 +152,27 @@ func ProcessedTimeKey(height exported.Height) []byte {
 }
 
 // deleteConsensusState deletes the consensus state at the given height
-func deleteConsensusState(clientStore sdk.KVStore, height exported.Height) {
+func deleteConsensusState(cdc codec.BinaryMarshaler, clientStore sdk.KVStore, height exported.Height) error {
 	key := host.ConsensusStateKey(height)
+	consensusState := clientStore.Get(key)
+	if consensusState == nil {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrConsensusStateNotFound,
+			"consensus state does not exist for height %s", height,
+		)
+	}
+	var currenttmp exported.ConsensusState
+	if err := cdc.UnmarshalInterface(consensusState, &currenttmp); err != nil {
+		return ErrUnmarshalInterface
+	}
+	tmpConsensus, ok := currenttmp.(*ConsensusState)
+	if !ok {
+		return ErrUnmarshalInterface
+	}
+	header := tmpConsensus.Header
+	clientStore.Delete(ConsensusStateIndexKey(header.Hash()))
 	clientStore.Delete(key)
+	return nil
 }
 
 // deleteIterationKey deletes the iteration key for a given height

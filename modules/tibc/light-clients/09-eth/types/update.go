@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -48,6 +47,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 		// this error should never occur
 		if err != nil {
 			pruneError = err
+			// this return just for get out of the func
 			return true
 		}
 		bloclTime := uint64(ctx.BlockTime().Unix())
@@ -62,7 +62,10 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	}
 	// if pruneHeight is set, delete consensus state and metadata
 	if pruneHeight != nil {
-		deleteConsensusState(store, pruneHeight)
+		err = deleteConsensusState(cdc, store, pruneHeight)
+		if err != nil {
+			return nil, nil, err
+		}
 		deleteConsensusMetadata(store, pruneHeight)
 	}
 
@@ -74,7 +77,8 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	// If  verify succeeds, save consensusState first . this store is header_index
 	consensusStatetmp, err := cdc.MarshalInterface(consensusState)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in CheckHeaderAndUpdateState ")
+
 	}
 	store.Set(ConsensusStateIndexKey(consensusState.Header.Hash()), consensusStatetmp)
 	//Check the bifurcation
@@ -82,7 +86,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 		// set all consensusState by struct (prefix+hash , consensusState)
 		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStatetmp)
 	} else {
-		err := m.RestructChain(cdc, store, *ethHeader)
+		err = m.RestructChain(cdc, store, *ethHeader)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -136,14 +140,19 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 	if si.RevisionHeight > ti.RevisionHeight {
 		currentTmp := store.Get(host.ConsensusStateKey(ti))
 		if currentTmp == nil {
-			err = errors.New("no found ConsensusState")
-			return err
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestructChain", ti)
 		}
 		var currenttmp exported.ConsensusState
-		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
-			return err
+		if err = cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
+			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestructChain ")
+
 		}
-		tmpconsensus := currenttmp.(*ConsensusState)
+		tmpconsensus, ok := currenttmp.(*ConsensusState)
+		if !ok {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestructChain", ti)
+		}
 		current = tmpconsensus.Header
 		si = ti
 	}
@@ -153,14 +162,19 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 		newHashs = append(newHashs, new.Hash())
 		newTmp := store.Get(ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
-			err = errors.New("no found ConsensusState")
-			return err
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestructChain in RestructChain", new.ToEthHeader().ParentHash,
+			)
 		}
 		var currenttmp exported.ConsensusState
 		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
-			return err
+			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestructChain ")
 		}
-		tmpconsensus := currenttmp.(*ConsensusState)
+		tmpconsensus, ok := currenttmp.(*ConsensusState)
+		if !ok {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestructChain", new.ToEthHeader().ParentHash)
+		}
 		new = tmpconsensus.Header
 		ti.RevisionHeight--
 	}
@@ -169,29 +183,42 @@ func (m ClientState) RestructChain(cdc codec.BinaryMarshaler, store sdk.KVStore,
 		newHashs = append(newHashs, new.Hash())
 		newTmp := store.Get(ConsensusStateIndexKey(new.ToEthHeader().ParentHash))
 		if newTmp == nil {
-			err = errors.New("no found ConsensusState")
-			return err
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestructChain", new.ToEthHeader().ParentHash)
 		}
 		var currenttmp exported.ConsensusState
-		if err := cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
-			return err
+		if err = cdc.UnmarshalInterface(newTmp, &currenttmp); err != nil {
+			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestructChain ")
 		}
-		tmpconsensus := currenttmp.(*ConsensusState)
+		tmpconsensus, ok := currenttmp.(*ConsensusState)
+		if !ok {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestructChain", new.ToEthHeader().ParentHash)
+		}
 		new = tmpconsensus.Header
 		ti.RevisionHeight--
 		si.RevisionHeight--
 		currentTmp := store.Get(host.ConsensusStateKey(si))
-		if err := cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
-			return err
+		if currentTmp == nil {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestructChain", si)
+		}
+		if err = cdc.UnmarshalInterface(currentTmp, &currenttmp); err != nil {
+			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestructChain ")
 		}
 		tmpconsensus = currenttmp.(*ConsensusState)
+		if !ok {
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not  consensus state for height %s in RestructChain", si)
+		}
 		current = tmpconsensus.Header
 	}
 	for i := len(newHashs) - 1; i >= 0; i-- {
 		newTmp := store.Get(ConsensusStateIndexKey(newHashs[i]))
 		if newTmp == nil {
-			err = errors.New("no found ConsensusState")
-			return err
+			return sdkerrors.Wrapf(
+				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestructChain", newHashs[i])
+
 		}
 		// set main_chain
 		store.Set(host.ConsensusStateKey(ti), newTmp)
