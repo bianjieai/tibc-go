@@ -6,7 +6,7 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-
 import "gogoproto/gogo.proto";
 import "tibc/core/client/v1/client.proto";
 
-// Header defines the bsc client consensus Header.
+// Header defines the eth client consensus Header.
 message Header {
   option (gogoproto.goproto_getters) = false;
 
@@ -28,7 +28,7 @@ message Header {
   uint64  baseFee=16;
 }
 
-// ClientState from bsc tracks the current validator set, latest height,
+// ClientState from eth tracks the current validator set, latest height,
 // and a possible frozen height.
 message ClientState {
   option (gogoproto.goproto_getters) = false;
@@ -42,7 +42,7 @@ message ClientState {
 }
 
 
-// ConsensusState defines the consensus state from bsc.
+// ConsensusState defines the consensus state from eth.
 message ConsensusState {
   option (gogoproto.goproto_getters) = false;
 

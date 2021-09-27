@@ -27,8 +27,8 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 	}, {
 		"success",
 		func() {
-			rules = []string{"source.dest.dgsbl"}
-			_ = suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
+			rules = []string{"source,dest,dgsbl"}
+			suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
 			req = &types.QueryRoutingRulesRequest{}
 		},
 		true,

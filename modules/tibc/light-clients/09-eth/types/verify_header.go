@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-// verifySeal checks whether a block satisfies the PoW difficulty requirements,
+// VerifySeal  checks whether a block satisfies the PoW difficulty requirements,
 // either using the usual ethash cache for it, or alternatively using a full DAG
 // to make remote mining fast.
 func (ethash *Ethash) VerifySeal(header *types.Header, fulldag bool) error {

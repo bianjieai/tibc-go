@@ -98,7 +98,7 @@ func (m ClientState) Status(
 	if err != nil {
 		return exported.Unknown
 	}
-	if onsState.Timestamp+m.GetDelayTime() < uint64(ctx.BlockTime().Nanosecond()) {
+	if onsState.Timestamp+m.TrustingPeriod < uint64(ctx.BlockTime().Nanosecond()) {
 		return exported.Expired
 	}
 	return exported.Active
@@ -145,8 +145,11 @@ func (m ClientState) VerifyPacketCommitment(
 			delayBlock, m.GetDelayBlock(),
 		)
 	}
+
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment)
+	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment, constructor.GetPacketCommitmentProofKey())
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -159,7 +162,21 @@ func (m ClientState) VerifyPacketAcknowledgement(
 	sequence uint64,
 	ackBytes []byte,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, ackBytes, constructor.GetAckProofKey())
 }
 
 func (m ClientState) VerifyPacketCleanCommitment(
@@ -171,7 +188,21 @@ func (m ClientState) VerifyPacketCleanCommitment(
 	sourceChain, destChain string,
 	sequence uint64,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, sdk.Uint64ToBigEndian(sequence), constructor.GetCleanPacketCommitmentProofKey())
 }
 
 // produceVerificationArgs performs the basic checks on the arguments that are
@@ -216,6 +247,7 @@ func verifyMerkleProof(
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
+	ProofKey []byte,
 ) error {
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
@@ -270,7 +302,9 @@ func verifyMerkleProof(
 
 	sp := bscProof.StorageProof[0]
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
-
+	if !bytes.Equal(storageKey, ProofKey) {
+		return fmt.Errorf("verifyMerkleProof,storageKey is error, storage key: %s, Key path: %s", storageKey, ProofKey)
+	}
 	for _, prf := range sp.Proof {
 		_ = nodeList.Put(nil, common.FromHex(prf))
 	}

@@ -76,7 +76,7 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	}
 	flag := false
 	for _, rule := range rules {
-		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+"."+destinationChain+"."+port)
+		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+","+destinationChain+","+port)
 		if flag {
 			break
 		}
@@ -84,6 +84,7 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	return flag
 }
 
+// ConvWildcardToRegular wildcard => regular
 func ConvWildcardToRegular(wildcard string) string {
 	regular := strings.Replace(wildcard, ".", "\\.", -1)
 	regular = strings.Replace(regular, "*", ".*", -1)
