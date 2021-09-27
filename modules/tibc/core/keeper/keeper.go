@@ -16,7 +16,7 @@ import (
 
 var _ types.QueryServer = (*Keeper)(nil)
 
-// Keeper defines each ICS keeper for TIBC
+// Keeper defines each TICS keeper for TIBC
 type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer

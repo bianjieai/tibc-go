@@ -47,7 +47,7 @@ func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONCodec, config client
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-transfer module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-nft-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
@@ -55,7 +55,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd returns no root query command for the tibc-transfer module.
+// GetQueryCmd returns no root query command for the tibc-nft-transfer module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
 }
@@ -98,7 +98,7 @@ func (a AppModule) WeightedOperations(simState module.SimulationState) []simtype
 	panic("implement me")
 }
 
-// NewAppModule creates a new 30-nft-transfer module
+// NewAppModule creates a new tibc-nft-transfer module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
