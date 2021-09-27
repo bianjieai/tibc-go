@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -116,12 +118,24 @@ func verifyHeader(
 ) error {
 	height := header.Height.RevisionHeight
 
-	parentbytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	parentBytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	if parentBytes == nil {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrConsensusStateNotFound,
+			"consensus state does not exist for hash %s", header.ToEthHeader().ParentHash,
+		)
+	}
 	var parentConsInterface exported.ConsensusState
-	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
+	if err := cdc.UnmarshalInterface(parentBytes, &parentConsInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
 	}
-	parent := parentConsInterface.(*ConsensusState)
+	parent, ok := parentConsInterface.(*ConsensusState)
+	if !ok {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidConsensus,
+			"parent consensus state Invalid for hash %s", header.ToEthHeader().ParentHash,
+		)
+	}
 	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}

@@ -211,7 +211,7 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	targetChain := packet.GetSourceChain()
-	if len(packet.GetRelayChain()) > 0 {
+	if len(packet.GetRelayChain()) > 0 && packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		targetChain = packet.GetRelayChain()
 	}
 
@@ -299,6 +299,7 @@ func (k Keeper) AcknowledgePacket(
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	k.SetMaxAckSequence(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
 	k.Logger(ctx).Info("packet acknowledged", "packet", fmt.Sprintf("%v", packet))
