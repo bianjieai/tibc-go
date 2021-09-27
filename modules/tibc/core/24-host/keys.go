@@ -38,6 +38,7 @@ const (
 	KeyPacketAckPrefix             = "acks"
 	KeyPacketReceiptPrefix         = "receipts"
 	KeyCleanPacketCommitmentPrefix = "clean"
+	keyMaxAckHeightPrefix          = "maxAckHeight"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
@@ -170,7 +171,18 @@ func CleanPacketCommitmentKey(sourceChain, destinationChain string) []byte {
 	return []byte(CleanPacketCommitmentPath(sourceChain, destinationChain))
 }
 
-// CleanPacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
+// CleanPacketCommitmentPath defines the path for commitments to clean packet data fields store path.
 func CleanPacketCommitmentPath(sourceChain, destinationChain string) string {
 	return fmt.Sprintf("%s/%s", KeyCleanPacketCommitmentPrefix, packetPath(sourceChain, destinationChain))
+}
+
+// MaxAckHeightKey returns the store key of current max ack height
+// is stored
+func MaxAckHeightKey(sourceChain, destinationChain string) []byte {
+	return []byte(MaxAckHeightPath(sourceChain, destinationChain))
+}
+
+// MaxAckHeightPath defines the path of current max ack height
+func MaxAckHeightPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", keyMaxAckHeightPrefix, packetPath(sourceChain, destinationChain))
 }
