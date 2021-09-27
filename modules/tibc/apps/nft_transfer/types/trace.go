@@ -11,10 +11,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-
-
-
-
 // Traces defines a wrapper type for a slice of ClassTrace.
 type Traces []ClassTrace
 

@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"strings"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -181,7 +182,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
-		if !strings.HasPrefix(data.Class, "nft"){
+		if !strings.HasPrefix(data.Class, "nft") {
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 
@@ -257,18 +258,18 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, data types.NonFungibleTokenPa
 // determineAwayFromOrigin determine whether nft is sent from the source chain or sent back to the source chain from other chains
 func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin bool) {
 	/*
-		-- not has prefix
-		1. A -> B  class:class | sourceChain:A  | destChain:B |awayFromOrigin = true
-		-- has prefix
-		 First take the source chain from the path
-	    (this path represents the path generated from the source chain in the target chain),
-	    and then judge whether the source chain is equal to the target chain,
-	    if it is equal, it means it is close to the source chain,
-	    if it is not equal then Indicates that we continue to stay away from the source chain
+			-- not has prefix
+			1. A -> B  class:class | sourceChain:A  | destChain:B |awayFromOrigin = true
+			-- has prefix
+			 First take the source chain from the path
+		    (this path represents the path generated from the source chain in the target chain),
+		    and then judge whether the source chain is equal to the target chain,
+		    if it is equal, it means it is close to the source chain,
+		    if it is not equal then Indicates that we continue to stay away from the source chain
 
-		1. B -> C    class:nft/A/B/class 	| sourceChain:B  | destChain:C |awayFromOrigin = true
-		2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
-		3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
+			1. B -> C    class:nft/A/B/class 	| sourceChain:B  | destChain:C |awayFromOrigin = true
+			2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
+			3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
 	*/
 	if !strings.HasPrefix(class, "nft") {
 		return true
@@ -324,7 +325,6 @@ func (k Keeper) getBackNewClassPath(class string) (newClassPath string) {
 	return
 }
 
-
 // example : nft/A/B/class -> tibc-hash(nft/A/B/class)
 func (k Keeper) getIBCClassFromClassPath(ctx sdk.Context, classPath string) string {
 	// construct the class trace from the full raw class
@@ -337,7 +337,6 @@ func (k Keeper) getIBCClassFromClassPath(ctx sdk.Context, classPath string) stri
 
 	return classTrace.IBCClass()
 }
-
 
 // ClassPathFromHash returns the full class path prefix from an ibc class with a hash
 // component.

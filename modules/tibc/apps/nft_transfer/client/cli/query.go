@@ -2,11 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
+
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 )
 
 // GetCmdQueryClassTrace defines the command to query a class trace from a given hash.
