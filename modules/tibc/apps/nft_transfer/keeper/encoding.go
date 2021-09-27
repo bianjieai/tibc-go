@@ -7,3 +7,14 @@ import "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 func (k Keeper) MustMarshalClassTrace(classTrace types.ClassTrace) []byte {
 	return k.cdc.MustMarshalBinaryBare(&classTrace)
 }
+
+// UnmarshalClassTrace attempts to decode and return an ClassTrace object from
+// raw encoded bytes.
+func (k Keeper) UnmarshalClassTrace(bz []byte) (types.ClassTrace, error) {
+	var classTrace types.ClassTrace
+	if err := k.cdc.UnmarshalBinaryBare(bz, &classTrace); err != nil {
+		return types.ClassTrace{}, err
+	}
+
+	return classTrace, nil
+}

@@ -4,11 +4,36 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"sort"
 	"strings"
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
+
+
+
+
+
+// Traces defines a wrapper type for a slice of ClassTrace.
+type Traces []ClassTrace
+
+var _ sort.Interface = Traces{}
+
+// Len implements sort.Interface for Traces
+func (t Traces) Len() int { return len(t) }
+
+// Less implements sort.Interface for Traces
+func (t Traces) Less(i, j int) bool { return t[i].GetFullClassPath() < t[j].GetFullClassPath() }
+
+// Swap implements sort.Interface for Traces
+func (t Traces) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+
+// Sort is a helper function to sort the set of class traces in-place
+func (t Traces) Sort() Traces {
+	sort.Sort(t)
+	return t
+}
 
 // ParseClassTrace parses a string with the ibc prefix (class trace) and the base class
 // into a ClassTrace type.
@@ -57,7 +82,7 @@ func (ct ClassTrace) GetPrefix() string {
 }
 
 // IBCClass a nft class for an TICS30 fungible token in the format
-// 'tibc-{hash(tracePath + baseClass)}'. If the trace is empty, it will return the base denomination.
+// 'tibc-{hash(tracePath + baseClass)}'. If the trace is empty, it will return the base class.
 func (ct ClassTrace) IBCClass() string {
 	if ct.Path != "" {
 		return fmt.Sprintf("%s-%s", ClassPrefix, ct.Hash())
