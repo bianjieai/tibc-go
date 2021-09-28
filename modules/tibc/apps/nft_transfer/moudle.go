@@ -36,11 +36,11 @@ var (
 // AppModuleBasic is the TIBC nft Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
-func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
-func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONMarshaler, config client.TxEncodingConfig, message json.RawMessage) error {
+func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONCodec, config client.TxEncodingConfig, message json.RawMessage) error {
 	return nil
 }
 
@@ -92,9 +92,7 @@ func (a AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 	return nil
 }
 
-func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	return
-}
+func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {}
 
 func (a AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	panic("implement me")
@@ -107,11 +105,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return nil
 }
 
-func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONMarshaler) json.RawMessage {
+func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONCodec) json.RawMessage {
 	return nil
 }
 

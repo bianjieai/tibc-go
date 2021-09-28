@@ -10,9 +10,7 @@ import (
 	tibcethtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/09-eth/types"
 )
 
-var (
-	chainName = "eth"
-)
+var chainName = "eth"
 
 func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	var updateHeaders []*tibcethtypes.EthHeader

@@ -31,7 +31,6 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := ClientIdentifierValidator(tc.id)
 		err2 := DestChainValidator(tc.id)
 		err3 := SourceChainValidator(tc.id)
@@ -70,12 +69,9 @@ func TestPathValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		f := NewPathValidator(func(path string) error {
-			return nil
-		})
+		f := NewPathValidator(func(path string) error { return nil })
 
 		err := f(tc.id)
-
 		if tc.expPass {
 			seps := strings.Count(tc.id, "/")
 			require.Equal(t, 1, seps)

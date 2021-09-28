@@ -35,16 +35,6 @@ func NewMsgUpdateClient(chainName string, header exported.Header, signer sdk.Acc
 	}, nil
 }
 
-// Route implements sdk.Msg
-func (msg MsgUpdateClient) Route() string {
-	return host.RouterKey
-}
-
-// Type implements sdk.Msg
-func (msg MsgUpdateClient) Type() string {
-	return TypeMsgUpdateClient
-}
-
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -59,12 +49,6 @@ func (msg MsgUpdateClient) ValidateBasic() error {
 		return err
 	}
 	return host.ClientIdentifierValidator(msg.ChainName)
-}
-
-// GetSignBytes implements sdk.Msg. The function will panic since it is used
-// for amino transaction verification which TIBC does not support.
-func (msg MsgUpdateClient) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")
 }
 
 // GetSigners implements sdk.Msg

@@ -44,7 +44,11 @@ func queryPacketCommitmentABCI(
 
 	// check if packet commitment exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "source chain name  (%s), dest chain name (%s), sequence (%d)", sourceChain, destChain, sequence)
+		return nil, sdkerrors.Wrapf(
+			types.ErrPacketCommitmentNotFound,
+			"source chain name  (%s), dest chain name (%s), sequence (%d)",
+			sourceChain, destChain, sequence,
+		)
 	}
 
 	return types.NewQueryPacketCommitmentResponse(value, proofBz, proofHeight), nil
@@ -87,7 +91,11 @@ func queryPacketReceiptABCI(
 // QueryPacketAcknowledgement returns the data about a packet acknowledgement.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client
-func QueryPacketAcknowledgement(clientCtx client.Context, sourceChain, destChain string, sequence uint64, prove bool) (*types.QueryPacketAcknowledgementResponse, error) {
+func QueryPacketAcknowledgement(
+	clientCtx client.Context, sourceChain, destChain string, sequence uint64, prove bool,
+) (
+	*types.QueryPacketAcknowledgementResponse, error,
+) {
 	if prove {
 		return queryPacketAcknowledgementABCI(clientCtx, sourceChain, destChain, sequence)
 	}
@@ -102,7 +110,11 @@ func QueryPacketAcknowledgement(clientCtx client.Context, sourceChain, destChain
 	return queryClient.PacketAcknowledgement(context.Background(), req)
 }
 
-func queryPacketAcknowledgementABCI(clientCtx client.Context, sourceChain, destChain string, sequence uint64) (*types.QueryPacketAcknowledgementResponse, error) {
+func queryPacketAcknowledgementABCI(
+	clientCtx client.Context, sourceChain, destChain string, sequence uint64,
+) (
+	*types.QueryPacketAcknowledgementResponse, error,
+) {
 	key := host.PacketAcknowledgementKey(sourceChain, destChain, sequence)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
@@ -111,7 +123,11 @@ func queryPacketAcknowledgementABCI(clientCtx client.Context, sourceChain, destC
 	}
 
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidAcknowledgement, "source chain name  (%s), dest chain name (%s), sequence (%d)", sourceChain, destChain, sequence)
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidAcknowledgement,
+			"source chain name  (%s), dest chain name (%s), sequence (%d)",
+			sourceChain, destChain, sequence,
+		)
 	}
 
 	return types.NewQueryPacketAcknowledgementResponse(value, proofBz, proofHeight), nil
@@ -121,9 +137,10 @@ func queryPacketAcknowledgementABCI(clientCtx client.Context, sourceChain, destC
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
 func QueryCleanPacketCommitment(
-	clientCtx client.Context, sourceChain, destChain string,
-	prove bool,
-) (*types.QueryCleanPacketCommitmentResponse, error) {
+	clientCtx client.Context, sourceChain, destChain string, prove bool,
+) (
+	*types.QueryCleanPacketCommitmentResponse, error,
+) {
 	if prove {
 		return queryCleanPacketCommitmentABCI(clientCtx, sourceChain, destChain)
 	}
@@ -139,7 +156,9 @@ func QueryCleanPacketCommitment(
 
 func queryCleanPacketCommitmentABCI(
 	clientCtx client.Context, sourceChain, destChain string,
-) (*types.QueryCleanPacketCommitmentResponse, error) {
+) (
+	*types.QueryCleanPacketCommitmentResponse, error,
+) {
 	key := host.CleanPacketCommitmentKey(sourceChain, destChain)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)

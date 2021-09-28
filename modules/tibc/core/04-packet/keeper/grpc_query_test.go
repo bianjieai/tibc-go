@@ -20,74 +20,69 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryPacketCommitmentRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryPacketCommitmentRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+				Sequence:    0,
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryPacketCommitmentRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryPacketCommitmentRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+				Sequence:    0,
+			}
 		},
-		{"invalid sequence",
-			func() {
-				req = &types.QueryPacketCommitmentRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid sequence",
+		func() {
+			req = &types.QueryPacketCommitmentRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Sequence:    0,
+			}
 		},
-		{"dest chain not found",
-			func() {
-				req = &types.QueryPacketCommitmentRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Sequence:    1,
-				}
-			},
-			false,
+		false,
+	}, {
+		"dest chain not found",
+		func() {
+			req = &types.QueryPacketCommitmentRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Sequence:    1,
+			}
 		},
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		false,
+	}, {
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expCommitment = []byte("hash")
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expCommitment)
+			expCommitment = []byte("hash")
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expCommitment)
 
-				req = &types.QueryPacketCommitmentRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Sequence:    1,
-				}
-			},
-			true,
+			req = &types.QueryPacketCommitmentRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Sequence:    1,
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -119,68 +114,63 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid ID",
-			func() {
-				req = &types.QueryPacketCommitmentsRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid ID",
+		func() {
+			req = &types.QueryPacketCommitmentsRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"success, empty res",
-			func() {
-				expCommitments = []*types.PacketState{}
+		false,
+	}, {
+		"success, empty res",
+		func() {
+			expCommitments = []*types.PacketState{}
 
-				req = &types.QueryPacketCommitmentsRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      2,
-						CountTotal: true,
-					},
-				}
-			},
-			true,
+			req = &types.QueryPacketCommitmentsRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Pagination: &query.PageRequest{
+					Key:        nil,
+					Limit:      2,
+					CountTotal: true,
+				},
+			}
 		},
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expCommitments = make([]*types.PacketState, 9)
+			expCommitments = make([]*types.PacketState, 9)
 
-				for i := uint64(0); i < 9; i++ {
-					commitment := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
-					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, commitment.Sequence, commitment.Data)
-					expCommitments[i] = &commitment
-				}
+			for i := uint64(0); i < 9; i++ {
+				commitment := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, commitment.Sequence, commitment.Data)
+				expCommitments[i] = &commitment
+			}
 
-				req = &types.QueryPacketCommitmentsRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      11,
-						CountTotal: true,
-					},
-				}
-			},
-			true,
+			req = &types.QueryPacketCommitmentsRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Pagination: &query.PageRequest{
+					Key:        nil,
+					Limit:      11,
+					CountTotal: true,
+				},
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -212,80 +202,74 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryPacketReceiptRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-					Sequence:    1,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryPacketReceiptRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+				Sequence:    1,
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryPacketReceiptRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-					Sequence:    1,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryPacketReceiptRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+				Sequence:    1,
+			}
 		},
-		{"invalid sequence",
-			func() {
-				req = &types.QueryPacketReceiptRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid sequence",
+		func() {
+			req = &types.QueryPacketReceiptRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Sequence:    0,
+			}
 		},
-		{
-			"success: receipt not found",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+		false,
+	}, {
+		"success: receipt not found",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
-				req = &types.QueryPacketReceiptRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Sequence:    3,
-				}
-				expReceived = false
-			},
-			true,
+			req = &types.QueryPacketReceiptRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Sequence:    3,
+			}
+			expReceived = false
 		},
-		{
-			"success: receipt found",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"success: receipt found",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
-				req = &types.QueryPacketReceiptRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Sequence:    1,
-				}
-				expReceived = true
-			},
-			true,
+			req = &types.QueryPacketReceiptRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Sequence:    1,
+			}
+			expReceived = true
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -317,74 +301,69 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryPacketAcknowledgementRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryPacketAcknowledgementRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+				Sequence:    0,
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryPacketAcknowledgementRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryPacketAcknowledgementRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+				Sequence:    0,
+			}
 		},
-		{"invalid sequence",
-			func() {
-				req = &types.QueryPacketAcknowledgementRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Sequence:    0,
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid sequence",
+		func() {
+			req = &types.QueryPacketAcknowledgementRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Sequence:    0,
+			}
 		},
-		{"dest chain not found",
-			func() {
-				req = &types.QueryPacketAcknowledgementRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Sequence:    1,
-				}
-			},
-			false,
+		false,
+	}, {
+		"dest chain not found",
+		func() {
+			req = &types.QueryPacketAcknowledgementRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Sequence:    1,
+			}
 		},
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		false,
+	}, {
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expAck = []byte("hash")
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expAck)
+			expAck = []byte("hash")
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, expAck)
 
-				req = &types.QueryPacketAcknowledgementRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Sequence:    1,
-				}
-			},
-			true,
+			req = &types.QueryPacketAcknowledgementRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Sequence:    1,
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -416,68 +395,63 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid ID",
-			func() {
-				req = &types.QueryPacketAcknowledgementsRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid ID",
+		func() {
+			req = &types.QueryPacketAcknowledgementsRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"success, empty res",
-			func() {
-				expAcknowledgements = []*types.PacketState{}
+		false,
+	}, {
+		"success, empty res",
+		func() {
+			expAcknowledgements = []*types.PacketState{}
 
-				req = &types.QueryPacketAcknowledgementsRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      2,
-						CountTotal: true,
-					},
-				}
-			},
-			true,
+			req = &types.QueryPacketAcknowledgementsRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+				Pagination: &query.PageRequest{
+					Key:        nil,
+					Limit:      2,
+					CountTotal: true,
+				},
+			}
 		},
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expAcknowledgements = make([]*types.PacketState, 9)
+			expAcknowledgements = make([]*types.PacketState, 9)
 
-				for i := uint64(0); i < 9; i++ {
-					ack := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
-					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
-					expAcknowledgements[i] = &ack
-				}
+			for i := uint64(0); i < 9; i++ {
+				ack := types.NewPacketState(path.EndpointA.ChainName, path.EndpointB.ChainName, i, []byte(fmt.Sprintf("hash_%d", i)))
+				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, ack.Sequence, ack.Data)
+				expAcknowledgements[i] = &ack
+			}
 
-				req = &types.QueryPacketAcknowledgementsRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-					Pagination: &query.PageRequest{
-						Key:        nil,
-						Limit:      11,
-						CountTotal: true,
-					},
-				}
-			},
-			true,
+			req = &types.QueryPacketAcknowledgementsRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+				Pagination: &query.PageRequest{
+					Key:        nil,
+					Limit:      11,
+					CountTotal: true,
+				},
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -509,108 +483,100 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+			}
 		},
-		{
-			"invalid seq",
-			func() {
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain:               "source-chain",
-					DestChain:                 "dest-chain",
-					PacketCommitmentSequences: []uint64{0},
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid seq",
+		func() {
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain:               "source-chain",
+				DestChain:                 "dest-chain",
+				PacketCommitmentSequences: []uint64{0},
+			}
 		},
-		{
-			"basic success unreceived packet commitments",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		false,
+	}, {
+		"basic success unreceived packet commitments",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				// no ack exists
+			// no ack exists
 
-				expSeq = []uint64{1}
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain:               path.EndpointA.ChainName,
-					DestChain:                 path.EndpointB.ChainName,
-					PacketCommitmentSequences: []uint64{1},
-				}
-			},
-			true,
+			expSeq = []uint64{1}
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain:               path.EndpointA.ChainName,
+				DestChain:                 path.EndpointB.ChainName,
+				PacketCommitmentSequences: []uint64{1},
+			}
 		},
-		{
-			"basic success unreceived packet commitments, nothing to relay",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"basic success unreceived packet commitments, nothing to relay",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
-				expSeq = []uint64{}
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain:               path.EndpointA.ChainName,
-					DestChain:                 path.EndpointB.ChainName,
-					PacketCommitmentSequences: []uint64{1},
-				}
-			},
-			true,
+			expSeq = []uint64{}
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain:               path.EndpointA.ChainName,
+				DestChain:                 path.EndpointB.ChainName,
+				PacketCommitmentSequences: []uint64{1},
+			}
 		},
-		{
-			"success multiple unreceived packet commitments",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"success multiple unreceived packet commitments",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expSeq = []uint64{} // reset
-				packetCommitments := []uint64{}
+			expSeq = []uint64{} // reset
+			packetCommitments := []uint64{}
 
-				// set packet receipt for every other sequence
-				for seq := uint64(1); seq < 10; seq++ {
-					packetCommitments = append(packetCommitments, seq)
+			// set packet receipt for every other sequence
+			for seq := uint64(1); seq < 10; seq++ {
+				packetCommitments = append(packetCommitments, seq)
 
-					if seq%2 == 0 {
-						suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
-					} else {
-						expSeq = append(expSeq, seq)
-					}
+				if seq%2 == 0 {
+					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq)
+				} else {
+					expSeq = append(expSeq, seq)
 				}
+			}
 
-				req = &types.QueryUnreceivedPacketsRequest{
-					SourceChain:               path.EndpointA.ChainName,
-					DestChain:                 path.EndpointB.ChainName,
-					PacketCommitmentSequences: packetCommitments,
-				}
-			},
-			true,
+			req = &types.QueryUnreceivedPacketsRequest{
+				SourceChain:               path.EndpointA.ChainName,
+				DestChain:                 path.EndpointB.ChainName,
+				PacketCommitmentSequences: packetCommitments,
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -642,105 +608,97 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+			}
 		},
-		{
-			"invalid seq",
-			func() {
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain:        "source-chain",
-					DestChain:          "dest-chain",
-					PacketAckSequences: []uint64{0},
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid seq",
+		func() {
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain:        "source-chain",
+				DestChain:          "dest-chain",
+				PacketAckSequences: []uint64{0},
+			}
 		},
-		{
-			"basic success unreceived packet acks",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		false,
+	}, {
+		"basic success unreceived packet acks",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, []byte("commitment"))
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, []byte("commitment"))
 
-				expSeq = []uint64{1}
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain:        path.EndpointA.ChainName,
-					DestChain:          path.EndpointB.ChainName,
-					PacketAckSequences: []uint64{1},
-				}
-			},
-			true,
+			expSeq = []uint64{1}
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain:        path.EndpointA.ChainName,
+				DestChain:          path.EndpointB.ChainName,
+				PacketAckSequences: []uint64{1},
+			}
 		},
-		{
-			"basic success unreceived packet acknowledgements, nothing to relay",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"basic success unreceived packet acknowledgements, nothing to relay",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expSeq = []uint64{}
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain:        path.EndpointA.ChainName,
-					DestChain:          path.EndpointB.ChainName,
-					PacketAckSequences: []uint64{1},
-				}
-			},
-			true,
+			expSeq = []uint64{}
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain:        path.EndpointA.ChainName,
+				DestChain:          path.EndpointB.ChainName,
+				PacketAckSequences: []uint64{1},
+			}
 		},
-		{
-			"success multiple unreceived packet acknowledgements",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
+		true,
+	}, {
+		"success multiple unreceived packet acknowledgements",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
 
-				expSeq = []uint64{} // reset
-				packetAcks := []uint64{}
+			expSeq = []uint64{} // reset
+			packetAcks := []uint64{}
 
-				// set packet commitment for every other sequence
-				for seq := uint64(1); seq < 10; seq++ {
-					packetAcks = append(packetAcks, seq)
+			// set packet commitment for every other sequence
+			for seq := uint64(1); seq < 10; seq++ {
+				packetAcks = append(packetAcks, seq)
 
-					if seq%2 == 0 {
-						suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq, []byte("commitement"))
-						expSeq = append(expSeq, seq)
-					}
+				if seq%2 == 0 {
+					suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, seq, []byte("commitement"))
+					expSeq = append(expSeq, seq)
 				}
+			}
 
-				req = &types.QueryUnreceivedAcksRequest{
-					SourceChain:        path.EndpointA.ChainName,
-					DestChain:          path.EndpointB.ChainName,
-					PacketAckSequences: packetAcks,
-				}
-			},
-			true,
+			req = &types.QueryUnreceivedAcksRequest{
+				SourceChain:        path.EndpointA.ChainName,
+				DestChain:          path.EndpointB.ChainName,
+				PacketAckSequences: packetAcks,
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
@@ -763,66 +721,59 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 }
 
 func (suite *KeeperTestSuite) TestQueryCleanPacketCommitment() {
-	var (
-		req *types.QueryCleanPacketCommitmentRequest
-	)
+	var req *types.QueryCleanPacketCommitmentRequest
 
 	testCases := []struct {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"invalid source chain name",
-			func() {
-				req = &types.QueryCleanPacketCommitmentRequest{
-					SourceChain: "",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid source chain name",
+		func() {
+			req = &types.QueryCleanPacketCommitmentRequest{
+				SourceChain: "",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"invalid destination chain name",
-			func() {
-				req = &types.QueryCleanPacketCommitmentRequest{
-					SourceChain: "source-chain",
-					DestChain:   "",
-				}
-			},
-			false,
+		false,
+	}, {
+		"invalid destination chain name",
+		func() {
+			req = &types.QueryCleanPacketCommitmentRequest{
+				SourceChain: "source-chain",
+				DestChain:   "",
+			}
 		},
-		{"dest chain not found",
-			func() {
-				req = &types.QueryCleanPacketCommitmentRequest{
-					SourceChain: "source-chain",
-					DestChain:   "dest-chain",
-				}
-			},
-			false,
+		false,
+	}, {
+		"dest chain not found",
+		func() {
+			req = &types.QueryCleanPacketCommitmentRequest{
+				SourceChain: "source-chain",
+				DestChain:   "dest-chain",
+			}
 		},
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				suite.chainA.App.TIBCKeeper.PacketKeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+		false,
+	}, {
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetCleanPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
 
-				req = &types.QueryCleanPacketCommitmentRequest{
-					SourceChain: path.EndpointA.ChainName,
-					DestChain:   path.EndpointB.ChainName,
-				}
-			},
-			true,
+			req = &types.QueryCleanPacketCommitmentRequest{
+				SourceChain: path.EndpointA.ChainName,
+				DestChain:   path.EndpointB.ChainName,
+			}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {

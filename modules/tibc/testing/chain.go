@@ -82,7 +82,7 @@ type TestChain struct {
 	CurrentHeader tmproto.Header     // header for current block height
 	QueryServer   types.QueryServer
 	TxConfig      client.TxConfig
-	Codec         codec.BinaryMarshaler
+	Codec         codec.BinaryCodec
 
 	Vals    *tmtypes.ValidatorSet
 	Signers []tmtypes.PrivValidator
@@ -118,13 +118,13 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
 	}
 
-	app := simapp.SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
 
 	// create current header and call begin block
 	header := tmproto.Header{
 		ChainID: chainID,
 		Height:  1,
-		Time:    globalStartTime,
+		Time:    coord.CurrentTime.UTC(),
 	}
 
 	txConfig := simapp.MakeTestEncodingConfig().TxConfig
@@ -174,7 +174,7 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.t, err)
 
-	proof, err := chain.App.AppCodec().MarshalBinaryBare(&merkleProof)
+	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
 	require.NoError(chain.t, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
@@ -198,7 +198,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.t, err)
 
-	proof, err := chain.App.AppCodec().MarshalBinaryBare(&merkleProof)
+	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
 	require.NoError(chain.t, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
@@ -290,7 +290,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
-	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	_ = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
 
 	chain.Coordinator.IncrementTime()
 
@@ -322,7 +322,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 
 	valSet := stakingtypes.Validators(histInfo.Valset)
 
-	tmValidators, err := teststaking.ToTmValidators(valSet)
+	tmValidators, err := teststaking.ToTmValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
 		panic(err)
 	}
@@ -332,7 +332,12 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
-	ack, found := chain.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	ack, found := chain.App.TIBCKeeper.PacketKeeper.GetPacketAcknowledgement(
+		chain.GetContext(),
+		packet.GetSourceChain(),
+		packet.GetDestChain(),
+		packet.GetSequence(),
+	)
 	require.True(chain.t, found)
 
 	return ack
@@ -355,7 +360,8 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainN
 	case exported.Tendermint:
 		height := counterparty.LastHeader.GetHeight().(clienttypes.Height)
 		clientState = ibctmtypes.NewClientState(
-			counterparty.ChainID, DefaultTrustLevel, TrustingPeriod, UnbondingPeriod, MaxClockDrift,
+			counterparty.ChainID, DefaultTrustLevel,
+			TrustingPeriod, UnbondingPeriod, MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), Prefix, 0,
 		)
 		consensusState = counterparty.LastHeader.ConsensusState()
@@ -457,7 +463,15 @@ func (chain *TestChain) CurrentTMClientHeader() *ibctmtypes.Header {
 
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
 // caller flexibility to use params that differ from the chain.
-func (chain *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *tmtypes.ValidatorSet, signers []tmtypes.PrivValidator) *ibctmtypes.Header {
+func (chain *TestChain) CreateTMClientHeader(
+	chainID string,
+	blockHeight int64,
+	trustedHeight clienttypes.Height,
+	timestamp time.Time,
+	tmValSet *tmtypes.ValidatorSet,
+	tmTrustedVals *tmtypes.ValidatorSet,
+	signers []tmtypes.PrivValidator,
+) *ibctmtypes.Header {
 	var (
 		valSet      *tmproto.ValidatorSet
 		trustedVals *tmproto.ValidatorSet
@@ -533,9 +547,9 @@ func MakeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) tmtypes.Bl
 // (including voting power). It returns a signer array of PrivValidators that matches the
 // sorting of ValidatorSet.
 // The sorting is first by .VotingPower (descending), with secondary index of .Address (ascending).
-func CreateSortedSignerArray(altPrivVal, suitePrivVal tmtypes.PrivValidator,
-	altVal, suiteVal *tmtypes.Validator) []tmtypes.PrivValidator {
-
+func CreateSortedSignerArray(
+	altPrivVal, suitePrivVal tmtypes.PrivValidator, altVal, suiteVal *tmtypes.Validator,
+) []tmtypes.PrivValidator {
 	switch {
 	case altVal.VotingPower > suiteVal.VotingPower:
 		return []tmtypes.PrivValidator{altPrivVal, suitePrivVal}

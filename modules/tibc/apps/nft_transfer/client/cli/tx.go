@@ -3,11 +3,12 @@ package cli
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 )
@@ -17,9 +18,10 @@ func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer [dest-chain] [receiver] [class] [id] ",
 		Short: "Transfer a non fungible token through TIBC",
-		Example: fmt.Sprintf("%s tx tibc-nft-transfer transfer <dest-chain> <receiver> <class> <id> "+
-			"--relay-chain=<relay-chain>",
-			version.AppName),
+		Example: fmt.Sprintf(
+			"%s tx tibc-nft-transfer transfer <dest-chain> <receiver> <class> <id> --relay-chain=<relay-chain>",
+			version.AppName,
+		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

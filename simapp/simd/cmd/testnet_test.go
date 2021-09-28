@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutiltest "github.com/cosmos/cosmos-sdk/x/genutil/client/testutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bianjieai/tibc-go/simapp"
 )
@@ -25,12 +27,12 @@ func Test_TestnetCmd(t *testing.T) {
 	cfg, err := genutiltest.CreateDefaultTendermintConfig(home)
 	require.NoError(t, err)
 
-	err = genutiltest.ExecInitCmd(simapp.ModuleBasics, home, encodingConfig.Marshaler)
+	err = genutiltest.ExecInitCmd(simapp.ModuleBasics, home, encodingConfig.Codec)
 	require.NoError(t, err)
 
 	serverCtx := server.NewContext(viper.New(), cfg, logger)
 	clientCtx := client.Context{}.
-		WithJSONMarshaler(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Codec).
 		WithHomeDir(home).
 		WithTxConfig(encodingConfig.TxConfig)
 
@@ -46,6 +48,6 @@ func Test_TestnetCmd(t *testing.T) {
 	appState, _, err := genutiltypes.GenesisStateFromGenFile(genFile)
 	require.NoError(t, err)
 
-	bankGenState := banktypes.GetGenesisStateFromAppState(encodingConfig.Marshaler, appState)
+	bankGenState := banktypes.GetGenesisStateFromAppState(encodingConfig.Codec, appState)
 	require.NotEmpty(t, bankGenState.Supply.String())
 }

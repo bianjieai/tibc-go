@@ -13,7 +13,7 @@ import (
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's
 // Value to the corresponding channel type.
-func NewDecodeStore(cdc codec.BinaryMarshaler, kvA, kvB kv.Pair) (string, bool) {
+func NewDecodeStore(cdc codec.BinaryCodec, kvA, kvB kv.Pair) (string, bool) {
 	switch {
 	case bytes.HasPrefix(kvA.Key, []byte(host.KeyNextSeqSendPrefix)):
 		seqA := sdk.BigEndianToUint64(kvA.Value)

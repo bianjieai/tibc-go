@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -34,9 +33,7 @@ var (
 // NewPacket creates a new Packet instance. It panics if the provided
 // packet data interface is not registered.
 func NewPacket(
-	data []byte,
-	sequence uint64, sourceChain, destinationChain, relayChain,
-	port string,
+	data []byte, sequence uint64, sourceChain, destinationChain, relayChain, port string,
 ) Packet {
 	return Packet{
 		Data:             data,
@@ -133,5 +130,5 @@ func NewErrorAcknowledgement(err string) Acknowledgement {
 
 // GetBytes is a helper for serialising acknowledgements
 func (ack Acknowledgement) GetBytes() []byte {
-	return ModuleCdc.MustMarshalBinaryBare(&ack)
+	return ModuleCdc.MustMarshal(&ack)
 }

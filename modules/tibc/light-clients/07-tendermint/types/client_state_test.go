@@ -23,53 +23,43 @@ func (suite *TendermintTestSuite) TestValidate() {
 		name        string
 		clientState *types.ClientState
 		expPass     bool
-	}{
-		{
-			name:        "invalid chainID",
-			clientState: types.NewClientState("  ", types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "invalid trust level",
-			clientState: types.NewClientState(chainID, types.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "invalid trusting period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "invalid unbonding period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "invalid max clock drift",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "invalid height",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "trusting period not less than unbonding period",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "proof specs is nil",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, prefix, 0),
-			expPass:     false,
-		},
-		{
-			name:        "proof specs contains nil",
-			clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, prefix, 0),
-			expPass:     false,
-		},
-	}
+	}{{
+		name:        "invalid chainID",
+		clientState: types.NewClientState("  ", types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "invalid trust level",
+		clientState: types.NewClientState(chainID, types.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "invalid trusting period",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "invalid unbonding period",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "invalid max clock drift",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "invalid height",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "trusting period not less than unbonding period",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "proof specs is nil",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, prefix, 0),
+		expPass:     false,
+	}, {
+		name:        "proof specs contains nil",
+		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, prefix, 0),
+		expPass:     false,
+	}}
 
 	for _, tc := range testCases {
 		err := tc.clientState.Validate()
@@ -82,18 +72,15 @@ func (suite *TendermintTestSuite) TestValidate() {
 }
 
 func (suite *TendermintTestSuite) TestInitialize() {
-
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
 		expPass        bool
-	}{
-		{
-			name:           "valid consensus",
-			consensusState: &types.ConsensusState{},
-			expPass:        true,
-		},
-	}
+	}{{
+		name:           "valid consensus",
+		consensusState: &types.ConsensusState{},
+		expPass:        true,
+	}}
 
 	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 	err := path.EndpointA.CreateClient()
@@ -127,24 +114,23 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"successful verification",
-			func() {}, true,
+	}{{
+		"successful verification",
+		func() {},
+		true,
+	}, {
+		"latest client height < height",
+		func() {
+			proofHeight = clientState.LatestHeight.Increment()
 		},
-		{
-			"latest client height < height",
-			func() {
-				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
+		false,
+	}, {
+		"proof verification failed",
+		func() {
+			proof = invalidProof
 		},
-		{
-			"proof verification failed",
-			func() {
-				proof = invalidProof
-			}, false,
-		},
-	}
+		false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -211,24 +197,23 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"successful verification",
-			func() {}, true,
+	}{{
+		"successful verification",
+		func() {},
+		true,
+	}, {
+		"latest client height < height",
+		func() {
+			proofHeight = clientState.LatestHeight.Increment()
 		},
-		{
-			"latest client height < height",
-			func() {
-				proofHeight = clientState.LatestHeight.Increment()
-			}, false,
+		false,
+	}, {
+		"proof verification failed",
+		func() {
+			proof = invalidProof
 		},
-		{
-			"proof verification failed",
-			func() {
-				proof = invalidProof
-			}, false,
-		},
-	}
+		false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -268,8 +253,10 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			store := path.EndpointA.ClientStore()
 
 			err = clientState.VerifyPacketAcknowledgement(
-				ctx, store, suite.chainA.Codec, proofHeight, proof,
-				packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), packettypes.CommitAcknowledgement(tibcmock.MockAcknowledgement),
+				ctx, store, suite.chainA.Codec,
+				proofHeight, proof, packet.GetSourceChain(),
+				packet.GetDestChain(), packet.GetSequence(),
+				packettypes.CommitAcknowledgement(tibcmock.MockAcknowledgement),
 			)
 
 			if tc.expPass {
