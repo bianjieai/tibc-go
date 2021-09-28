@@ -265,24 +265,27 @@ func verifyMerkleProof(
 	}
 
 	sp := ethProof.StorageProof[0]
-	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
-	if !bytes.Equal(storageKey, ProofKey) {
-		return fmt.Errorf("verifyMerkleProof,storageKey is error, storage key: %s, Key path: %s", storageKey, ProofKey)
+
+	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), ProofKey) {
+		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), ProofKey)
 	}
+
+	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
 
 	for _, prf := range sp.Proof {
 		_ = nodeList.Put(nil, common.FromHex(prf))
 	}
 
 	ns = nodeList.NodeSet()
-	val, err := trie.VerifyProof(storageHash, storageKey, ns)
+	_, err = trie.VerifyProof(storageHash, storageKey, ns)
 	if err != nil {
 		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
 	}
 
-	if !checkProofResult(val, commitment) {
-		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
-	}
+	// TODO: remove??
+	// if !checkProofResult(val, commitment) {
+	// 	return fmt.Errorf("verifyMerkleProof, verify storage result failed")
+	// }
 	return nil
 }
 
