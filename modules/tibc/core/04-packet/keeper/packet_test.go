@@ -26,85 +26,99 @@ var (
 
 // TestSendPacket tests SendPacket from chainA to chainB
 func (suite *KeeperTestSuite) TestSendPacket() {
-	var (
-		packet exported.PacketI
-	)
+	var packet exported.PacketI
 
-	testCases := []testCase{
-		{"success: UNORDERED channel", func() {
+	testCases := []testCase{{
+		"success: UNORDERED channel",
+		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-		}, true},
-		{"sending packet out of order on UNORDERED channel", func() {
+		},
+		true,
+	}, {
+		"sending packet out of order on UNORDERED channel",
+		func() {
 			// setup creates an unordered channel
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 5, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-		}, false},
-		// {"packet basic validation failed, empty packet data", func() {
-		// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		// 	suite.coordinator.SetupClients(path)
-		// 	packet = types.NewPacket([]byte{}, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
-		// }, false},
-		// {"port not found", func() {
-		// 	// use wrong port
-		// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		// 	suite.coordinator.SetupClients(path)
-		// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
-		// }, false},
-		{"client state not found", func() {
+		},
+		false,
+	}, {
+		"client state not found",
+		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, tibctesting.InvalidID, relayChain, tibctesting.MockPort)
-		}, false},
-		{"next sequence wrong", func() {
+		},
+		false,
+	}, {
+		"next sequence wrong",
+		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
 			suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 5)
-		}, false},
+		},
+		false,
+	},
+	// {"packet basic validation failed, empty packet data", func() {
+	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	// 	suite.coordinator.SetupClients(path)
+	// 	packet = types.NewPacket([]byte{}, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
+	// }, false},
+	// {"port not found", func() {
+	// 	// use wrong port
+	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	// 	suite.coordinator.SetupClients(path)
+	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
+	// }, false},
 	}
 
 	for i, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
-			suite.SetupTest() // reset
+		suite.Run(
+			fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)),
+			func() {
+				suite.SetupTest() // reset
 
-			tc.malleate()
+				tc.malleate()
 
-			err := suite.chainA.App.TIBCKeeper.PacketKeeper.SendPacket(suite.chainA.GetContext(), packet)
+				err := suite.chainA.App.TIBCKeeper.PacketKeeper.SendPacket(suite.chainA.GetContext(), packet)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			},
+		)
 	}
-
 }
 
 // TestRecvPacket test RecvPacket on chainB. Since packet commitment verification will always
 // occur last (resource instensive), only tests expected to succeed and packet commitment
 // verification tests need to simulate sending a packet from chainA to chainB.
 func (suite *KeeperTestSuite) TestRecvPacket() {
-	var (
-		packet exported.PacketI
-	)
+	var packet exported.PacketI
 
-	testCases := []testCase{
-		{"success: ORDERED channel", func() {
+	testCases := []testCase{{
+		"success: ORDERED channel",
+		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-		}, true},
-		{"success with out of order packet: UNORDERED channel", func() {
+		},
+		true,
+	}, {
+		"success with out of order packet: UNORDERED channel",
+		func() {
 			// setup uses an UNORDERED channel
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -117,28 +131,38 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packet = types.NewPacket(validPacketData, 2, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
 			err = path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-		}, true},
-		{"port not found", func() {
+		},
+		true,
+	}, {
+		"port not found",
+		func() {
 			// use wrong port
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
-		}, false},
-		{"receipt already stored", func() {
+		},
+		false,
+	}, {
+		"receipt already stored",
+		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
-		}, false},
-		{"validation failed", func() {
+		},
+		false,
+	}, {
+		"validation failed",
+		func() {
 			// packet commitment not set resulting in invalid proof
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
-		}, false},
-	}
+		},
+		false,
+	}}
 
 	for i, tc := range testCases {
 		tc := tc
@@ -155,7 +179,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				receipt, receiptStored := suite.chainB.App.TIBCKeeper.PacketKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+				receipt, receiptStored := suite.chainB.App.TIBCKeeper.PacketKeeper.GetPacketReceipt(
+					suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
+				)
 
 				suite.Require().True(receiptStored, "packet receipt not stored after RecvPacket in UNORDERED channel")
 				suite.Require().Equal(string([]byte{byte(1)}), receipt, "packet receipt is not empty string")
@@ -165,7 +191,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			}
 		})
 	}
-
 }
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
@@ -174,38 +199,42 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		packet exported.PacketI
 	)
 
-	testCases := []testCase{
-		{
-			"success",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-				ack = tibctesting.TestHash
-			},
-			true,
+	testCases := []testCase{{
+		"success",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			ack = tibctesting.TestHash
 		},
-		{
-			"no-op, already acked",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-				ack = tibctesting.TestHash
-				suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ack)
-			},
-			false,
+		true,
+	}, {
+		"no-op, already acked",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			ack = tibctesting.TestHash
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ack)
 		},
-		{
-			"empty acknowledgement",
-			func() {
-				path := tibctesting.NewPath(suite.chainA, suite.chainB)
-				suite.coordinator.SetupClients(path)
-				packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-				ack = nil
-			},
-			false,
+		false,
+	}, {
+		"empty acknowledgement",
+		func() {
+			path := tibctesting.NewPath(suite.chainA, suite.chainB)
+			suite.coordinator.SetupClients(path)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			ack = nil
 		},
+		false,
+	},
+	// {"port not found", func() {
+	// 	// use wrong port naming
+	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	// 	suite.coordinator.SetupClients(path)
+	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
+	// 	ack = ibctesting.TestHash
+	// }, false},
 	}
 	for i, tc := range testCases {
 		tc := tc
@@ -232,8 +261,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = tibcmock.MockAcknowledgement
 	)
 
-	testCases := []testCase{
-		{"success", func() {
+	testCases := []testCase{{
+		"success",
+		func() {
 			// setup
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
@@ -246,20 +276,27 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			// create packet receipt and acknowledgement
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
-		}, true},
-		{"port not found", func() {
+		},
+		true,
+	}, {
+		"port not found",
+		func() {
 			// use wrong port naming
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
-		}, false},
-		{"packet hasn't been sent", func() {
+		},
+		false,
+	}, {
+		"packet hasn't been sent",
+		func() {
 			// packet commitment never written
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-		}, false},
-	}
+		},
+		false,
+	}}
 
 	for i, tc := range testCases {
 		tc := tc

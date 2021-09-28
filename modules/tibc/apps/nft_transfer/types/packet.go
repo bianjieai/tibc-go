@@ -8,8 +8,7 @@ import (
 
 // NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
-	class, id, uri, sender, receiver string,
-	awayFromOrigin bool,
+	class, id, uri, sender, receiver string, awayFromOrigin bool,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		Class:          class,
@@ -25,7 +24,7 @@ func NewNonFungibleTokenPacketData(
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to TIBC.
 func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
-	// some other check todo
+	// TODO: some other check
 
 	if strings.TrimSpace(nftpd.Sender) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
@@ -38,5 +37,5 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return ModuleCdc.MustMarshalBinaryBare(&nftpd)
+	return ModuleCdc.MustMarshal(&nftpd)
 }

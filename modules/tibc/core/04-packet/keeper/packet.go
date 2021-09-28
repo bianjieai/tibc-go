@@ -14,10 +14,7 @@ import (
 
 // SendPacket is called by a module to send an TIBC packet on a port owned
 // by the calling module to the corresponding module on the counterparty chain.
-func (k Keeper) SendPacket(
-	ctx sdk.Context,
-	packet exported.PacketI,
-) error {
+func (k Keeper) SendPacket(ctx sdk.Context, packet exported.PacketI) error {
 	if err := packet.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
@@ -152,8 +149,7 @@ func (k Keeper) RecvPacket(
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
 
-		targetClient, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain())
-		if !found {
+		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain()); !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 		}
 
@@ -324,8 +320,7 @@ func (k Keeper) AcknowledgePacket(
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
 			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
 		}
-		_, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain())
-		if !found {
+		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain()); !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 		}
 		// set the acknowledgement so that it can be verified on the other side
@@ -355,10 +350,7 @@ func (k Keeper) AcknowledgePacket(
 }
 
 // CleanPacket.
-func (k Keeper) CleanPacket(
-	ctx sdk.Context,
-	cleanPacket exported.CleanPacketI,
-) error {
+func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
 	if err := cleanPacket.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
@@ -463,8 +455,7 @@ func (k Keeper) RecvCleanPacket(
 	})
 
 	if isRelay {
-		_, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
-		if !found {
+		if _, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain()); !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 		}
 		// Emit Event with Packet data along with other packet information for relayer to pick up

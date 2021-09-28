@@ -3,10 +3,9 @@ package tibc
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
-
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	packet "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet"
+	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )

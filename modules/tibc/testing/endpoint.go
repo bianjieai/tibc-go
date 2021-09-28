@@ -5,8 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
@@ -29,9 +30,7 @@ type Endpoint struct {
 
 // NewEndpoint constructs a new endpoint without the counterparty.
 // CONTRACT: the counterparty endpoint must be set by the caller.
-func NewEndpoint(
-	chain *TestChain, clientConfig ClientConfig,
-) *Endpoint {
+func NewEndpoint(chain *TestChain, clientConfig ClientConfig) *Endpoint {
 	return &Endpoint{
 		Chain:        chain,
 		ClientConfig: clientConfig,
@@ -67,37 +66,28 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 // CreateClient creates an TIBC client on the endpoint. It will update the
 // chainName for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (endpoint *Endpoint) CreateClient() (err error) {
+func (endpoint *Endpoint) CreateClient() error {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
 	// ensure the chain has the latest time
 	endpoint.Chain.Coordinator.UpdateTimeForChain(endpoint.Chain)
 
-	var (
-		clientState    exported.ClientState
-		consensusState exported.ConsensusState
+	if endpoint.ClientConfig.GetClientType() != exported.Tendermint {
+		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+	}
+
+	tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
+	require.True(endpoint.Chain.t, ok)
+
+	height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
+	clientState := ibctmtypes.NewClientState(
+		endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel,
+		tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+		height, commitmenttypes.GetSDKSpecs(), Prefix, 0,
 	)
+	consensusState := endpoint.Counterparty.Chain.LastHeader.ConsensusState()
 
-	switch endpoint.ClientConfig.GetClientType() {
-	case exported.Tendermint:
-		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
-		require.True(endpoint.Chain.t, ok)
-
-		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
-		clientState = ibctmtypes.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), Prefix, 0,
-		)
-		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
-
-	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
-	}
-
-	if err != nil {
-		return err
-	}
 	ctx := endpoint.Chain.GetContext()
 
 	// set selft chain name
@@ -111,10 +101,11 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 	endpoint.Chain.App.TIBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
 
 	// create counterparty chain light client
-	err = endpoint.Chain.App.TIBCKeeper.ClientKeeper.CreateClient(
+	err := endpoint.Chain.App.TIBCKeeper.ClientKeeper.CreateClient(
 		endpoint.Chain.GetContext(),
 		endpoint.Counterparty.ChainName,
-		clientState, consensusState,
+		clientState,
+		consensusState,
 	)
 	require.NoError(endpoint.Chain.t, err)
 
@@ -123,26 +114,20 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 
 	endpoint.Chain.NextBlock()
 	endpoint.Chain.Coordinator.IncrementTime()
+
 	return nil
 }
 
 // UpdateClient updates the TIBC client associated with the endpoint.
-func (endpoint *Endpoint) UpdateClient() (err error) {
+func (endpoint *Endpoint) UpdateClient() error {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	var (
-		header exported.Header
-	)
-
-	switch endpoint.ClientConfig.GetClientType() {
-	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.Counterparty.ChainName)
-
-	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+	if endpoint.ClientConfig.GetClientType() != exported.Tendermint {
+		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
+	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.Counterparty.ChainName)
 	if err != nil {
 		return err
 	}
@@ -154,15 +139,13 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	require.NoError(endpoint.Chain.t, err)
 
 	return endpoint.Chain.sendMsgs(msg)
-
 }
 
 // SendPacket sends a packet through the channel keeper using the associated endpoint
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 func (endpoint *Endpoint) SendPacket(packet exported.PacketI) error {
 	// no need to send message, acting as a module
-	err := endpoint.Chain.App.TIBCKeeper.PacketKeeper.SendPacket(endpoint.Chain.GetContext(), packet)
-	if err != nil {
+	if err := endpoint.Chain.App.TIBCKeeper.PacketKeeper.SendPacket(endpoint.Chain.GetContext(), packet); err != nil {
 		return err
 	}
 

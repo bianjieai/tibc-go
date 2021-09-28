@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -51,7 +52,7 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 
-	cdc            codec.Marshaler
+	cdc            codec.Codec
 	ctx            sdk.Context
 	keeper         *keeper.Keeper
 	consensusState *ibctmtypes.ConsensusState
@@ -90,7 +91,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	validator := tmtypes.NewValidator(pubKey, 1)
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 	suite.valSetHash = suite.valSet.Hash()
-	suite.header = suite.chainA.CreateTMClientHeader(testChainID, int64(testClientHeight.RevisionHeight), testClientHeightMinus1, now2, suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	suite.header = suite.chainA.CreateTMClientHeader(
+		testChainID, int64(testClientHeight.RevisionHeight),
+		testClientHeightMinus1, now2, suite.valSet, suite.valSet,
+		[]tmtypes.PrivValidator{suite.privVal},
+	)
 	suite.consensusState = ibctmtypes.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("hash")), suite.valSetHash)
 
 	var validators stakingtypes.Validators
@@ -107,7 +112,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdk.NewInt(rand.Int63())
 		validators = append(validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators)
+		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
 		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
 
@@ -121,7 +126,12 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestSetClientState() {
-	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+	clientState := ibctmtypes.NewClientState(
+		testChainID, ibctmtypes.DefaultTrustLevel,
+		trustingPeriod, ubdPeriod, maxClockDrift,
+		types.ZeroHeight(), commitmenttypes.GetSDKSpecs(),
+		ibctesting.Prefix, 0,
+	)
 	suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 
 	retrievedState, found := suite.keeper.GetClientState(suite.ctx, testChainName)
@@ -193,7 +203,12 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 
 func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 	// initial setup
-	clientState := ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+	clientState := ibctmtypes.NewClientState(
+		testChainID, ibctmtypes.DefaultTrustLevel,
+		trustingPeriod, ubdPeriod, maxClockDrift,
+		testClientHeight, commitmenttypes.GetSDKSpecs(),
+		ibctesting.Prefix, 0,
+	)
 
 	suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
 	suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight, suite.consensusState)
@@ -202,8 +217,11 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 
 	testClientHeightPlus5 := types.NewHeight(0, height+5)
 
-	header := suite.chainA.CreateTMClientHeader(testChainName, int64(testClientHeightPlus5.RevisionHeight), testClientHeight, suite.header.Header.Time.Add(time.Minute),
-		suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal})
+	header := suite.chainA.CreateTMClientHeader(
+		testChainName, int64(testClientHeightPlus5.RevisionHeight),
+		testClientHeight, suite.header.Header.Time.Add(time.Minute),
+		suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal},
+	)
 
 	// mock update functionality
 	clientState.LatestHeight = header.GetHeight().(types.Height)

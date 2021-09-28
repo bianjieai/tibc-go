@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"

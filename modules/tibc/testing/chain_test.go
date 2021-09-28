@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"

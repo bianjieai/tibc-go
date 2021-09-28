@@ -22,11 +22,12 @@ func (k Keeper) SendNftTransfer(
 	ctx sdk.Context,
 	class, id string,
 	sender sdk.AccAddress,
-	receiver, destChain, relayChain string,
+	receiver string,
+	destChain string,
+	relayChain string,
 ) error {
 	// class must be existed
-	_, found := k.nk.GetDenom(ctx, class)
-	if !found {
+	if _, found := k.nk.GetDenom(ctx, class); !found {
 		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
 	}
 	// get nft
@@ -88,11 +89,7 @@ func (k Keeper) SendNftTransfer(
 	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.NFT))
 
 	// send packet
-	if err := k.pk.SendPacket(ctx, packet); err != nil {
-		return err
-	}
-
-	return nil
+	return k.pk.SendPacket(ctx, packet)
 }
 
 /*
@@ -131,8 +128,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 			newClass = PREFIX + "/" + packet.SourceChain + "/" + data.Class
 		}
 
-		_, found := k.nk.GetDenom(ctx, newClass)
-		if !found {
+		if _, found := k.nk.GetDenom(ctx, newClass); !found {
 			// The creator of cross-chain denom must be a module account,
 			// and only the owner of Denom can issue NFT under this category,
 			// and no one under this category can update NFT,
@@ -151,7 +147,6 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		if err := k.nk.TransferOwner(ctx, newClass, data.Id, DoNotModify, DoNotModify, DoNotModify, moudleAddr, receiver); err != nil {
 			return err
 		}
-
 	} else {
 		if strings.HasPrefix(data.Class, PREFIX) {
 			classSplit := strings.Split(data.Class, "/")
@@ -232,8 +227,5 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	}
 
 	classSplit := strings.Split(class, "/")
-	if classSplit[len(classSplit)-2] == destChain {
-		return false
-	}
-	return true
+	return classSplit[len(classSplit)-2] != destChain
 }

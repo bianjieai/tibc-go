@@ -10,11 +10,9 @@ const (
 	// QuerierRoute is the querier route for TIBC client
 	QuerierRoute string = SubModuleName
 
-	// KeyClientName is the key used to store the chain name in
-	// the keeper.
+	// KeyClientName is the key used to store the chain name in the keeper.
 	KeyClientName = "chainName"
 
-	// KeyRelayers is the key used to store the relayers address in
-	// the keeper.
+	// KeyRelayers is the key used to store the relayers address in the keeper.
 	KeyRelayers = "relayers"
 )

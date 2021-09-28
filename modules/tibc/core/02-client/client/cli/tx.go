@@ -116,8 +116,8 @@ func NewUpdateClientCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			chainName := args[0]
 
+			chainName := args[0]
 			cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
 
 			var header exported.Header
