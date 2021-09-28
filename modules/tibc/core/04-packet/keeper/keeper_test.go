@@ -124,15 +124,13 @@ func (suite *KeeperTestSuite) TestSetSequence() {
 	one := uint64(1)
 
 	// initialized channel has next send seq of 1
-	seq, found := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
-	suite.True(found)
+	seq := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
 	suite.Equal(one, seq)
 
 	nextSeqSend := uint64(10)
 	suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName, nextSeqSend)
 
-	storedNextSeqSend, found := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
-	suite.True(found)
+	storedNextSeqSend := suite.chainA.App.TIBCKeeper.PacketKeeper.GetNextSequenceSend(ctxA, path.EndpointA.ChainName, path.EndpointB.ChainName)
 	suite.Equal(nextSeqSend, storedNextSeqSend)
 }
 

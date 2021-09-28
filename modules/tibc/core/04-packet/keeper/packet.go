@@ -35,7 +35,7 @@ func (k Keeper) SendPacket(
 		return clienttypes.ErrConsensusStateNotFound
 	}
 
-	nextSequenceSend, _ := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
+	nextSequenceSend := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 
 	if packet.GetSequence() != nextSequenceSend {
 		return sdkerrors.Wrapf(
@@ -85,6 +85,14 @@ func (k Keeper) RecvPacket(
 	if err := k.ValidatePacketSeq(ctx, packet); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
+	// check if the packet receipt has been received already for unordered channels
+	_, found := k.GetPacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	if found {
+		return sdkerrors.Wrapf(
+			types.ErrInvalidPacket,
+			"packet sequence (%d) already has been received", packet.GetSequence(),
+		)
+	}
 	commitment := types.CommitPacket(packet)
 	var isRelay bool
 	var targetChainName string
@@ -111,15 +119,6 @@ func (k Keeper) RecvPacket(
 		packet.GetSequence(), commitment,
 	); err != nil {
 		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
-	}
-
-	// check if the packet receipt has been received already for unordered channels
-	_, found = k.GetPacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
-	if found {
-		return sdkerrors.Wrapf(
-			types.ErrInvalidPacket,
-			"packet sequence (%d) already has been received", packet.GetSequence(),
-		)
 	}
 
 	// All verification complete, update state
@@ -199,15 +198,15 @@ func (k Keeper) WriteAcknowledgement(
 	packet exported.PacketI,
 	acknowledgement []byte,
 ) error {
+	if len(acknowledgement) == 0 {
+		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+	}
+
 	// NOTE: TIBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
 	if k.HasPacketAcknowledgement(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence()) {
 		return types.ErrAcknowledgementExists
-	}
-
-	if len(acknowledgement) == 0 {
-		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
 	targetChain := packet.GetSourceChain()
@@ -376,7 +375,7 @@ func (k Keeper) CleanPacket(
 	if !found {
 		return clienttypes.ErrConsensusStateNotFound
 	}
-
+    //TODO logic move to cli and validate
 	sourceChain := cleanPacket.GetSourceChain()
 	if len(sourceChain) == 0 {
 		sourceChain = k.clientKeeper.GetChainName(ctx)
@@ -464,7 +463,7 @@ func (k Keeper) RecvCleanPacket(
 	})
 
 	if isRelay {
-		targetClient, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
+		_, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain())
 		if !found {
 			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
 		}

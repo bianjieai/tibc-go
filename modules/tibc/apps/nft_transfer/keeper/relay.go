@@ -53,7 +53,7 @@ func (k Keeper) SendNftTransfer(
 	awayFromOrigin := k.determineAwayFromOrigin(class, destChain)
 
 	// get the next sequence
-	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
+	sequence := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	if awayFromOrigin {
 		// Two conversion scenarios
