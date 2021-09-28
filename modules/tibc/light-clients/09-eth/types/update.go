@@ -86,17 +86,9 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	}
 	store.Set(ConsensusStateIndexKey(consensusState.Header.Hash()), consensusStamp)
 	//Check the bifurcation
-<<<<<<< HEAD
 	if !bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
 		err = m.RestrictChain(cdc, store, *ethHeader)
 		if err != nil {
-=======
-	if bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
-		// set all consensusState by struct (prefix+hash , consensusState)
-		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStamp)
-	} else {
-		if err = m.RestrictChain(cdc, store, *ethHeader); err != nil {
->>>>>>> bc1371e8372a5e7cfc856339f6947dedbcd2f98f
 			return nil, nil, err
 		}
 	}

@@ -301,7 +301,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			// Use CreateClient to ensure that processedTime metadata gets stored.
 			err := suite.keeper.CreateClient(suite.ctx, testChainName, clientState, cs)
 			suite.Require().NoError(err)
-			suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight.Increment(), cs2)
+			for i := testClientHeight.RevisionHeight + 1; i <= 12; i++ {
+				suite.keeper.SetClientConsensusState(suite.ctx, testChainName,
+					types.NewHeight(0, i), cs2)
+			}
 
 			// order is swapped because the res is sorted by client id
 			expConsensusStates = []types.ConsensusStateWithHeight{

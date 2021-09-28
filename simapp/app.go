@@ -204,51 +204,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	ConfigureBech32Prefix()
 
 	DefaultNodeHome = filepath.Join(userHomeDir, ".simapp")
-}
-
-const (
-
-	// Bech32ChainPrefix defines the prefix of this chain
-	Bech32ChainPrefix = "i"
-
-	// PrefixAcc is the prefix for account
-	PrefixAcc = "a"
-
-	// PrefixValidator is the prefix for validator keys
-	PrefixValidator = "v"
-
-	// PrefixConsensus is the prefix for consensus keys
-	PrefixConsensus = "c"
-
-	// PrefixPublic is the prefix for public
-	PrefixPublic = "p"
-
-	// PrefixAddress is the prefix for address
-	PrefixAddress = "a"
-
-	// Bech32PrefixAccAddr defines the Bech32 prefix of an account's address
-	Bech32PrefixAccAddr = Bech32ChainPrefix + PrefixAcc + PrefixAddress
-	// Bech32PrefixAccPub defines the Bech32 prefix of an account's public key
-	Bech32PrefixAccPub = Bech32ChainPrefix + PrefixAcc + PrefixPublic
-	// Bech32PrefixValAddr defines the Bech32 prefix of a validator's operator address
-	Bech32PrefixValAddr = Bech32ChainPrefix + PrefixValidator + PrefixAddress
-	// Bech32PrefixValPub defines the Bech32 prefix of a validator's operator public key
-	Bech32PrefixValPub = Bech32ChainPrefix + PrefixValidator + PrefixPublic
-	// Bech32PrefixConsAddr defines the Bech32 prefix of a consensus node address
-	Bech32PrefixConsAddr = Bech32ChainPrefix + PrefixConsensus + PrefixAddress
-	// Bech32PrefixConsPub defines the Bech32 prefix of a consensus node public key
-	Bech32PrefixConsPub = Bech32ChainPrefix + PrefixConsensus + PrefixPublic
-)
-
-func ConfigureBech32Prefix() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(Bech32PrefixAccAddr, Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(Bech32PrefixValAddr, Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(Bech32PrefixConsAddr, Bech32PrefixConsPub)
-	config.Seal()
 }
 
 // NewSimApp returns a reference to an initialized SimApp.
@@ -304,15 +261,10 @@ func NewSimApp(
 
 	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
-<<<<<<< HEAD
-	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(tibchost.ModuleName)
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-=======
+
 	scopedTIBCKeeper := app.CapabilityKeeper.ScopeToModule(tibchost.ModuleName)
 	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
 	// note replicate if you do not need to test core TIBC or light clients.
->>>>>>> bc1371e8372a5e7cfc856339f6947dedbcd2f98f
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(tibcmock.ModuleName)
 
 	// add keepers
@@ -511,18 +463,8 @@ func NewSimApp(
 		// `loadLatest` is set to true.
 		app.CapabilityKeeper.Seal()
 	}
-
-<<<<<<< HEAD
-	app.ScopedIBCKeeper = scopedIBCKeeper
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
-=======
 	app.ScopedTIBCKeeper = scopedTIBCKeeper
 	app.ScopedTIBCMockKeeper = scopedIBCMockKeeper
->>>>>>> bc1371e8372a5e7cfc856339f6947dedbcd2f98f
-
 	return app
 }
 
