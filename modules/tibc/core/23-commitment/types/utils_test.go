@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
@@ -25,58 +26,53 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		malleate  func()
 		keyExists bool
 		expPass   bool
-	}{
-		{
-			"success for ExistenceProof",
-			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
-					Data:  []byte("MYKEY"),
-					Prove: true,
-				})
-				require.NotNil(suite.T(), res.ProofOps)
+	}{{
+		"success for ExistenceProof",
+		func() {
+			res := suite.store.Query(abci.RequestQuery{
+				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Data:  []byte("MYKEY"),
+				Prove: true,
+			})
+			require.NotNil(suite.T(), res.ProofOps)
 
-				proofOps = res.ProofOps
-			},
-			true, true,
+			proofOps = res.ProofOps
 		},
-		{
-			"success for NonexistenceProof",
-			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
-					Data:  []byte("NOTMYKEY"),
-					Prove: true,
-				})
-				require.NotNil(suite.T(), res.ProofOps)
+		true, true,
+	}, {
+		"success for NonexistenceProof",
+		func() {
+			res := suite.store.Query(abci.RequestQuery{
+				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Data:  []byte("NOTMYKEY"),
+				Prove: true,
+			})
+			require.NotNil(suite.T(), res.ProofOps)
 
-				proofOps = res.ProofOps
-			},
-			false, true,
+			proofOps = res.ProofOps
 		},
-		{
-			"nil proofOps",
-			func() {
-				proofOps = nil
-			},
-			true, false,
+		false, true,
+	}, {
+		"nil proofOps",
+		func() {
+			proofOps = nil
 		},
-		{
-			"proof op data is nil",
-			func() {
-				res := suite.store.Query(abci.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
-					Data:  []byte("MYKEY"),
-					Prove: true,
-				})
-				require.NotNil(suite.T(), res.ProofOps)
+		true, false,
+	}, {
+		"proof op data is nil",
+		func() {
+			res := suite.store.Query(abci.RequestQuery{
+				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Data:  []byte("MYKEY"),
+				Prove: true,
+			})
+			require.NotNil(suite.T(), res.ProofOps)
 
-				proofOps = res.ProofOps
-				proofOps.Ops[0].Data = nil
-			},
-			true, false,
+			proofOps = res.ProofOps
+			proofOps.Ops[0].Data = nil
 		},
-	}
+		true, false,
+	}}
 
 	for _, tc := range testcases {
 		tc.malleate()

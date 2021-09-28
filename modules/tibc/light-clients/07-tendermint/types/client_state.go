@@ -5,6 +5,7 @@ import (
 	"time"
 
 	ics23 "github.com/confio/ics23/go"
+
 	"github.com/tendermint/tendermint/light"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,7 +24,9 @@ var _ exported.ClientState = (*ClientState)(nil)
 func NewClientState(
 	chainID string,
 	trustLevel Fraction,
-	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
+	trustingPeriod time.Duration,
+	ubdPeriod time.Duration,
+	maxClockDrift time.Duration,
 	latestHeight clienttypes.Height,
 	specs []*ics23.ProofSpec,
 	prefix commitmenttypes.MerklePrefix,
@@ -102,7 +105,8 @@ func (cs ClientState) Validate() error {
 	if cs.TrustingPeriod >= cs.UnbondingPeriod {
 		return sdkerrors.Wrapf(
 			ErrInvalidTrustingPeriod,
-			"trusting period (%s) should be < unbonding period (%s)", cs.TrustingPeriod, cs.UnbondingPeriod,
+			"trusting period (%s) should be < unbonding period (%s)",
+			cs.TrustingPeriod, cs.UnbondingPeriod,
 		)
 	}
 
@@ -125,10 +129,13 @@ func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 
 // Initialize will check that initial consensus state is a Tendermint consensus state
 // and will store ProcessedTime for initial consensus state as ctx.BlockTime()
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
 	if _, ok := consState.(*ConsensusState); !ok {
-		return sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
-			&ConsensusState{}, consState)
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidConsensus,
+			"invalid initial consensus state. expected type: %T, got: %T",
+			&ConsensusState{}, consState,
+		)
 	}
 	// set processed time with initial consensus state height equal to initial client state's latest height
 	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
@@ -137,7 +144,7 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryMarshaler, clien
 
 // Status function
 // Clients must return their status. Only Active clients are allowed to process packets.
-func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) exported.Status {
+func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
 	// get latest consensus state from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if err != nil {
@@ -156,7 +163,7 @@ func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec
 func (cs ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain,
@@ -192,7 +199,7 @@ func (cs ClientState) VerifyPacketCommitment(
 func (cs ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain,
@@ -228,7 +235,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 func (cs ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain string,
@@ -270,8 +277,11 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 	validTime := processedTime + delayPeriod
 	// NOTE: delay period is inclusive, so if currentTimestamp is validTime, then we return no error
 	if validTime > currentTimestamp {
-		return sdkerrors.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
-			validTime, currentTimestamp)
+		return sdkerrors.Wrapf(
+			ErrDelayPeriodNotPassed,
+			"cannot verify packet until time: %d, current time: %d",
+			validTime, currentTimestamp,
+		)
 	}
 	return nil
 }
@@ -281,7 +291,7 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exp
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	cs ClientState,
 	height exported.Height,
 	prefix exported.Prefix,
@@ -290,7 +300,8 @@ func produceVerificationArgs(
 	if cs.GetLatestHeight().LT(height) {
 		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d)",
+			cs.GetLatestHeight(), height,
 		)
 	}
 
@@ -307,7 +318,7 @@ func produceVerificationArgs(
 		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "proof cannot be empty")
 	}
 
-	if err = cdc.UnmarshalBinaryBare(proof, &merkleProof); err != nil {
+	if err = cdc.Unmarshal(proof, &merkleProof); err != nil {
 		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into commitment merkle proof")
 	}
 

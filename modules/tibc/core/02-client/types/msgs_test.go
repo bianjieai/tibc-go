@@ -41,15 +41,13 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 	testCases := []struct {
 		name     string
 		malleate func()
-	}{
-		{
-			"tendermint client", func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress())
-				suite.Require().NoError(err)
-
-			},
+	}{{
+		"tendermint client",
+		func() {
+			msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress())
+			suite.Require().NoError(err)
 		},
-	}
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -85,45 +83,39 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"invalid chain-name",
-			func() {
-				msg.ChainName = ""
-			},
-			false,
+	}{{
+		"invalid chain-name",
+		func() {
+			msg.ChainName = ""
 		},
-		{
-			"valid - tendermint header",
-			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress())
-				suite.Require().NoError(err)
-			},
-			true,
+		false,
+	}, {
+		"valid - tendermint header",
+		func() {
+			msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress())
+			suite.Require().NoError(err)
 		},
-		{
-			"invalid tendermint header",
-			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", &tibctmtypes.Header{}, suite.chainA.SenderAccount.GetAddress())
-				suite.Require().NoError(err)
-			},
-			false,
+		true,
+	}, {
+		"invalid tendermint header",
+		func() {
+			msg, err = types.NewMsgUpdateClient("tendermint", &tibctmtypes.Header{}, suite.chainA.SenderAccount.GetAddress())
+			suite.Require().NoError(err)
 		},
-		{
-			"failed to unpack header",
-			func() {
-				msg.Header = nil
-			},
-			false,
+		false,
+	}, {
+		"failed to unpack header",
+		func() {
+			msg.Header = nil
 		},
-		{
-			"invalid signer",
-			func() {
-				msg.Signer = ""
-			},
-			false,
+		false,
+	}, {
+		"invalid signer",
+		func() {
+			msg.Signer = ""
 		},
-	}
+		false,
+	}}
 
 	for _, tc := range cases {
 		tc.malleate()

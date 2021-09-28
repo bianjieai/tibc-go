@@ -29,108 +29,139 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		malleate       func()
 		awayFromSource bool
 		expPass        bool
-	}{
-		{"successful transfer from source chain",
-			func() {
-				// issue denom
-				issueDenomMsg := nfttypes.NewMsgIssueDenom("dog", "dog-name", "",
-					suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
-				_, _ = suite.chainA.SendMsgs(issueDenomMsg)
+	}{{
+		"successful transfer from source chain",
+		func() {
+			// issue denom
+			issueDenomMsg := nfttypes.NewMsgIssueDenom(
+				"dog", "dog-name", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				"", false, false,
+			)
+			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
-				// mint nft
-				mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "",
-					"", "", suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainA.SenderAccount.GetAddress().String())
-				_, _ = suite.chainA.SendMsgs(mintNftMsg)
+			// mint nft
+			mintNftMsg := nfttypes.NewMsgMintNFT(
+				"taidy", "dog", "", "", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
+			_, _ = suite.chainA.SendMsgs(mintNftMsg)
+		},
+		true, true,
+	}, {
+		"successful transfer from sink chain",
+		func() {
+			// issue denom
+			issueDenomMsg := nfttypes.NewMsgIssueDenom(
+				"dog", "dog-name", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				"", false, false,
+			)
+			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
-			}, true, true},
+			// mint nft
+			mintNftMsg := nfttypes.NewMsgMintNFT(
+				"taidy", "dog", "taidy", "www.test.com", "none",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
+			_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-		{"successful transfer from sink chain",
-			func() {
-				// issue denom
-				issueDenomMsg := nfttypes.NewMsgIssueDenom("dog", "dog-name", "",
-					suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
-				_, _ = suite.chainA.SendMsgs(issueDenomMsg)
+			data := types.NewNonFungibleTokenPacketData(
+				"dog", "taidy", "www.test.com",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				true,
+			)
 
-				// mint nft
-				mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "taidy",
-					"www.test.com", "none", suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainA.SenderAccount.GetAddress().String())
-				_, _ = suite.chainA.SendMsgs(mintNftMsg)
-
-				data := types.NewNonFungibleTokenPacketData("dog", "taidy", "www.test.com", suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.SenderAccount.GetAddress().String(), true)
-
-				packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
-				_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-
-			}, false, true},
-	}
+			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
+			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+		},
+		false, true,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()
-			path = NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(path)
+		suite.Run(
+			fmt.Sprintf("Case %s", tc.msg),
+			func() {
+				suite.SetupTest()
+				path = NewTransferPath(suite.chainA, suite.chainB)
+				suite.coordinator.SetupClients(path)
 
-			tc.malleate()
-			if !tc.awayFromSource {
-				newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
-				// send nft from chainB to chainA
-				err := suite.chainB.App.NftTransferKeeper.SendNftTransfer(
-					suite.chainB.GetContext(), newClass, "taidy",
-					suite.chainB.SenderAccount.GetAddress(), suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainA.ChainID, "")
+				tc.malleate()
+				if !tc.awayFromSource {
+					newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
+					// send nft from chainB to chainA
+					err := suite.chainB.App.NftTransferKeeper.SendNftTransfer(
+						suite.chainB.GetContext(),
+						newClass,
+						"taidy",
+						suite.chainB.SenderAccount.GetAddress(),
+						suite.chainA.SenderAccount.GetAddress().String(),
+						suite.chainA.ChainID,
+						"",
+					)
 
-				suite.Require().NoError(err) // message committed
+					suite.Require().NoError(err) // message committed
 
-			}
-			err := suite.chainA.App.NftTransferKeeper.SendNftTransfer(
-				suite.chainA.GetContext(), "dog", "taidy",
-				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.ChainID, "")
+				}
+				err := suite.chainA.App.NftTransferKeeper.SendNftTransfer(
+					suite.chainA.GetContext(),
+					"dog",
+					"taidy",
+					suite.chainA.SenderAccount.GetAddress(),
+					suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainB.ChainID,
+					"",
+				)
 
-			if tc.expPass {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-			}
-
-		})
+				if tc.expPass {
+					suite.Require().NoError(err)
+				} else {
+					suite.Require().Error(err)
+				}
+			},
+		)
 	}
 
 }
 
 func (suite *KeeperTestSuite) TestOnRecvPacket() {
-
-	var (
-		newClass string
-	)
+	var newClass string
 	testCases := []struct {
 		msg            string
 		malleate       func()
 		awayfromSource bool
 		expPass        bool
-	}{
-		{"success receive on awayfromSource chain", func() {}, true, true},
-		{"failed receive on nearToSource chain", func() {
+	}{{
+		"success receive on awayfromSource chain", func() {}, true, true,
+	}, {
+		"failed receive on nearToSource chain",
+		func() {
 			// issue denom
-			issueDenomMsg := nfttypes.NewMsgIssueDenom("dog", "dog-name", "",
-				suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
+			issueDenomMsg := nfttypes.NewMsgIssueDenom(
+				"dog", "dog-name", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				"", false, false,
+			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
-			mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "",
-				"", "", suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainA.SenderAccount.GetAddress().String())
+			mintNftMsg := nfttypes.NewMsgMintNFT(
+				"taidy", "dog", "", "", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
 			_, _ = suite.chainA.SendMsgs(mintNftMsg)
-
-		}, false, false},
-		{"failed receive on nearToSource chain without prefix ", func() {
-			newClass = CLASS
-		}, false, false},
-	}
+		},
+		false, false,
+	}, {
+		"failed receive on nearToSource chain without prefix ",
+		func() { newClass = CLASS },
+		false, false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -142,8 +173,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			seq := uint64(1)
 			if tc.awayfromSource {
 				// // send nft from A to B
-				data := types.NewNonFungibleTokenPacketData("dog", "taidy", "", suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.SenderAccount.GetAddress().String(), true)
+				data := types.NewNonFungibleTokenPacketData(
+					"dog", "taidy", "",
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.SenderAccount.GetAddress().String(),
+					true,
+				)
 
 				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
 				err := suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
@@ -156,8 +191,12 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				// send nft from B to A
 				tc.malleate()
 
-				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(),
-					suite.chainA.SenderAccount.GetAddress().String(), false)
+				data := types.NewNonFungibleTokenPacketData(
+					newClass, "taidy", "",
+					suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					false,
+				)
 				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainB.ChainID, suite.chainA.ChainID, "", string(routingtypes.NFT))
 				err := suite.chainA.App.NftTransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, data)
 				if tc.expPass {
@@ -172,7 +211,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
-		//successAck = packettypes.NewResultAcknowledgement([]byte{byte(1)})
 		failedAck = packettypes.NewErrorAcknowledgement("failed packet transfer")
 		path      *ibctesting.Path
 		newClass  string
@@ -185,40 +223,51 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 		success        bool // success of ack
 		awayFromOrigin bool
 		expPass        bool
-	}{
-		{"successful refund from source chain ", failedAck, func() {
+	}{{
+		"successful refund from source chain ", failedAck,
+		func() {
 			// issue denom
-			issueDenomMsg := nfttypes.NewMsgIssueDenom("dog", "dog-name", "",
-				suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
+			issueDenomMsg := nfttypes.NewMsgIssueDenom(
+				"dog", "dog-name", "",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				"", false, false,
+			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
-			mintNftMsg := nfttypes.NewMsgMintNFT("taidy", "dog", "",
+			mintNftMsg := nfttypes.NewMsgMintNFT(
+				"taidy", "dog", "",
 				"", "", suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainA.SenderAccount.GetAddress().String())
+				suite.chainA.SenderAccount.GetAddress().String(),
+			)
 			_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
 			// sendTransfer
-			err := suite.chainA.App.NftTransferKeeper.SendNftTransfer(
+			if err := suite.chainA.App.NftTransferKeeper.SendNftTransfer(
 				suite.chainA.GetContext(), "dog", "taidy",
-				suite.chainA.SenderAccount.GetAddress(), suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.ChainID, "")
-			if err != nil {
+				suite.chainA.SenderAccount.GetAddress(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainB.ChainID, "",
+			); err != nil {
 				fmt.Println("occur err :", err.Error())
 			}
-
-		}, false, true, true},
-		{"successful refund from sink chain ", failedAck, func() {
-			data := types.NewNonFungibleTokenPacketData("dog", "taidy", "www.test.com", suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(), true)
-
+		},
+		false, true, true,
+	}, {
+		"successful refund from sink chain ", failedAck,
+		func() {
+			data := types.NewNonFungibleTokenPacketData(
+				"dog", "taidy", "www.test.com",
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				true,
+			)
 			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
 			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
-
 			newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
-
-		}, true, false, true},
-	}
+		},
+		true, false, true,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc
@@ -229,7 +278,12 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 			if tc.awayFromOrigin {
-				data := types.NewNonFungibleTokenPacketData("dog", "taidy", "", suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), true)
+				data := types.NewNonFungibleTokenPacketData(
+					"dog", "taidy", "",
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainB.SenderAccount.GetAddress().String(),
+					true,
+				)
 
 				err := suite.chainA.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), data, tc.ack)
 				if tc.expPass {
@@ -245,15 +299,22 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					}
 				}
 			} else {
-
 				newClass = PREFIX + "/" + suite.chainA.ChainID + "/" + CLASS
 				// send nft from chainB to chainA
 				_ = suite.chainB.App.NftTransferKeeper.SendNftTransfer(
-					suite.chainB.GetContext(), newClass, "taidy",
-					suite.chainB.SenderAccount.GetAddress(), suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainA.ChainID, "")
+					suite.chainB.GetContext(),
+					newClass, "taidy",
+					suite.chainB.SenderAccount.GetAddress(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					suite.chainA.ChainID, "",
+				)
 
-				data := types.NewNonFungibleTokenPacketData(newClass, "taidy", "", suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), false)
+				data := types.NewNonFungibleTokenPacketData(
+					newClass, "taidy", "",
+					suite.chainB.SenderAccount.GetAddress().String(),
+					suite.chainA.SenderAccount.GetAddress().String(),
+					false,
+				)
 				err := suite.chainB.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), data, tc.ack)
 
 				if tc.expPass {

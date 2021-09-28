@@ -24,11 +24,14 @@ const (
 // source chain name and destination chain name
 func GetCmdQueryPacketCommitments() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "packet-commitments [source-chain] [dest-chain]",
-		Short:   "Query all packet commitments associated with source",
-		Long:    "Query all packet commitments associated with source chain name and destination chain name",
-		Example: fmt.Sprintf("%s query %s %s packet-commitments [source-chain] [dest-chain]", version.AppName, host.ModuleName, types.SubModuleName),
-		Args:    cobra.ExactArgs(2),
+		Use:   "packet-commitments [source-chain] [dest-chain]",
+		Short: "Query all packet commitments associated with source",
+		Long:  "Query all packet commitments associated with source chain name and destination chain name",
+		Example: fmt.Sprintf(
+			"%s query %s %s packet-commitments [source-chain] [dest-chain]",
+			version.AppName, host.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -68,7 +71,8 @@ func GetCmdQueryPacketCommitment() *cobra.Command {
 		Short: "Query a packet commitment",
 		Long:  "Query a packet commitment",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-commitment [source-chain] [dest-chain] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-commitment [source-chain] [dest-chain] [sequence]",
+			version.AppName, host.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -107,7 +111,8 @@ func GetCmdQueryPacketReceipt() *cobra.Command {
 		Short: "Query a packet receipt",
 		Long:  "Query a packet receipt",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-receipt [source-chain] [dest-chain] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-receipt [source-chain] [dest-chain] [sequence]",
+			version.AppName, host.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -146,7 +151,8 @@ func GetCmdQueryPacketAcknowledgement() *cobra.Command {
 		Short: "Query a packet acknowledgement",
 		Long:  "Query a packet acknowledgement",
 		Example: fmt.Sprintf(
-			"%s query %s %s packet-ack [source-chain] [dest-chain] [sequence]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s packet-ack [source-chain] [dest-chain] [sequence]",
+			version.AppName, host.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -189,8 +195,11 @@ func GetCmdQueryUnreceivedPackets() *cobra.Command {
 The return value represents:
 - Unreceived packet commitments: no acknowledgement exists on receiving chain for the given packet commitment sequence on sending chain.
 `,
-		Example: fmt.Sprintf("%s query %s %s unreceived-packets [source-chain] [dest-chain] --sequences=1,2,3", version.AppName, host.ModuleName, types.SubModuleName),
-		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf(
+			"%s query %s %s unreceived-packets [source-chain] [dest-chain] --sequences=1,2,3",
+			version.AppName, host.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -239,8 +248,11 @@ func GetCmdQueryUnreceivedAcks() *cobra.Command {
 The return value represents:
 - Unreceived packet acknowledgement: packet commitment exists on original sending (executing) chain and ack exists on receiving chain.
 `,
-		Example: fmt.Sprintf("%s query %s %s unreceived-acks [source-chain] [dest-chain] --sequences=1,2,3", version.AppName, host.ModuleName, types.SubModuleName),
-		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf(
+			"%s query %s %s unreceived-acks [source-chain] [dest-chain] --sequences=1,2,3",
+			version.AppName, host.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -286,7 +298,8 @@ func GetCmdQueryCleanPacketCommitment() *cobra.Command {
 		Short: "Query the clean packet commitment",
 		Long:  "Query the clean packet commitment",
 		Example: fmt.Sprintf(
-			"%s query %s %s clean-packet-commitment [source-chain] [dest-chain]", version.AppName, host.ModuleName, types.SubModuleName,
+			"%s query %s %s clean-packet-commitment [source-chain] [dest-chain]",
+			version.AppName, host.ModuleName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
