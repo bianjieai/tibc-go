@@ -1,85 +1,155 @@
 package keeper_test
 
-func (suite *KeeperTestSuite) TestClientUpdateProposal() {
-	// var (
-	// 	content *types.ClientUpdateProposal
-	// 	err     error
-	// )
+import (
+	"fmt"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
+	ibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
+	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+)
 
-	// testCases := []struct {
-	// 	name     string
-	// 	malleate func()
-	// 	expPass  bool
-	// }{
-	// 	{
-	// 		"valid update client proposal", func() {
-	// 			clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	// 			clientState := suite.chainA.GetClientState(clientA)
+func (suite KeeperTestSuite) TestHandleCreateClientProposal() {
+	header := suite.chainA.CreateTMClientHeader(
+		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
+		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.Vals, suite.chainA.Signers,
+	)
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"success,create new client",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal *types.CreateClientProposal
+				var err error
+				proposal, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposal)
+				suite.NoError(err)
+			},
+		},
+		{
+			"fail,A client for this chainname already exists",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal *types.CreateClientProposal
+				var err error
+				proposal, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposal)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposal)
+				suite.Error(err)
+			},
+		},
+		{
+			"success,get client and compare",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
+					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
+					commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal *types.CreateClientProposal
+				var err error
+				proposal, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposal)
+				suite.NoError(err)
+				client, _ := suite.chainA.App.TIBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), "test")
+				suite.Equal(clientState, client, "clientState not equal")
+				consensus, _ := suite.chainA.App.TIBCKeeper.ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), "test", types.NewHeight(0, 5))
+				suite.Equal(consensusState, consensus, "consensusState not equal")
+			},
+		},
+	}
+	for i, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i+1, len(testCases)), func() {
+			suite.SetupTest() // reset the context
+			tc.malleate()
+		})
+	}
+}
 
-	// 			tmClientState, ok := clientState.(*ibctmtypes.ClientState)
-	// 			suite.Require().True(ok)
-	// 			tmClientState.AllowUpdateAfterMisbehaviour = true
-	// 			tmClientState.FrozenHeight = tmClientState.LatestHeight
-	// 			suite.chainA.App.IBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), clientA, tmClientState)
+func (suite KeeperTestSuite) TestHandleUpgradeClientProposal() {
+	header := suite.chainA.CreateTMClientHeader(
+		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
+		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.Vals, suite.chainA.Signers,
+	)
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"fail, client and consensus are not existing",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal *types.UpgradeClientProposal
+				var err error
+				proposal, err = types.NewUpgradeClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleUpgradeClientProposal(suite.chainA.GetContext(), proposal)
+				suite.Error(err)
+			},
+		},
+		{
+			"success,client and consensus are existing",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
+					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
+					commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal *types.CreateClientProposal
+				var err error
+				proposal, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposal)
+				suite.NoError(err)
+				clientState2 := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
+					trustingPeriod*2, ubdPeriod, maxClockDrift, types.NewHeight(0, 6),
+					commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState2 := ibctmtypes.NewConsensusState(
+					header.GetTime().Add(1), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposal2 *types.UpgradeClientProposal
+				proposal2, err = types.NewUpgradeClientProposal("test", "test", "test", clientState2, consensusState2)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleUpgradeClientProposal(suite.chainA.GetContext(), proposal2)
+				suite.NoError(err)
 
-	// 			// use next header for chainB to update the client on chainA
-	// 			header, err := suite.chainA.ConstructUpdateTMClientHeader(suite.chainB, clientA)
-	// 			suite.Require().NoError(err)
+				// Check the consistency of clientState and consensusState
+				client, _ := suite.chainA.App.TIBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), "test")
+				suite.Equal(clientState2, client, "clientState not equal")
+				consensus, _ := suite.chainA.App.TIBCKeeper.ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), "test", types.NewHeight(0, 6))
+				suite.Equal(consensusState2, consensus, "consensusState not equal")
+			},
+		},
+	}
+	for i, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i+1, len(testCases)), func() {
+			suite.SetupTest() // reset the context
+			tc.malleate()
+		})
+	}
+}
 
-	// 			content, err = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, clientA, header)
-	// 			suite.Require().NoError(err)
-	// 		}, true,
-	// 	},
-	// 	{
-	// 		"client type does not exist", func() {
-	// 			content, err = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, ibctesting.InvalidID, &ibctmtypes.Header{})
-	// 			suite.Require().NoError(err)
-	// 		}, false,
-	// 	},
-	// 	{
-	// 		"cannot update localhost", func() {
-	// 			content, err = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, exported.Localhost, &ibctmtypes.Header{})
-	// 			suite.Require().NoError(err)
-	// 		}, false,
-	// 	},
-	// 	{
-	// 		"client does not exist", func() {
-	// 			content, err = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, ibctesting.InvalidID, &ibctmtypes.Header{})
-	// 			suite.Require().NoError(err)
-	// 		}, false,
-	// 	},
-	// 	{
-	// 		"cannot unpack header, header is nil", func() {
-	// 			clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	// 			content = &clienttypes.ClientUpdateProposal{ibctesting.Title, ibctesting.Description, clientA, nil}
-	// 		}, false,
-	// 	},
-	// 	{
-	// 		"update fails", func() {
-	// 			header := &ibctmtypes.Header{}
-	// 			clientA, _ := suite.coordinator.SetupClients(suite.chainA, suite.chainB, exported.Tendermint)
-	// 			content, err = clienttypes.NewClientUpdateProposal(ibctesting.Title, ibctesting.Description, clientA, header)
-	// 			suite.Require().NoError(err)
-	// 		}, false,
-	// 	},
-	// }
-
-	// for _, tc := range testCases {
-	// 	tc := tc
-
-	// 	suite.Run(tc.name, func() {
-	// 		suite.SetupTest() // reset
-
-	// 		tc.malleate()
-
-	// 		err = suite.chainA.App.IBCKeeper.ClientKeeper.ClientUpdateProposal(suite.chainA.GetContext(), content)
-
-	// 		if tc.expPass {
-	// 			suite.Require().NoError(err)
-	// 		} else {
-	// 			suite.Require().Error(err)
-	// 		}
-	// 	})
-	// }
-
+func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
+	//TODO
 }
