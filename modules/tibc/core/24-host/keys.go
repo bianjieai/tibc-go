@@ -3,6 +3,8 @@ package host
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
@@ -94,8 +96,18 @@ func ConsensusStatePath(height exported.Height) string {
 
 // ConsensusStateKey returns the store key for a the consensus state of a particular
 // client stored in a client prefixed store.
-func ConsensusStateKey(height exported.Height) []byte {
-	return []byte(ConsensusStatePath(height))
+//func ConsensusStateKey(height exported.Height) []byte {
+//	return []byte(ConsensusStatePath(height))
+//}
+
+func ConsensusStateKey(height exported.Height) (key []byte) {
+	reversionNumber := sdk.Uint64ToBigEndian(height.GetRevisionNumber())
+	reversionHeight := sdk.Uint64ToBigEndian(height.GetRevisionHeight())
+	key = append(key, []byte(KeyConsensusStatePrefix+"/")...)
+	key = append(key, reversionNumber...)
+	key = append(key, []byte("-")...)
+	key = append(key, reversionHeight...)
+	return key
 }
 
 // TICS04

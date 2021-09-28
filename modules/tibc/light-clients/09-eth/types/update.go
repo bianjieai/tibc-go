@@ -56,6 +56,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 		}
 		return true
 	}
+	// todo change metaData
 	IterateConsensusStateAscending(store, pruneCb)
 	if pruneError != nil {
 		return nil, nil, pruneError
@@ -82,10 +83,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	}
 	store.Set(ConsensusStateIndexKey(consensusState.Header.Hash()), consensusStamp)
 	//Check the bifurcation
-	if bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
-		// set all consensusState by struct (prefix+hash , consensusState)
-		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStamp)
-	} else {
+	if !bytes.Equal(ethConsState.Header.Hash().Bytes(), ethHeader.ParentHash) {
 		err = m.RestrictChain(cdc, store, *ethHeader)
 		if err != nil {
 			return nil, nil, err

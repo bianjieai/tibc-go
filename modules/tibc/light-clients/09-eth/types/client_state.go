@@ -62,6 +62,7 @@ func (m ClientState) Initialize(
 	}
 	header := consensusState.Header.ToEthHeader()
 	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
+	// todo change consensusState.header -> header , metadata hash+height
 	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
 	return nil
 }
@@ -103,6 +104,7 @@ func (m ClientState) VerifyPacketCommitment(
 
 	// check delay period has passed
 	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	// todo default delayTime , time 0 ? block:time
 	if delayBlock < m.GetDelayBlock() {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,

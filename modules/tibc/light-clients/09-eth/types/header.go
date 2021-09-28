@@ -116,7 +116,7 @@ func verifyHeader(
 	clientState *ClientState,
 	header Header,
 ) error {
-	height := header.Height.RevisionHeight
+	//height := header.Height.RevisionHeight
 
 	parentBytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
 	if parentBytes == nil {
@@ -136,10 +136,6 @@ func verifyHeader(
 			"parent consensus state Invalid for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
-	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
-		return ErrUnknownAncestor
-	}
-
 	//verify whether parent hash validity
 	ethHeader := parent.Header.ToEthHeader()
 	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
@@ -163,11 +159,11 @@ func verifyHeader(
 		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}
 	//verify difficulty
+	// todo make 9700000 to config
 	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
 		return sdkerrors.Wrap(ErrWrongDifficulty, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
 	}
-
 	return verifyCascadingFields(header)
 }
 
@@ -188,6 +184,7 @@ func verifyCascadingFields(header Header) error {
 	}
 	ethash := New(config, nil, false)
 	defer ethash.Close()
+	// todo use eth , do not copy
 	if err := ethash.VerifySeal(header.ToVerifyHeader(), false); err != nil {
 		return ErrHeader
 	}

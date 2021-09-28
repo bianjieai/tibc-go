@@ -163,8 +163,9 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 		if strings.Contains(string(key), "/") {
 			return false, nil
 		}
-
-		height, err := types.ParseHeight(string(key))
+		revinum := sdk.BigEndianToUint64(key[:8])
+		revihei := sdk.BigEndianToUint64(key[9:])
+		height, err := types.ParseHeight(fmt.Sprintf("%d-%d", revinum, revihei))
 		if err != nil {
 			return false, err
 		}

@@ -302,11 +302,15 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		{
 			"success",
 			func() {
+
 				cs := ibctmtypes.NewConsensusState(
 					suite.consensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte("hash1")), nil,
 				)
 				cs2 := ibctmtypes.NewConsensusState(
 					suite.consensusState.Timestamp.Add(time.Second), commitmenttypes.NewMerkleRoot([]byte("hash2")), nil,
+				)
+				cs3 := ibctmtypes.NewConsensusState(
+					suite.consensusState.Timestamp.Add(time.Second), commitmenttypes.NewMerkleRoot([]byte("hash3")), nil,
 				)
 
 				clientState := ibctmtypes.NewClientState(
@@ -316,7 +320,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				// Use CreateClient to ensure that processedTime metadata gets stored.
 				err := suite.keeper.CreateClient(suite.ctx, testChainName, clientState, cs)
 				suite.Require().NoError(err)
-				suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight.Increment(), cs2)
+				for n := testClientHeight.RevisionHeight + 1; n <= 12; n++ {
+					suite.keeper.SetClientConsensusState(suite.ctx, testChainName,
+						types.NewHeight(testClientHeight.RevisionNumber, n), cs3)
+				}
 
 				// order is swapped because the res is sorted by client id
 				expConsensusStates = []types.ConsensusStateWithHeight{
@@ -326,7 +333,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				req = &types.QueryConsensusStatesRequest{
 					ChainName: testChainName,
 					Pagination: &query.PageRequest{
-						Limit:      3,
+						Limit:      5,
 						CountTotal: true,
 					},
 				}

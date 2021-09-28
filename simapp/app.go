@@ -76,13 +76,14 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	tibcnfttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer"
+	tibcnfttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
+	tibcnfttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+
 	nft "github.com/irisnet/irismod/modules/nft"
 	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
-	tibcnfttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer"
-	tibcnfttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
-	tibcnfttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	tibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	tibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -176,7 +177,7 @@ type SimApp struct {
 	CrisisKeeper      crisiskeeper.Keeper
 	UpgradeKeeper     upgradekeeper.Keeper
 	ParamsKeeper      paramskeeper.Keeper
-	TIBCKeeper        *tibckeeper.Keeper // TIBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	TIBCKeeper        *tibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	NftTransferKeeper tibcnfttransferkeeper.Keeper
 	EvidenceKeeper    evidencekeeper.Keeper
 
@@ -197,8 +198,51 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	ConfigureBech32Prefix()
 
 	DefaultNodeHome = filepath.Join(userHomeDir, ".simapp")
+}
+
+const (
+
+	// Bech32ChainPrefix defines the prefix of this chain
+	Bech32ChainPrefix = "i"
+
+	// PrefixAcc is the prefix for account
+	PrefixAcc = "a"
+
+	// PrefixValidator is the prefix for validator keys
+	PrefixValidator = "v"
+
+	// PrefixConsensus is the prefix for consensus keys
+	PrefixConsensus = "c"
+
+	// PrefixPublic is the prefix for public
+	PrefixPublic = "p"
+
+	// PrefixAddress is the prefix for address
+	PrefixAddress = "a"
+
+	// Bech32PrefixAccAddr defines the Bech32 prefix of an account's address
+	Bech32PrefixAccAddr = Bech32ChainPrefix + PrefixAcc + PrefixAddress
+	// Bech32PrefixAccPub defines the Bech32 prefix of an account's public key
+	Bech32PrefixAccPub = Bech32ChainPrefix + PrefixAcc + PrefixPublic
+	// Bech32PrefixValAddr defines the Bech32 prefix of a validator's operator address
+	Bech32PrefixValAddr = Bech32ChainPrefix + PrefixValidator + PrefixAddress
+	// Bech32PrefixValPub defines the Bech32 prefix of a validator's operator public key
+	Bech32PrefixValPub = Bech32ChainPrefix + PrefixValidator + PrefixPublic
+	// Bech32PrefixConsAddr defines the Bech32 prefix of a consensus node address
+	Bech32PrefixConsAddr = Bech32ChainPrefix + PrefixConsensus + PrefixAddress
+	// Bech32PrefixConsPub defines the Bech32 prefix of a consensus node public key
+	Bech32PrefixConsPub = Bech32ChainPrefix + PrefixConsensus + PrefixPublic
+)
+
+func ConfigureBech32Prefix() {
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(Bech32PrefixAccAddr, Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(Bech32PrefixValAddr, Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(Bech32PrefixConsAddr, Bech32PrefixConsPub)
+	config.Seal()
 }
 
 // NewSimApp returns a reference to an initialized SimApp.
@@ -243,11 +287,11 @@ func NewSimApp(
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()))
 
-	// add capability keeper and ScopeToModule for tibc module
+	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(tibchost.ModuleName)
-	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
-	// note replicate if you do not need to test core TIBC or light clients.
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
 	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(tibcmock.ModuleName)
 
 	// add keepers
@@ -282,7 +326,7 @@ func NewSimApp(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
-	// Create TIBC Keeper
+	// Create IBC Keeper
 	app.TIBCKeeper = tibckeeper.NewKeeper(
 		appCodec, keys[tibchost.StoreKey], app.GetSubspace(tibchost.ModuleName), app.StakingKeeper, scopedIBCKeeper,
 	)
@@ -309,8 +353,8 @@ func NewSimApp(
 	)
 	nfttransferModule := tibcnfttransfer.NewAppModule(app.NftTransferKeeper)
 
-	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
-	// note replicate if you do not need to test core TIBC or light clients.
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
 	mockModule := tibcmock.NewAppModule()
 
 	// Create static TIBC router, add nft-transfer route, then set and seal it
@@ -440,8 +484,8 @@ func NewSimApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 
-	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
-	// note replicate if you do not need to test core TIBC or light clients.
+	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
+	// note replicate if you do not need to test core IBC or light clients.
 	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
 
 	return app

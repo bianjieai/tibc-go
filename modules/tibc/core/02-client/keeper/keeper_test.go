@@ -40,7 +40,7 @@ const (
 )
 
 var (
-	testClientHeight = types.NewHeight(0, 5)
+	testClientHeight = types.NewHeight(0, 1)
 )
 
 type KeeperTestSuite struct {
