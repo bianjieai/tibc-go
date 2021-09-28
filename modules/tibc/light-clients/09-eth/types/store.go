@@ -4,10 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/common"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -82,13 +83,13 @@ func GetIterationKey(clientStore sdk.KVStore, height exported.Height) []byte {
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore,
-	cdc codec.BinaryMarshaler, height exported.Height) (*ConsensusState, error) {
+func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
-			"consensus state does not exist for height %s", height,
+			"consensus state does not exist for height %s",
+			height,
 		)
 	}
 
@@ -101,7 +102,8 @@ func GetConsensusState(store sdk.KVStore,
 	if !ok {
 		return nil, sdkerrors.Wrapf(
 			clienttypes.ErrInvalidConsensus,
-			"invalid consensus type %T, expected %T", consensusState, &ConsensusState{},
+			"invalid consensus type %T, expected %T",
+			consensusState, &ConsensusState{},
 		)
 	}
 
@@ -152,7 +154,7 @@ func ProcessedTimeKey(height exported.Height) []byte {
 }
 
 // deleteConsensusState deletes the consensus state at the given height
-func deleteConsensusState(cdc codec.BinaryMarshaler, clientStore sdk.KVStore, height exported.Height) error {
+func deleteConsensusState(cdc codec.BinaryCodec, clientStore sdk.KVStore, height exported.Height) error {
 	key := host.ConsensusStateKey(height)
 	consensusState := clientStore.Get(key)
 	if consensusState == nil {

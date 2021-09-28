@@ -18,24 +18,21 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 		msg      string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+	}{{
+		"empty request",
+		func() {
+			req = nil
 		},
-		{
-			"success",
-			func() {
-				rules = []string{"source,dest,dgsbl"}
-				suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
-				req = &types.QueryRoutingRulesRequest{}
-			},
-			true,
+		false,
+	}, {
+		"success",
+		func() {
+			rules = []string{"source,dest,dgsbl"}
+			suite.chain.App.TIBCKeeper.RoutingKeeper.SetRoutingRules(suite.chain.GetContext(), rules)
+			req = &types.QueryRoutingRulesRequest{}
 		},
-	}
+		true,
+	}}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {

@@ -60,244 +60,266 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 		name     string
 		genState types.GenesisState
 		expPass  bool
-	}{
-		{
-			name:     "default",
-			genState: types.DefaultGenesisState(),
-			expPass:  true,
-		},
-		{
-			name: "valid custom genesis",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
+	}{{
+		name:     "default",
+		genState: types.DefaultGenesisState(),
+		expPass:  true,
+	}, {
+		name: "valid custom genesis",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					tmChainName0, ibctmtypes.NewClientState(
+						chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmChainName0,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					tmChainName0,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							header.GetHeight().(types.Height),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			[]types.IdentifiedGenesisMetadata{
+				types.NewIdentifiedGenesisMetadata(
+					chainName,
+					[]types.GenesisMetadata{
+						types.NewGenesisMetadata([]byte("key1"), []byte("val1")),
+						types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
+					},
+				),
+			},
+			tmChainName1,
+		),
+		expPass: true,
+	}, {
+		name: "invalid chain-name",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					invalidChainName, ibctmtypes.NewClientState(
+						chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				[]types.IdentifiedGenesisMetadata{
-					types.NewIdentifiedGenesisMetadata(
-						chainName,
-						[]types.GenesisMetadata{
-							types.NewGenesisMetadata([]byte("key1"), []byte("val1")),
-							types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
-						},
-					),
-				},
-				tmChainName1,
-			),
-			expPass: true,
-		},
-		{
-			name: "invalid chain-name",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						invalidChainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						invalidChainName,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					invalidChainName,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							header.GetHeight().(types.Height),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			nil,
+			tmChainName1,
+		),
+		expPass: false,
+	}, {
+		name: "consensus state chain name does not match chain name in genesis clients",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					tmChainName0, ibctmtypes.NewClientState(
+						chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				nil,
-				tmChainName1,
-			),
-			expPass: false,
-		},
-		{
-			name: "consensus state chain name does not match chain name in genesis clients",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmChainName1,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								types.NewHeight(0, 1),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					tmChainName1,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							types.NewHeight(0, 1),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			nil,
+			tmChainName1,
+		),
+		expPass: false,
+	}, {
+		name: "invalid consensus state height",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					tmChainName0, ibctmtypes.NewClientState(
+						chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				nil,
-				tmChainName1,
-			),
-			expPass: false,
-		},
-		{
-			name: "invalid consensus state height",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmChainName0,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								types.ZeroHeight(),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					tmChainName0,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							types.ZeroHeight(),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			nil,
+			tmChainName1,
+		),
+		expPass: false,
+	}, {
+		name: "invalid consensus state",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					tmChainName0, ibctmtypes.NewClientState(
+						chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				nil,
-				tmChainName1,
-			),
-			expPass: false,
-		},
-		{
-			name: "invalid consensus state",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						tmChainName0, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmChainName0,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								types.NewHeight(0, 1),
-								ibctmtypes.NewConsensusState(
-									time.Time{}, commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					tmChainName0,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							types.NewHeight(0, 1),
+							ibctmtypes.NewConsensusState(
+								time.Time{}, commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			nil,
+			tmChainName1,
+		),
+		expPass: false,
+	}, {
+		name: "metadata chain-name does not match a genesis client",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					chainName, ibctmtypes.NewClientState(
+						chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				nil,
-				tmChainName1,
-			),
-			expPass: false,
-		},
-		{
-			name: "metadata chain-name does not match a genesis client",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						chainName, ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						chainName,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					chainName,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							header.GetHeight().(types.Height),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			[]types.IdentifiedGenesisMetadata{
+				types.NewIdentifiedGenesisMetadata(
+					"wrongclientid",
+					[]types.GenesisMetadata{
+						types.NewGenesisMetadata([]byte("key1"), []byte("val1")),
+						types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
+					},
+				),
+			},
+			tmChainName1,
+		),
+		expPass: false,
+	}, {
+		name: "invalid metadata",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					chainName, ibctmtypes.NewClientState(
+						chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				[]types.IdentifiedGenesisMetadata{
-					types.NewIdentifiedGenesisMetadata(
-						"wrongclientid",
-						[]types.GenesisMetadata{
-							types.NewGenesisMetadata([]byte("key1"), []byte("val1")),
-							types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
-						},
-					),
-				},
-				tmChainName1,
-			),
-			expPass: false,
-		},
-		{
-			name: "invalid metadata",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						chainName, ibctmtypes.NewClientState(chainID, ibctmtypes.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						chainName,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					chainName,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							header.GetHeight().(types.Height),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
+						),
+					},
+				),
+			},
+			[]types.IdentifiedGenesisMetadata{
+				types.NewIdentifiedGenesisMetadata(
+					chainName,
+					[]types.GenesisMetadata{
+						types.NewGenesisMetadata([]byte(""), []byte("val1")),
+						types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
+					},
+				),
+			},
+			tmChainName1,
+		),
+	}, {
+		name: "failed to parse client identifier in client state loop",
+		genState: types.NewGenesisState(
+			[]types.IdentifiedClientState{
+				types.NewIdentifiedClientState(
+					"my-client", ibctmtypes.NewClientState(
+						chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod,
+						tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight,
+						commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0,
 					),
-				},
-				[]types.IdentifiedGenesisMetadata{
-					types.NewIdentifiedGenesisMetadata(
-						chainName,
-						[]types.GenesisMetadata{
-							types.NewGenesisMetadata([]byte(""), []byte("val1")),
-							types.NewGenesisMetadata([]byte("key2"), []byte("val2")),
-						},
-					),
-				},
-				tmChainName1,
-			),
-		},
-		{
-			name: "failed to parse client identifier in client state loop",
-			genState: types.NewGenesisState(
-				[]types.IdentifiedClientState{
-					types.NewIdentifiedClientState(
-						"my-client", ibctmtypes.NewClientState(chainID, tibctesting.DefaultTrustLevel, tibctesting.TrustingPeriod, tibctesting.UnbondingPeriod, tibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), tibctesting.Prefix, 0),
-					),
-				},
-				[]types.ClientConsensusStates{
-					types.NewClientConsensusStates(
-						tmChainName0,
-						[]types.ConsensusStateWithHeight{
-							types.NewConsensusStateWithHeight(
-								header.GetHeight().(types.Height),
-								ibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
-								),
+				),
+			},
+			[]types.ClientConsensusStates{
+				types.NewClientConsensusStates(
+					tmChainName0,
+					[]types.ConsensusStateWithHeight{
+						types.NewConsensusStateWithHeight(
+							header.GetHeight().(types.Height),
+							ibctmtypes.NewConsensusState(
+								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
 							),
-						},
-					),
-				},
-				nil,
-				tmChainName1,
-			),
-			expPass: false,
-		},
-	}
+						),
+					},
+				),
+			},
+			nil,
+			tmChainName1,
+		),
+		expPass: false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc

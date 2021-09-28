@@ -24,24 +24,19 @@ func TestDecodeStore(t *testing.T) {
 	bz := []byte{0x1, 0x2, 0x3}
 
 	kvPairs := kv.Pairs{
-		Pairs: []kv.Pair{
-			{
-				Key:   host.NextSequenceSendKey(portID, channelID),
-				Value: sdk.Uint64ToBigEndian(1),
-			},
-			{
-				Key:   host.PacketCommitmentKey(portID, channelID, 1),
-				Value: bz,
-			},
-			{
-				Key:   host.PacketAcknowledgementKey(portID, channelID, 1),
-				Value: bz,
-			},
-			{
-				Key:   []byte{0x99},
-				Value: []byte{0x99},
-			},
-		},
+		Pairs: []kv.Pair{{
+			Key:   host.NextSequenceSendKey(portID, channelID),
+			Value: sdk.Uint64ToBigEndian(1),
+		}, {
+			Key:   host.PacketCommitmentKey(portID, channelID, 1),
+			Value: bz,
+		}, {
+			Key:   host.PacketAcknowledgementKey(portID, channelID, 1),
+			Value: bz,
+		}, {
+			Key:   []byte{0x99},
+			Value: []byte{0x99},
+		}},
 	}
 	tests := []struct {
 		name        string

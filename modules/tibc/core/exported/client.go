@@ -20,10 +20,11 @@ const (
 	// BSC is the client type for a bianance smart chain client.
 	BSC string = "008-bsc"
 
+	// ETH is the client type for a Ethereum client.
 	ETH string = "009-eth"
 
 	// Fabric is the client type for a hyperledge fabric client.
-	//Fabric string = "009-fabric"
+	// Fabric string = "009-fabric"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"
@@ -49,24 +50,24 @@ type ClientState interface {
 	// Initialize function
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
-	Initialize(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, ConsensusState) error
+	Initialize(sdk.Context, codec.BinaryCodec, sdk.KVStore, ConsensusState) error
 
 	// Status function
 	// Clients must return their status. Only Active clients are allowed to process packets.
-	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryMarshaler) Status
+	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
 
 	// ExportMetadata function
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryMarshaler, sdk.KVStore, Header) (ClientState, ConsensusState, error)
+	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
 
 	// State verification functions
 	// Verify the commitment of the cross-chain data package
 	VerifyPacketCommitment(
 		ctx sdk.Context,
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,
 		sourceChain,
@@ -79,7 +80,7 @@ type ClientState interface {
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,
 		sourceChain,
@@ -92,7 +93,7 @@ type ClientState interface {
 	VerifyPacketCleanCommitment(
 		ctx sdk.Context,
 		store sdk.KVStore,
-		cdc codec.BinaryMarshaler,
+		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,
 		sourceChain string,

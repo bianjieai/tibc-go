@@ -21,7 +21,7 @@ type Keeper struct {
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
-	cdc codec.BinaryMarshaler
+	cdc codec.BinaryCodec
 
 	ClientKeeper  clientkeeper.Keeper
 	PacketKeeper  packetkeeper.Keeper
@@ -30,7 +30,7 @@ type Keeper struct {
 
 // NewKeeper creates a new tibc Keeper
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	stakingKeeper clienttypes.StakingKeeper, scopedKeeper capabilitykeeper.ScopedKeeper,
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
@@ -46,7 +46,7 @@ func NewKeeper(
 }
 
 // Codec returns the TIBC module codec.
-func (k Keeper) Codec() codec.BinaryMarshaler {
+func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
