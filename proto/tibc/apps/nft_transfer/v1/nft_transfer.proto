@@ -19,3 +19,12 @@
   // identify whether it is far away from the source chain
   bool away_from_origin = 6;
 }
+ // ClassTrace contains the base class for TICS30 Non fungible tokens and the
+ // source tracing information path.
+ message ClassTrace {
+  // path defines the chain of sourceChain/destChain
+  // identifiers used for tracing the source of the Non fungible token.
+  string path = 1;
+  // base class of the relayed non fungible token.
+  string base_class = 2;
+ }
