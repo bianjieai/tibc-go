@@ -151,5 +151,81 @@ func (suite KeeperTestSuite) TestHandleUpgradeClientProposal() {
 }
 
 func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
-	//TODO
+	header := suite.chainA.CreateTMClientHeader(
+		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
+		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.Vals, suite.chainA.Signers,
+	)
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"success,exist client",
+			func() {
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
+					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
+					commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposalCreate *types.CreateClientProposal
+				var err error
+				proposalCreate, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposalCreate)
+				suite.NoError(err)
+
+				// set relayers
+				relayers := []string{"xxx", "yyy"}
+				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test", relayers)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleRegisterRelayerProposal(suite.chainA.GetContext(), relayerProposal)
+				suite.NoError(err)
+
+				// get relayers and compare
+				relayers2 := suite.chainA.App.TIBCKeeper.ClientKeeper.GetRelayers(suite.chainA.GetContext(), "test")
+				suite.Equal(relayers, relayers2)
+			},
+		},
+		{
+			"fail,no client",
+			func() {
+				relayers := []string{"xxx", "yyy"}
+				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test", relayers)
+				err := suite.chainA.App.TIBCKeeper.ClientKeeper.HandleRegisterRelayerProposal(suite.chainA.GetContext(), relayerProposal)
+				suite.Error(err)
+			},
+		},
+		{
+			"fail,no-existing client",
+			func() {
+				// set client "test"
+				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
+					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
+					commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
+				consensusState := ibctmtypes.NewConsensusState(
+					header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+				)
+				var proposalCreate *types.CreateClientProposal
+				var err error
+				proposalCreate, err = types.NewCreateClientProposal("test", "test", "test", clientState, consensusState)
+				suite.NoError(err)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposalCreate)
+				suite.NoError(err)
+
+				// set relayers to "test2"
+				relayers := []string{"xxx", "yyy"}
+				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test2", relayers)
+				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleRegisterRelayerProposal(suite.chainA.GetContext(), relayerProposal)
+				suite.Error(err)
+			},
+		},
+	}
+	for i, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i+1, len(testCases)), func() {
+			suite.SetupTest() // reset the context
+			tc.malleate()
+		})
+	}
 }
