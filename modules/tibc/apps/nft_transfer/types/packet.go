@@ -24,8 +24,6 @@ func NewNonFungibleTokenPacketData(
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to TIBC.
 func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
-	// TODO: some other check
-
 	if strings.TrimSpace(nftpd.Sender) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
 	}
