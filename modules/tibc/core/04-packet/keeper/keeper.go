@@ -4,13 +4,12 @@ import (
 	"strconv"
 	"strings"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -20,14 +19,14 @@ import (
 // Keeper defines the TIBC packet keeper
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           codec.BinaryMarshaler
+	cdc           codec.BinaryCodec
 	clientKeeper  types.ClientKeeper
 	routingKeeper types.RoutingKeeper
 }
 
 // NewKeeper creates a new tibc packet Keeper instance
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey,
+	cdc codec.BinaryCodec, key sdk.StoreKey,
 	clientKeeper types.ClientKeeper,
 	routingKeeper types.RoutingKeeper,
 ) Keeper {
@@ -130,17 +129,17 @@ func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 // SetMaxAckSequence sets the max ack height to the store
 func (k Keeper) SetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	store := ctx.KVStore(k.storeKey)
-	currentMaxSeq := sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+	currentMaxSeq := sdk.BigEndianToUint64(store.Get(host.MaxAckSeqKey(sourceChain, destChain)))
 	if sequence > currentMaxSeq {
 		currentMaxSeq = sequence
 	}
-	store.Set(host.MaxAckHeightKey(sourceChain, destChain), sdk.Uint64ToBigEndian(currentMaxSeq))
+	store.Set(host.MaxAckSeqKey(sourceChain, destChain), sdk.Uint64ToBigEndian(currentMaxSeq))
 }
 
 // GetMaxAckSequence gets the max ack height from the store
 func (k Keeper) GetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.BigEndianToUint64(store.Get(host.MaxAckHeightKey(sourceChain, destChain)))
+	return sdk.BigEndianToUint64(store.Get(host.MaxAckSeqKey(sourceChain, destChain)))
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store

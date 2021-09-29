@@ -5,15 +5,16 @@ import (
 	io "io"
 	"math/big"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -83,7 +84,7 @@ func (h Header) ToBscHeader() BscHeader {
 }
 
 func verifyHeader(
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header Header,
@@ -114,10 +115,11 @@ func verifyHeader(
 // in a batch of parents (ascending order) to avoid looking those up from the
 // database. This is useful for concurrently verifying a batch of new headers.
 func verifyCascadingFields(
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
-	header Header) error {
+	header Header,
+) error {
 	height := header.Height.RevisionHeight
 
 	parent := clientState.Header
@@ -151,10 +153,11 @@ func verifyCascadingFields(
 }
 
 func verifySeal(
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
-	header Header) error {
+	header Header,
+) error {
 
 	number := header.Height.RevisionHeight
 	// Resolve the authorization key and check against validators

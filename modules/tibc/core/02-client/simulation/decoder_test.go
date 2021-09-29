@@ -28,20 +28,16 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	kvPairs := kv.Pairs{
-		Pairs: []kv.Pair{
-			{
-				Key:   host.FullClientStateKey(chainName),
-				Value: app.TIBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
-			},
-			{
-				Key:   host.FullConsensusStateKey(chainName, height),
-				Value: app.TIBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
-			},
-			{
-				Key:   []byte{0x99},
-				Value: []byte{0x99},
-			},
-		},
+		Pairs: []kv.Pair{{
+			Key:   host.FullClientStateKey(chainName),
+			Value: app.TIBCKeeper.ClientKeeper.MustMarshalClientState(clientState),
+		}, {
+			Key:   host.FullConsensusStateKey(chainName, height),
+			Value: app.TIBCKeeper.ClientKeeper.MustMarshalConsensusState(consState),
+		}, {
+			Key:   []byte{0x99},
+			Value: []byte{0x99},
+		}},
 	}
 	tests := []struct {
 		name        string

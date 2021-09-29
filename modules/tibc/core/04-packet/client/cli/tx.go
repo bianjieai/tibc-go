@@ -17,11 +17,14 @@ import (
 // NewSendCleanPacketCmd defines the command to send clean packet.
 func NewSendCleanPacketCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "send-clean-packet [dest-chain-name] [sequence] [flags]",
-		Short:   "send a clean packet",
-		Long:    "send a clean packet",
-		Example: fmt.Sprintf("%s tx tibc %s send-clean-packet [dest-chain-name] [sequence] --source-chain-name test1 --relay-chain-name test2 --from node0", version.AppName, types.SubModuleName),
-		Args:    cobra.ExactArgs(2),
+		Use:   "send-clean-packet [dest-chain-name] [sequence] [flags]",
+		Short: "send a clean packet",
+		Long:  "send a clean packet",
+		Example: fmt.Sprintf(
+			"%s tx tibc %s send-clean-packet [dest-chain-name] [sequence] --source-chain-name test1 --relay-chain-name test2 --from node0",
+			version.AppName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

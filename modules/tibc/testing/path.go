@@ -33,11 +33,13 @@ func NewPath(chainA, chainB *TestChain) *Path {
 // if EndpointA does not contain a packet commitment for that packet. An error is returned
 // if a relay step fails or the packet commitment does not exist on either endpoint.
 func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
-	pc := path.EndpointA.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	pc := path.EndpointA.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(
+		path.EndpointA.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
+	)
 	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
 
 		// packet found, relay from A to B
-		path.EndpointB.UpdateClient()
+		_ = path.EndpointB.UpdateClient()
 
 		if err := path.EndpointB.RecvPacket(packet); err != nil {
 			return err
@@ -50,11 +52,12 @@ func (path *Path) RelayPacket(packet packettypes.Packet, ack []byte) error {
 
 	}
 
-	pc = path.EndpointB.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+	pc = path.EndpointB.Chain.App.TIBCKeeper.PacketKeeper.GetPacketCommitment(
+		path.EndpointB.Chain.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(),
+	)
 	if bytes.Equal(pc, packettypes.CommitPacket(packet)) {
-
 		// packet found, relay B to A
-		path.EndpointA.UpdateClient()
+		_ = path.EndpointA.UpdateClient()
 
 		if err := path.EndpointA.RecvPacket(packet); err != nil {
 			return err

@@ -40,9 +40,9 @@ func NewTxCmd() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
 	txCmd.AddCommand(
 		NewSendCleanPacketCmd(),
 	)
+
 	return txCmd
 }

@@ -3,27 +3,30 @@ package types
 import (
 	"bytes"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
-	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ethereum/go-ethereum/common"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
+	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
 func (m ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	header exported.Header,
-) (exported.ClientState, exported.ConsensusState, error) {
+) (
+	exported.ClientState,
+	exported.ConsensusState,
+	error,
+) {
 	ethHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
-			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
-		)
+		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
 	}
 	height := m.GetLatestHeight()
 	// get consensus state from clientStore
@@ -86,8 +89,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 		// set all consensusState by struct (prefix+hash , consensusState)
 		store.Set(host.ConsensusStateKey(ethHeader.Height), consensusStamp)
 	} else {
-		err = m.RestrictChain(cdc, store, *ethHeader)
-		if err != nil {
+		if err = m.RestrictChain(cdc, store, *ethHeader); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -100,28 +102,30 @@ func (m ClientState) CheckHeaderAndUpdateState(
 // checkValidity checks if the eth header is valid.
 func checkValidity(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	consState *ConsensusState,
 	header Header,
-
 ) error {
 	if err := header.ValidateBasic(); err != nil {
 		return err
 	}
-
 	return verifyHeader(ctx, cdc, store, clientState, header)
 }
 
 // update the RecentSingers and the ConsensusState.
-func update(ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+func update(
+	ctx sdk.Context,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header *Header,
-) (*ClientState, *ConsensusState, error) {
-
+) (
+	*ClientState,
+	*ConsensusState,
+	error,
+) {
 	cs := &ConsensusState{
 		Timestamp: header.Time,
 		Number:    header.Height,
@@ -132,7 +136,7 @@ func update(ctx sdk.Context,
 	return clientState, cs, nil
 }
 
-func (m ClientState) RestrictChain(cdc codec.BinaryMarshaler, store sdk.KVStore, new Header) error {
+func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new Header) error {
 	si, ti := m.Header.Height, new.Height
 	var err error
 	current := m.Header

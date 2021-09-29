@@ -18,25 +18,23 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 		name     string
 		malleate func()
 		expPass  bool
-	}{
-		{
-			"success", func() {}, true,
+	}{{
+		"success", func() {}, true,
+	}, {
+		"consensus state not found", func() {
+			// use height with no consensus state set
+			height = height.(clienttypes.Height).Increment()
 		},
-		{
-			"consensus state not found", func() {
-				// use height with no consensus state set
-				height = height.(clienttypes.Height).Increment()
-			}, false,
+		false,
+	}, {
+		"not a consensus state interface", func() {
+			// marshal an empty client state and set as consensus state
+			store := suite.chainA.App.TIBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
+			clientStateBz := suite.chainA.App.TIBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
+			store.Set(host.ConsensusStateKey(height), clientStateBz)
 		},
-		{
-			"not a consensus state interface", func() {
-				// marshal an empty client state and set as consensus state
-				store := suite.chainA.App.TIBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointB.ChainName)
-				clientStateBz := suite.chainA.App.TIBCKeeper.ClientKeeper.MustMarshalClientState(&types.ClientState{})
-				store.Set(host.ConsensusStateKey(height), clientStateBz)
-			}, false,
-		},
-	}
+		false,
+	}}
 
 	for _, tc := range testCases {
 		tc := tc

@@ -33,23 +33,19 @@ func TestGetSimulationLog(t *testing.T) {
 		store       string
 		kvPairs     []kv.Pair
 		expectedLog string
-	}{
-		{
-			"Empty",
-			[]kv.Pair{{}},
-			"",
-		},
-		{
-			authtypes.StoreKey,
-			[]kv.Pair{{Key: authtypes.GlobalAccountNumberKey, Value: cdc.MustMarshalBinaryBare(uint64(10))}},
-			"10",
-		},
-		{
-			"OtherStore",
-			[]kv.Pair{{Key: []byte("key"), Value: []byte("value")}},
-			fmt.Sprintf("store A %X => %X\nstore B %X => %X\n", []byte("key"), []byte("value"), []byte("key"), []byte("value")),
-		},
-	}
+	}{{
+		"Empty",
+		[]kv.Pair{{}},
+		"",
+	}, {
+		authtypes.StoreKey,
+		[]kv.Pair{{Key: authtypes.GlobalAccountNumberKey, Value: cdc.MustMarshal(uint64(10))}},
+		"10",
+	}, {
+		"OtherStore",
+		[]kv.Pair{{Key: []byte("key"), Value: []byte("value")}},
+		fmt.Sprintf("store A %X => %X\nstore B %X => %X\n", []byte("key"), []byte("value"), []byte("key"), []byte("value")),
+	}}
 
 	for _, tt := range tests {
 		tt := tt
