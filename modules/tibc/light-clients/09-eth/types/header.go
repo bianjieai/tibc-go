@@ -210,7 +210,6 @@ func verifyCascadingFields(header Header) error {
 	}
 	ethash := New(config, nil, false)
 	defer ethash.Close()
-	// todo use eth , do not copy
 	if err := ethash.VerifySeal(header.ToVerifyHeader(), false); err != nil {
 		return ErrHeader
 	}

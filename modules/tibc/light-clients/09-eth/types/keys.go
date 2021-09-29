@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	paramsIndex = 3
-	// todo
+	paramsIndex  = 3
 	paramsLenght = 32
 )
 
