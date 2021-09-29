@@ -96,10 +96,6 @@ func ConsensusStatePath(height exported.Height) string {
 
 // ConsensusStateKey returns the store key for a the consensus state of a particular
 // client stored in a client prefixed store.
-//func ConsensusStateKey(height exported.Height) []byte {
-//	return []byte(ConsensusStatePath(height))
-//}
-
 func ConsensusStateKey(height exported.Height) (key []byte) {
 	reversionNumber := sdk.Uint64ToBigEndian(height.GetRevisionNumber())
 	reversionHeight := sdk.Uint64ToBigEndian(height.GetRevisionHeight())
