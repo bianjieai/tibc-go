@@ -22,7 +22,7 @@ const DefaultMaxCharacterLength = 64
 // - `.`, `_`, `+`, `-`, `#`
 // - `[`, `]`, `<`, `>`
 var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchString
-var IsValidRule = regexp.MustCompile(`^([^.]{1,50}\.){2}[^.]{1,50}$`).MatchString
+var IsValidRule = regexp.MustCompile(`^([^,]{1,50},){2}[^,]{1,50}$`).MatchString
 
 // TICS 024 Identifier and Path Validation Implementation
 //
@@ -61,7 +61,7 @@ func defaultRuleValidator(rule string) error {
 	if !IsValidRule(rule) {
 		return sdkerrors.Wrapf(
 			ErrInvalidRule,
-			"rule %s must contain two '.'",
+			"rule %s must contain two ','",
 			rule,
 		)
 	}
