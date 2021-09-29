@@ -175,7 +175,9 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 			return false, err
 		}
 
-		consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
+		if accumulate {
+			consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
+		}
 		return true, nil
 	})
 
