@@ -53,17 +53,13 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	marshalInterface, err := cdc.MarshalInterface(state)
+	header := m.Header
+	headerBytes, err := cdc.MarshalInterface(&header)
 	if err != nil {
 		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
-	consensusState, ok := state.(*ConsensusState)
-	if !ok {
-		return clienttypes.ErrInvalidConsensus
-	}
-	header := consensusState.Header.ToEthHeader()
-	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
-	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
+	SetEthHeaderIndex(store, header, headerBytes)
+	SetEthConsensusRoot(store, header.Height.RevisionHeight, header.ToEthHeader().Root, header.Hash())
 	return nil
 }
 
@@ -83,8 +79,19 @@ func (m ClientState) Status(
 }
 
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	//TODO
-	return nil
+	gm := make([]exported.GenesisMetadata, 0)
+	callback := func(key, val []byte) bool {
+		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
+		return false
+	}
+
+	IteratorEthMetaDataByPrefix(store, KeyIndexEthHeaderPrefix, callback)
+	IteratorEthMetaDataByPrefix(store, KeyMainRootPrefix, callback)
+
+	if len(gm) == 0 {
+		return nil
+	}
+	return gm
 }
 
 func (m ClientState) VerifyPacketCommitment(
