@@ -20,7 +20,10 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-var allowedFutureBlockTime = 15 * time.Second
+var (
+	allowedFutureBlockTime     = 15 * time.Second
+	DifficultyCalculatorParams = int64(9700000)
+)
 
 var _ exported.Header = (*Header)(nil)
 
@@ -59,7 +62,7 @@ func (h Header) ValidateBasic() error {
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	number := h.Height.RevisionHeight
 	if number > 0 {
-		if h.Difficulty == 0 {
+		if h.ToEthHeader().Difficulty.Uint64() == 0 {
 			return sdkerrors.Wrap(ErrInvalidDifficulty, "header Difficulty")
 		}
 	}
@@ -67,6 +70,16 @@ func (h Header) ValidateBasic() error {
 }
 
 func (h Header) ToEthHeader() EthHeader {
+	difficulty := new(big.Int)
+	difficulty, ok := difficulty.SetString(h.Difficulty, 10)
+	if !ok {
+		return EthHeader{}
+	}
+	baseFee := new(big.Int)
+	baseFee, ok = baseFee.SetString(h.BaseFee, 10)
+	if !ok {
+		return EthHeader{}
+	}
 	return EthHeader{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
@@ -75,7 +88,7 @@ func (h Header) ToEthHeader() EthHeader {
 		TxHash:      common.BytesToHash(h.TxHash),
 		ReceiptHash: common.BytesToHash(h.ReceiptHash),
 		Bloom:       types.BytesToBloom(h.Bloom),
-		Difficulty:  big.NewInt(int64(h.Difficulty)),
+		Difficulty:  difficulty,
 		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
 		GasLimit:    h.GasLimit,
 		GasUsed:     h.GasUsed,
@@ -83,11 +96,21 @@ func (h Header) ToEthHeader() EthHeader {
 		Extra:       h.Extra,
 		MixDigest:   common.BytesToHash(h.MixDigest),
 		Nonce:       types.EncodeNonce(h.Nonce),
-		BaseFee:     big.NewInt(int64(h.BaseFee)),
+		BaseFee:     baseFee,
 	}
 }
 
 func (h Header) ToVerifyHeader() *types.Header {
+	difficulty := new(big.Int)
+	difficulty, ok := difficulty.SetString(h.Difficulty, 10)
+	if !ok {
+		return &types.Header{}
+	}
+	baseFee := new(big.Int)
+	baseFee, ok = baseFee.SetString(h.BaseFee, 10)
+	if !ok {
+		return &types.Header{}
+	}
 	return &types.Header{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
@@ -96,7 +119,7 @@ func (h Header) ToVerifyHeader() *types.Header {
 		TxHash:      common.BytesToHash(h.TxHash),
 		ReceiptHash: common.BytesToHash(h.ReceiptHash),
 		Bloom:       types.BytesToBloom(h.Bloom),
-		Difficulty:  big.NewInt(int64(h.Difficulty)),
+		Difficulty:  difficulty,
 		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
 		GasLimit:    h.GasLimit,
 		GasUsed:     h.GasUsed,
@@ -104,7 +127,7 @@ func (h Header) ToVerifyHeader() *types.Header {
 		Extra:       h.Extra,
 		MixDigest:   common.BytesToHash(h.MixDigest),
 		Nonce:       types.EncodeNonce(h.Nonce),
-		BaseFee:     big.NewInt(int64(h.BaseFee)),
+		BaseFee:     baseFee,
 	}
 }
 
@@ -115,69 +138,49 @@ func verifyHeader(
 	clientState *ClientState,
 	header Header,
 ) error {
-	height := header.Height.RevisionHeight
-
-	parentBytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
-	if parentBytes == nil {
+	//height := header.Height.RevisionHeight
+	parentHeaderBytes := GetParentHeaderFromIndex(store, header)
+	if parentHeaderBytes == nil {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
-	var parentConsInterface exported.ConsensusState
-	if err := cdc.UnmarshalInterface(parentBytes, &parentConsInterface); err != nil {
+	var parentHeaderInterface exported.Header
+	if err := cdc.UnmarshalInterface(parentHeaderBytes, &parentHeaderInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
 	}
-	parent, ok := parentConsInterface.(*ConsensusState)
+	parentHeader, ok := parentHeaderInterface.(*Header)
 	if !ok {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidConsensus,
 			"parent consensus state Invalid for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
-	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
-		return sdkerrors.Wrap(ErrUnknownAncestor, "")
-	}
-
 	//verify whether parent hash validity
-	ethHeader := parent.Header.ToEthHeader()
+	ethHeader := parentHeader.ToEthHeader()
 	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
-		return fmt.Errorf("SyncBlockHeader, parent header is not right. Header: %s", header.String())
-	}
-	//verify whether extra size validity
-	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
-		return sdkerrors.Wrap(
-			ErrExtraLenth,
-			fmt.Errorf(
-				"SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s",
-				len(header.Extra), params.MaximumExtraDataSize, header.String(),
-			).Error(),
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader,
+			"parent hash  not equal, header.parent: %s ,parent : %s",
+			header.ToEthHeader().ParentHash,
+			ethHeader.Hash(),
 		)
 	}
+
 	// Verify the header's timestamp
 	if header.Time > uint64(ctx.BlockTime().Add(allowedFutureBlockTime).Unix()) {
 		return ErrFutureBlock
 	}
-	if header.Time <= parent.Header.Time {
+	if header.Time <= parentHeader.Time {
 		return ErrHeader
 	}
-
-	// Verify that the gas limit is <= 2^63-1
-	capacity := uint64(0x7fffffffffffffff)
-	if header.GasLimit > capacity {
-		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, capacity).Error())
-
-	}
-	// Verify that the gasUsed is <= gasLimit
-	if header.GasUsed > header.GasLimit {
-		return sdkerrors.Wrap(ErrInvalidGas, fmt.Errorf("invalid gasUsed: have %d, gasLimit %d", header.GasUsed, header.GasLimit).Error())
-	}
-	err := VerifyEip1559Header(&parent.Header, &header)
+	err := VerifyEip1559Header(parentHeader, &header)
 	if err != nil {
 		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}
 	//verify difficulty
-	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
+	expected := makeDifficultyCalculator(big.NewInt(DifficultyCalculatorParams))(header.Time, parentHeader)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
 		return sdkerrors.Wrap(
 			ErrWrongDifficulty,
@@ -187,7 +190,6 @@ func verifyHeader(
 			).Error(),
 		)
 	}
-
 	return verifyCascadingFields(header)
 }
 
