@@ -27,7 +27,6 @@ type EthHeader struct {
 	MixDigest   common.Hash      `json:"mixHash"`
 	Nonce       types.BlockNonce `json:"nonce"`
 
-	// todo : change proto header baseFee string
 	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
 	BaseFee *big.Int `json:"baseFeePerGas" rlp:"optional"`
 }

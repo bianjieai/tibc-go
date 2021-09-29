@@ -180,7 +180,6 @@ func verifyHeader(
 		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}
 	//verify difficulty
-	// todo make 9700000 to config
 	expected := makeDifficultyCalculator(big.NewInt(DifficultyCalculatorParams))(header.Time, parentHeader)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
 		return sdkerrors.Wrap(

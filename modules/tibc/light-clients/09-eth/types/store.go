@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/store/types"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -41,6 +43,20 @@ func SetEthHeaderIndex(
 	headerBytes []byte,
 ) {
 	clientStore.Set(EthHeaderIndexKey(header.Hash(), header.Height.RevisionHeight), headerBytes)
+}
+func GetIterator(store sdk.KVStore, keyType string) types.Iterator {
+	iterator := sdk.KVStorePrefixIterator(store, []byte(keyType))
+	return iterator
+}
+func IteratorEthMetaDataByPrefix(store sdk.KVStore, keyType string, cb func(key, val []byte) bool) {
+	iterator := GetIterator(store, keyType)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(iterator.Key(), iterator.Value()) {
+			break
+		}
+	}
 }
 
 func GetParentHeaderFromIndex(

@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/light"
@@ -78,8 +80,19 @@ func (m ClientState) Status(
 }
 
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	//TODO
-	return nil
+	gm := make([]exported.GenesisMetadata, 0)
+	callback := func(key, val []byte) bool {
+		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
+		return false
+	}
+
+	IteratorEthMetaDataByPrefix(store, KeyIndexEthHeaderPrefix, callback)
+	IteratorEthMetaDataByPrefix(store, KeyMainRootPrefix, callback)
+
+	if len(gm) == 0 {
+		return nil
+	}
+	return gm
 }
 
 func (m ClientState) VerifyPacketCommitment(
@@ -99,7 +112,6 @@ func (m ClientState) VerifyPacketCommitment(
 
 	// check delay period has passed
 	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
-	// todo default delayTime , time 0 ? block:time
 	if delayBlock < m.GetDelayBlock() {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
