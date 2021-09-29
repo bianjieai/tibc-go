@@ -17,6 +17,8 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
+		GetCmdQueryClassTrace(),
+		GetCmdQueryClassTraces(),
 		NewTransferTxCmd(),
 	)
 

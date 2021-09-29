@@ -4,6 +4,7 @@ package types
 const (
 	EventTypePacket      = "non_fungible_token_packet"
 	EventTypeNftTransfer = "tibc_nft_transfer"
+	EventTypeClassTrace  = "class_trace"
 
 	AttributeKeyClass      = "class"
 	AttributeKeyId         = "id"
@@ -12,4 +13,5 @@ const (
 	AttributeKeyAck        = "ack"
 	AttributeKeyAckSuccess = "success"
 	AttributeKeyAckError   = "error"
+	AttributeKeyTraceHash  = "trace_hash"
 )
