@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/libs/log"
+
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -14,7 +16,7 @@ import (
 
 type Keeper struct {
 	storeKey   sdk.StoreKey
-	cdc        codec.BinaryMarshaler
+	cdc        codec.BinaryCodec
 	paramSpace paramtypes.Subspace
 
 	ak types.AccountKeeper
@@ -25,9 +27,13 @@ type Keeper struct {
 
 // NewKeeper creates a new TIBC transfer Keeper instance
 func NewKeeper(
-	cdc codec.BinaryMarshaler, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ak types.AccountKeeper, nk types.NftKeeper,
-	pk types.PacketKeeper, ck types.ClientKeeper,
+	cdc codec.BinaryCodec,
+	key sdk.StoreKey,
+	paramSpace paramtypes.Subspace,
+	ak types.AccountKeeper,
+	nk types.NftKeeper,
+	pk types.PacketKeeper,
+	ck types.ClientKeeper,
 ) Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the TIBC nft-transfer module account has not been set")
@@ -75,6 +81,6 @@ func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) 
 		return types.ClassTrace{}, false
 	}
 	var classTrace types.ClassTrace
-	k.cdc.MustUnmarshalBinaryBare(bz, &classTrace)
+	k.cdc.MustUnmarshal(bz, &classTrace)
 	return classTrace, true
 }

@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/libs/log"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
@@ -65,7 +65,7 @@ func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	if bz == nil {
 		return nil, false
 	}
-	json.Unmarshal(bz, &rules)
+	_ = json.Unmarshal(bz, &rules)
 	return rules, true
 }
 
@@ -76,7 +76,7 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	}
 	flag := false
 	for _, rule := range rules {
-		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+"."+destinationChain+"."+port)
+		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+","+destinationChain+","+port)
 		if flag {
 			break
 		}
@@ -84,6 +84,7 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	return flag
 }
 
+// ConvWildcardToRegular wildcard => regular
 func ConvWildcardToRegular(wildcard string) string {
 	regular := strings.Replace(wildcard, ".", "\\.", -1)
 	regular = strings.Replace(regular, "*", ".*", -1)
@@ -94,7 +95,7 @@ func ConvWildcardToRegular(wildcard string) string {
 
 // RoutingRulesPath defines the routing rules store path
 func RoutingRulesPath() string {
-	return fmt.Sprintf("Routing/Rules")
+	return "Routing/Rules"
 }
 
 func RoutingRulesKey() []byte {

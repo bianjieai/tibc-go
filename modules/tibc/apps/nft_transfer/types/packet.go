@@ -8,8 +8,7 @@ import (
 
 // NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
-	class, id, uri, sender, receiver string,
-	awayFromOrigin bool,
+	class, id, uri, sender, receiver string, awayFromOrigin bool,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		Class:          class,
@@ -36,5 +35,5 @@ func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 
 // GetBytes is a helper for serialising
 func (nftpd NonFungibleTokenPacketData) GetBytes() []byte {
-	return ModuleCdc.MustMarshalBinaryBare(&nftpd)
+	return ModuleCdc.MustMarshal(&nftpd)
 }

@@ -38,7 +38,7 @@ const (
 	KeyPacketAckPrefix             = "acks"
 	KeyPacketReceiptPrefix         = "receipts"
 	KeyCleanPacketCommitmentPrefix = "clean"
-	keyMaxAckHeightPrefix          = "maxAckHeight"
+	keyMaxAckSeqPrefix             = "maxAckSeq"
 )
 
 // FullClientPath returns the full path of a specific client path in the format:
@@ -178,11 +178,11 @@ func CleanPacketCommitmentPath(sourceChain, destinationChain string) string {
 
 // MaxAckHeightKey returns the store key of current max ack height
 // is stored
-func MaxAckHeightKey(sourceChain, destinationChain string) []byte {
-	return []byte(MaxAckHeightPath(sourceChain, destinationChain))
+func MaxAckSeqKey(sourceChain, destinationChain string) []byte {
+	return []byte(MaxAckSeqPath(sourceChain, destinationChain))
 }
 
 // MaxAckHeightPath defines the path of current max ack height
-func MaxAckHeightPath(sourceChain, destinationChain string) string {
-	return fmt.Sprintf("%s/%s", keyMaxAckHeightPrefix, packetPath(sourceChain, destinationChain))
+func MaxAckSeqPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", keyMaxAckSeqPrefix, packetPath(sourceChain, destinationChain))
 }

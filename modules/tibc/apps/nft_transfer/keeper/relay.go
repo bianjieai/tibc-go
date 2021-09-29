@@ -28,7 +28,9 @@ func (k Keeper) SendNftTransfer(
 	ctx sdk.Context,
 	class, id string,
 	sender sdk.AccAddress,
-	receiver, destChain, relayChain string,
+	receiver string,
+	destChain string,
+	relayChain string,
 ) error {
 	_, found := k.nk.GetDenom(ctx, class)
 	if !found {
@@ -103,11 +105,6 @@ func (k Keeper) SendNftTransfer(
 
 	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.NFT))
 
-	// send packet
-	if err := k.pk.SendPacket(ctx, packet); err != nil {
-		return err
-	}
-
 	defer func() {
 		telemetry.SetGaugeWithLabels(
 			[]string{"tx", "msg", "tibc", "nfttransfer"},
@@ -121,8 +118,8 @@ func (k Keeper) SendNftTransfer(
 			labels,
 		)
 	}()
-
-	return nil
+	// send packet
+	return k.pk.SendPacket(ctx, packet)
 }
 
 /*
@@ -276,10 +273,8 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	}
 
 	classSplit := strings.Split(class, "/")
-	if classSplit[len(classSplit)-3] == destChain {
-		return false
-	}
-	return true
+
+	return classSplit[len(classSplit)-3] != destChain
 }
 
 //fullClassPath = "nft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class

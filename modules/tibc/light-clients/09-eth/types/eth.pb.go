@@ -121,7 +121,7 @@ func (m *ClientState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClientState proto.InternalMessageInfo
 
-// ConsensusState defines the consensus state from bsc.
+// ConsensusState defines the consensus state from eth.
 type ConsensusState struct {
 	// timestamp that corresponds to the block height in which the ConsensusState
 	// was stored.

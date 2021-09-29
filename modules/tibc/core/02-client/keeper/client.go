@@ -19,8 +19,6 @@ func (k Keeper) CreateClient(
 	ctx sdk.Context, chainName string, clientState exported.ClientState, consensusState exported.ConsensusState,
 ) error {
 	k.SetClientState(ctx, chainName, clientState)
-	k.Logger(ctx).Info("client created at height", "client-name", chainName, "height", clientState.GetLatestHeight().String())
-
 	// verifies initial consensus state against client state and initializes client store with any client-specific metadata
 	// e.g. set ProcessedTime in Tendermint clients
 	if err := clientState.Initialize(ctx, k.cdc, k.ClientStore(ctx, chainName), consensusState); err != nil {
@@ -29,12 +27,11 @@ func (k Keeper) CreateClient(
 
 	// check if consensus state is nil in case the created client is Localhost
 	k.SetClientConsensusState(ctx, chainName, clientState.GetLatestHeight(), consensusState)
-
 	k.Logger(ctx).Info("client created at height", "chain-name", chainName, "height", clientState.GetLatestHeight().String())
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "create"},
+			[]string{"tibc", "client", "create"},
 			1,
 			[]metrics.Label{telemetry.NewLabel(types.LabelClientType, clientState.ClientType())},
 		)
@@ -75,7 +72,7 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "update"},
+			[]string{"tibc", "client", "update"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
@@ -122,7 +119,7 @@ func (k Keeper) UpgradeClient(ctx sdk.Context, chainName string, upgradedClientS
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "upgrade"},
+			[]string{"tibc", "client", "upgrade"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, upgradedClientState.ClientType()),

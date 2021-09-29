@@ -14,10 +14,6 @@ import (
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
-const (
-	isCheckTx = false
-)
-
 type TransferTestSuite struct {
 	suite.Suite
 
@@ -48,33 +44,45 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.SetupClients(path)
 
 	// issue denom
-	issueDenomMsg := nfttypes.NewMsgIssueDenom("mobile", "mobile-name", "",
-		suite.chainA.SenderAccount.GetAddress().String(), "", false, false)
+	issueDenomMsg := nfttypes.NewMsgIssueDenom(
+		"mobile", "mobile-name", "",
+		suite.chainA.SenderAccount.GetAddress().String(),
+		"", false, false,
+	)
 	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 	// mint nft
-	mintNftMsg := nfttypes.NewMsgMintNFT("xiaomi", "mobile", "",
-		"", "", suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainA.SenderAccount.GetAddress().String())
+	mintNftMsg := nfttypes.NewMsgMintNFT(
+		"xiaomi", "mobile", "", "", "",
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+	)
 	_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
 	dd, _ := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
 
 	// send nft from A To B
-	msg := types.NewMsgNftTransfer(dd.Id, "xiaomi",
+	msg := types.NewMsgNftTransfer(
+		dd.Id, "xiaomi",
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "")
+		suite.chainB.ChainID, "",
+	)
 
 	_, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	//// relay send
-	NonfungibleTokenPacket := types.NewNonFungibleTokenPacketData("mobile", "xiaomi",
-		"", suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(), true,
+	NonfungibleTokenPacket := types.NewNonFungibleTokenPacketData(
+		"mobile", "xiaomi", "",
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		true,
 	)
-	packet := packettypes.NewPacket(NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointA.ChainName, path.EndpointB.ChainName, "", string(routingtypes.NFT))
+	packet := packettypes.NewPacket(
+		NonfungibleTokenPacket.GetBytes(), 1,
+		path.EndpointA.ChainName, path.EndpointB.ChainName,
+		"", string(routingtypes.NFT),
+	)
 
 	ack := packettypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = path.RelayPacket(packet, ack.GetBytes())
@@ -91,22 +99,30 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.coordinator.SetupClients(pathBtoC)
 
 	// send nft from chainB to chainC
-	msgfromBToC := types.NewMsgNftTransfer(classInchainB, "xiaomi",
+	msgfromBToC := types.NewMsgNftTransfer(
+		classInchainB, "xiaomi",
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccount.GetAddress().String(),
-		suite.chainC.ChainID, "")
+		suite.chainC.ChainID, "",
+	)
 
 	_, err1 := suite.chainB.SendMsgs(msgfromBToC)
 	suite.Require().NoError(err1) // message committed
 
 	fullClassPathFromBToC := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
 	// relay send
-	nftPacketFromBToC := types.NewNonFungibleTokenPacketData(fullClassPathFromBToC, "xiaomi",
+	nftPacketFromBToC := types.NewNonFungibleTokenPacketData(
+		fullClassPathFromBToC, "xiaomi",
 		"", suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainC.SenderAccount.GetAddress().String(), true,
+		suite.chainC.SenderAccount.GetAddress().String(),
+		true,
 	)
-	packetFromBToC := packettypes.NewPacket(nftPacketFromBToC.GetBytes(), 1,
-		pathBtoC.EndpointA.ChainName, pathBtoC.EndpointB.ChainName, "", string(routingtypes.NFT))
+	packetFromBToC := packettypes.NewPacket(
+		nftPacketFromBToC.GetBytes(), 1,
+		pathBtoC.EndpointA.ChainName,
+		pathBtoC.EndpointB.ChainName,
+		"", string(routingtypes.NFT),
+	)
 
 	ack1 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = pathBtoC.RelayPacket(packetFromBToC, ack1.GetBytes())
@@ -119,44 +135,59 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().Equal("xiaomi", nftInC.GetID())
 
 	// send nft  from chainC back to chainB
-	msgfromCToB := types.NewMsgNftTransfer(classInchainC, "xiaomi",
+	msgfromCToB := types.NewMsgNftTransfer(
+		classInchainC, "xiaomi",
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "")
+		suite.chainB.ChainID, "",
+	)
 
 	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
 	suite.Require().NoError(err2) // message committed
 
 	fullClassPathFromCToB := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + "mobile"
 	// relay send
-	nftPacket := types.NewNonFungibleTokenPacketData(fullClassPathFromCToB, "xiaomi",
+	nftPacket := types.NewNonFungibleTokenPacketData(
+		fullClassPathFromCToB, "xiaomi",
 		"", suite.chainC.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(), false,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		false,
 	)
-	packetFromCToB := packettypes.NewPacket(nftPacket.GetBytes(), 1,
-		pathBtoC.EndpointB.ChainName, pathBtoC.EndpointA.ChainName, "", string(routingtypes.NFT))
+	packetFromCToB := packettypes.NewPacket(
+		nftPacket.GetBytes(), 1,
+		pathBtoC.EndpointB.ChainName,
+		pathBtoC.EndpointA.ChainName,
+		"", string(routingtypes.NFT),
+	)
 
 	ack2 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = pathBtoC.RelayPacket(packetFromCToB, ack2.GetBytes())
 	suite.Require().NoError(err) // relay committed
 
 	// send nft  from chainB back to chainA
-	msgFromBToA := types.NewMsgNftTransfer(classInchainB, "xiaomi",
+	msgFromBToA := types.NewMsgNftTransfer(
+		classInchainB, "xiaomi",
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainA.ChainID, "")
+		suite.chainA.ChainID, "",
+	)
 
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
 	suite.Require().NoError(err) // message committed
 
 	fullClassPathFromBToA := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
 	// relay send
-	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(fullClassPathFromBToA, "xiaomi",
+	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(
+		fullClassPathFromBToA, "xiaomi",
 		"", suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainA.SenderAccount.GetAddress().String(), false,
+		suite.chainA.SenderAccount.GetAddress().String(),
+		false,
 	)
-	packet = packettypes.NewPacket(NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointB.ChainName, path.EndpointA.ChainName, "", string(routingtypes.NFT))
+	packet = packettypes.NewPacket(
+		NonfungibleTokenPacket.GetBytes(), 1,
+		path.EndpointB.ChainName, path.EndpointA.ChainName,
+		"", string(routingtypes.NFT),
+	)
 
 	ack = packettypes.NewResultAcknowledgement([]byte{byte(1)})
 	err = path.RelayPacket(packet, ack.GetBytes())
@@ -227,7 +258,6 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	} else {
 		fmt.Println("nft found in C:", nftInC.GetID())
 	}
-
 }
 
 func TestTransferTestSuite(t *testing.T) {

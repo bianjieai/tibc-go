@@ -95,15 +95,15 @@ func memoryMap(path string, lock bool) (*os.File, mmap.MMap, []uint32, error) {
 	}
 	for i, magic := range dumpMagic {
 		if buffer[i] != magic {
-			mem.Unmap()
-			file.Close()
+			_ = mem.Unmap()
+			_ = file.Close()
 			return nil, nil, nil, ErrInvalidDumpMagic
 		}
 	}
 	if lock {
 		if err := mem.Lock(); err != nil {
-			mem.Unmap()
-			file.Close()
+			_ = mem.Unmap()
+			_ = file.Close()
 			return nil, nil, nil, err
 		}
 	}
@@ -293,8 +293,8 @@ func (c *cache) generate(dir string, limit int, lock bool, test bool) {
 // finalizer unmaps the memory and closes the file.
 func (c *cache) finalizer() {
 	if c.mmap != nil {
-		c.mmap.Unmap()
-		c.dump.Close()
+		_ = c.mmap.Unmap()
+		_ = c.dump.Close()
 		c.mmap, c.dump = nil, nil
 	}
 }
@@ -389,8 +389,8 @@ func (d *dataset) generated() bool {
 // finalizer closes any file handlers and memory maps open.
 func (d *dataset) finalizer() {
 	if d.mmap != nil {
-		d.mmap.Unmap()
-		d.dump.Close()
+		_ = d.mmap.Unmap()
+		_ = d.dump.Close()
 		d.mmap, d.dump = nil, nil
 	}
 }
@@ -520,7 +520,7 @@ func (ethash *Ethash) SealHash(header *ethtypes.Header) (hash common.Hash) {
 	if header.BaseFee != nil {
 		enc = append(enc, header.BaseFee)
 	}
-	rlp.Encode(hasher, enc)
+	_ = rlp.Encode(hasher, enc)
 	hasher.Sum(hash[:0])
 	return hash
 }

@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -71,7 +72,7 @@ func (m ClientState) GetPrefix() exported.Prefix {
 
 func (m ClientState) Initialize(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
@@ -91,13 +92,13 @@ func (m ClientState) Initialize(
 func (m ClientState) Status(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 ) exported.Status {
 	onsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
 	if err != nil {
 		return exported.Unknown
 	}
-	if onsState.Timestamp+m.GetDelayTime() < uint64(ctx.BlockTime().Nanosecond()) {
+	if onsState.Timestamp+m.TrustingPeriod < uint64(ctx.BlockTime().Nanosecond()) {
 		return exported.Expired
 	}
 	return exported.Active
@@ -123,7 +124,7 @@ func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadat
 func (m ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
@@ -144,33 +145,64 @@ func (m ClientState) VerifyPacketCommitment(
 			delayBlock, m.GetDelayBlock(),
 		)
 	}
+
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment)
+	return verifyMerkleProof(bscProof, consensusState, m.ContractAddress, commitment, constructor.GetPacketCommitmentProofKey())
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
 	sequence uint64,
 	ackBytes []byte,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, ackBytes, constructor.GetAckProofKey())
 }
 
 func (m ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
 	sourceChain, destChain string,
 	sequence uint64,
 ) error {
-	panic("implement me")
+	ethProof, consensusState, err := produceVerificationArgs(store, cdc, m, height, proof)
+	if err != nil {
+		return err
+	}
+
+	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
+	if delayBlock < m.GetDelayBlock() {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidHeight,
+			"delay block (%d) < client state delay block (%d)",
+			delayBlock, m.GetDelayBlock(),
+		)
+	}
+	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, sdk.Uint64ToBigEndian(sequence), constructor.GetCleanPacketCommitmentProofKey())
 }
 
 // produceVerificationArgs performs the basic checks on the arguments that are
@@ -178,15 +210,20 @@ func (m ClientState) VerifyPacketCleanCommitment(
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
 	store sdk.KVStore,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	cs ClientState,
 	height exported.Height,
 	proof []byte,
-) (merkleProof Proof, consensusState *ConsensusState, err error) {
+) (
+	merkleProof Proof,
+	consensusState *ConsensusState,
+	err error,
+) {
 	if cs.GetLatestHeight().LT(height) {
 		return Proof{}, nil, sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d)", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d)",
+			cs.GetLatestHeight(), height,
 		)
 	}
 
@@ -205,10 +242,12 @@ func produceVerificationArgs(
 	return merkleProof, consensusState, nil
 }
 
-func verifyMerkleProof(bscProof Proof,
+func verifyMerkleProof(
+	bscProof Proof,
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
+	ProofKey []byte,
 ) error {
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
@@ -220,7 +259,10 @@ func verifyMerkleProof(bscProof Proof,
 
 	addr := common.FromHex(bscProof.Address)
 	if !bytes.Equal(addr, contractAddr) {
-		return fmt.Errorf("verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s", bscProof.Address, hex.EncodeToString(contractAddr))
+		return fmt.Errorf(
+			"verifyMerkleProof, contract address is error, proof address: %s, side chain address: %s",
+			bscProof.Address, hex.EncodeToString(contractAddr),
+		)
 	}
 	acctKey := crypto.Keccak256(addr)
 
@@ -260,7 +302,9 @@ func verifyMerkleProof(bscProof Proof,
 
 	sp := bscProof.StorageProof[0]
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
-
+	if !bytes.Equal(storageKey, ProofKey) {
+		return fmt.Errorf("verifyMerkleProof,storageKey is error, storage key: %s, Key path: %s", storageKey, ProofKey)
+	}
 	for _, prf := range sp.Proof {
 		_ = nodeList.Put(nil, common.FromHex(prf))
 	}

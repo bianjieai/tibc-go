@@ -8,19 +8,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
 
-var (
-	allowedFutureBlockTime = 15 * time.Second
-)
+var allowedFutureBlockTime = 15 * time.Second
+
 var _ exported.Header = (*Header)(nil)
 
 func (h Header) ClientType() string {
@@ -109,19 +110,31 @@ func (h Header) ToVerifyHeader() *types.Header {
 
 func verifyHeader(
 	ctx sdk.Context,
-	cdc codec.BinaryMarshaler,
+	cdc codec.BinaryCodec,
 	store sdk.KVStore,
 	clientState *ClientState,
 	header Header,
 ) error {
 	height := header.Height.RevisionHeight
 
-	parentbytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	parentBytes := store.Get(ConsensusStateIndexKey(header.ToEthHeader().ParentHash))
+	if parentBytes == nil {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrConsensusStateNotFound,
+			"consensus state does not exist for hash %s", header.ToEthHeader().ParentHash,
+		)
+	}
 	var parentConsInterface exported.ConsensusState
-	if err := cdc.UnmarshalInterface(parentbytes, &parentConsInterface); err != nil {
+	if err := cdc.UnmarshalInterface(parentBytes, &parentConsInterface); err != nil {
 		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
 	}
-	parent := parentConsInterface.(*ConsensusState)
+	parent, ok := parentConsInterface.(*ConsensusState)
+	if !ok {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidConsensus,
+			"parent consensus state Invalid for hash %s", header.ToEthHeader().ParentHash,
+		)
+	}
 	if parent.Header.Height.RevisionHeight != height-1 || parent.Header.Hash() != common.BytesToHash(header.ParentHash) {
 		return sdkerrors.Wrap(ErrUnknownAncestor, "")
 	}
@@ -133,7 +146,13 @@ func verifyHeader(
 	}
 	//verify whether extra size validity
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
-		return sdkerrors.Wrap(ErrExtraLenth, fmt.Errorf("SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s", len(header.Extra), params.MaximumExtraDataSize, header.String()).Error())
+		return sdkerrors.Wrap(
+			ErrExtraLenth,
+			fmt.Errorf(
+				"SyncBlockHeader, SyncBlockHeader extra-data too long: %d > %d, header: %s",
+				len(header.Extra), params.MaximumExtraDataSize, header.String(),
+			).Error(),
+		)
 	}
 	// Verify the header's timestamp
 	if header.Time > uint64(ctx.BlockTime().Add(allowedFutureBlockTime).Unix()) {
@@ -160,7 +179,13 @@ func verifyHeader(
 	//verify difficulty
 	expected := makeDifficultyCalculator(big.NewInt(9700000))(header.Time, &parent.Header)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
-		return sdkerrors.Wrap(ErrWrongDifficulty, fmt.Errorf("SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s", header.Difficulty, expected, header.String()).Error())
+		return sdkerrors.Wrap(
+			ErrWrongDifficulty,
+			fmt.Errorf(
+				"SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s",
+				header.Difficulty, expected, header.String(),
+			).Error(),
+		)
 	}
 
 	return verifyCascadingFields(header)

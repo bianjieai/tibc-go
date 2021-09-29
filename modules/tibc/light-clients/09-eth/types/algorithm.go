@@ -112,7 +112,7 @@ func makeHasher(h hash.Hash) hasher {
 	return func(dest []byte, data []byte) {
 		rh.Reset()
 		rh.Write(data)
-		rh.Read(dest[:outputLen])
+		_, _ = rh.Read(dest[:outputLen])
 	}
 }
 

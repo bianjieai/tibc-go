@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -12,12 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bianjieai/tibc-go/simapp"
-
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	tibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 	tibctestingmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
+	"github.com/bianjieai/tibc-go/simapp"
 )
 
 const (
@@ -30,9 +30,7 @@ const (
 	maxClockDrift    time.Duration = time.Second * 10
 )
 
-var (
-	height = clienttypes.NewHeight(0, 4)
-)
+var height = clienttypes.NewHeight(0, 4)
 
 type TendermintTestSuite struct {
 	suite.Suite
@@ -45,7 +43,7 @@ type TendermintTestSuite struct {
 
 	// TODO: deprecate usage in favor of testing package
 	ctx        sdk.Context
-	cdc        codec.Marshaler
+	cdc        codec.Codec
 	privVal    tmtypes.PrivValidator
 	valSet     *tmtypes.ValidatorSet
 	valsHash   tmbytes.HexBytes
