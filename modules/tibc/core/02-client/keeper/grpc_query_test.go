@@ -282,7 +282,6 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				},
 			}
 		},
-
 		true,
 	}, {
 		"success",
