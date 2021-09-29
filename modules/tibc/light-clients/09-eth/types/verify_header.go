@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"runtime"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -66,15 +65,6 @@ func (ethash *Ethash) VerifySeal(header *types.Header, fulldag bool) error {
 		return ErrWrongDifficulty
 	}
 	return nil
-}
-
-func IsHeaderExist(store sdk.KVStore, hash common.Hash) (bool, error) {
-	headerStore := store.Get(ConsensusStateIndexKey(hash))
-	if headerStore == nil {
-		return false, nil
-	} else {
-		return true, nil
-	}
 }
 
 // Some weird constants to avoid constant memory allocs for them.
