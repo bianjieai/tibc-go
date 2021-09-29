@@ -19,7 +19,7 @@ func NewTransferTxCmd() *cobra.Command {
 		Use:   "transfer [dest-chain] [receiver] [class] [id] ",
 		Short: "Transfer a non fungible token through TIBC",
 		Example: fmt.Sprintf(
-			"%s tx tibc-nft-transfer transfer <dest-chain> <receiver> <class> <id> --relay-chain=<relay-chain>",
+			"%s tx tibc-nft-transfer transfer <dest-chain-name> <receiver> <denom-id> <nft_id> --relay-chain=<relay-chain-name>",
 			version.AppName,
 		),
 		Args: cobra.ExactArgs(4),
