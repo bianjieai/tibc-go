@@ -239,6 +239,7 @@ func NewSimApp(
 		evidencetypes.StoreKey,
 		capabilitytypes.StoreKey,
 		nfttypes.StoreKey,
+		tibcnfttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
