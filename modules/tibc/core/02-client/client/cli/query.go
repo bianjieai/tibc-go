@@ -137,11 +137,11 @@ func GetCmdQueryConsensusStates() *cobra.Command {
 // chain name and height.
 func GetCmdQueryConsensusState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "consensus-state [chain-name] [height]",
+		Use:   "consensus-state [chain-name] [{revision}-{height}]",
 		Short: "Query the consensus state of a client at a given height",
 		Long: `Query the consensus state for a particular light client at a given height.
 If the 'latest-height' flag is included, the query returns the latest consensus state, overriding the height argument.`,
-		Example: fmt.Sprintf("%s query %s %s  consensus-state [chain-name] [height]", version.AppName, host.ModuleName, types.SubModuleName),
+		Example: fmt.Sprintf("%s query %s %s  consensus-state [chain-name] [{revision}-{height}]", version.AppName, host.ModuleName, types.SubModuleName),
 		Args:    cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

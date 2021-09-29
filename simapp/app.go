@@ -81,13 +81,14 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	tibcnfttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer"
+	tibcnfttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
+	tibcnfttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+
 	nft "github.com/irisnet/irismod/modules/nft"
 	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
-	tibcnfttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer"
-	tibcnfttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
-	tibcnfttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	tibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	tibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -261,6 +262,7 @@ func NewSimApp(
 
 	// add capability keeper and ScopeToModule for tibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
+
 	scopedTIBCKeeper := app.CapabilityKeeper.ScopeToModule(tibchost.ModuleName)
 	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
 	// note replicate if you do not need to test core TIBC or light clients.
@@ -462,10 +464,8 @@ func NewSimApp(
 		// `loadLatest` is set to true.
 		app.CapabilityKeeper.Seal()
 	}
-
 	app.ScopedTIBCKeeper = scopedTIBCKeeper
 	app.ScopedTIBCMockKeeper = scopedIBCMockKeeper
-
 	return app
 }
 
