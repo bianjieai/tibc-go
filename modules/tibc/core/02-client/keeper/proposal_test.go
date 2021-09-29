@@ -20,7 +20,7 @@ func (suite KeeperTestSuite) TestHandleCreateClientProposal() {
 		malleate func()
 	}{
 		{
-			"success,create new client",
+			"success, create new client",
 			func() {
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
 				consensusState := ibctmtypes.NewConsensusState(
@@ -35,7 +35,7 @@ func (suite KeeperTestSuite) TestHandleCreateClientProposal() {
 			},
 		},
 		{
-			"fail,A client for this chainname already exists",
+			"fail, A client for this chainname already exists",
 			func() {
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0)
 				consensusState := ibctmtypes.NewConsensusState(
@@ -52,7 +52,7 @@ func (suite KeeperTestSuite) TestHandleCreateClientProposal() {
 			},
 		},
 		{
-			"success,get client and compare",
+			"success, get client and compare",
 			func() {
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
 					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
@@ -108,7 +108,7 @@ func (suite KeeperTestSuite) TestHandleUpgradeClientProposal() {
 			},
 		},
 		{
-			"success,client and consensus are existing",
+			"success, client and consensus are existing",
 			func() {
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
 					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
@@ -162,7 +162,7 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 		malleate func()
 	}{
 		{
-			"success,exist client",
+			"success, exist client",
 			func() {
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
 					trustingPeriod, ubdPeriod, maxClockDrift, types.NewHeight(0, 5),
@@ -189,7 +189,7 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 			},
 		},
 		{
-			"fail,no client",
+			"fail, no client",
 			func() {
 				relayers := []string{"xxx", "yyy"}
 				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test", relayers)
@@ -198,7 +198,7 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 			},
 		},
 		{
-			"fail,no-existing client",
+			"fail, no-existing client",
 			func() {
 				// set client "test"
 				clientState := ibctmtypes.NewClientState("test", ibctmtypes.DefaultTrustLevel,
