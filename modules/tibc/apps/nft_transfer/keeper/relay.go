@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/armon/go-metrics"
@@ -19,6 +20,8 @@ const (
 	CLASSPREFIX = "tibc-"
 
 	CLASSPATHPREFIX = "nft"
+
+	DELIMITER = "/"
 
 	// DoNotModify used to indicate that some field should not be updated
 	DoNotModify = "[do-not-modify]"
@@ -71,8 +74,8 @@ func (k Keeper) SendNftTransfer(
 	// get moudle address
 	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
 
+	labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, strconv.FormatBool(awayFromOrigin)))
 	if awayFromOrigin {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 		// Two conversion scenarios
 		// 1. nftClass -> tibc-hash(nft/A/B/nftClass)
 		// 2. tibc-hash(nft/A/B/nftClass) -> tibc-hash(nft/A/B/C/nftClass)
@@ -86,7 +89,6 @@ func (k Keeper) SendNftTransfer(
 			return err
 		}
 	} else {
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 		// burn nft
 		if err := k.nk.BurnNFT(ctx, class, id, sender); err != nil {
 			return err
@@ -179,7 +181,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 	} else {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
-		if !strings.HasPrefix(data.Class, "nft") {
+		if !strings.HasPrefix(data.Class, CLASSPATHPREFIX) {
 			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 
@@ -268,11 +270,11 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 			2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
 			3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
 	*/
-	if !strings.HasPrefix(class, "nft") {
+	if !strings.HasPrefix(class, CLASSPATHPREFIX) {
 		return true
 	}
 
-	classSplit := strings.Split(class, "/")
+	classSplit := strings.Split(class, DELIMITER)
 
 	return classSplit[len(classSplit)-3] != destChain
 }
@@ -281,11 +283,11 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 func (k Keeper) concatClassPath(scChain, destChain, class string) string {
 	var b strings.Builder
 	b.WriteString(CLASSPATHPREFIX)
-	b.WriteString("/")
+	b.WriteString(DELIMITER)
 	b.WriteString(scChain)
-	b.WriteString("/")
+	b.WriteString(DELIMITER)
 	b.WriteString(destChain)
-	b.WriteString("/")
+	b.WriteString(DELIMITER)
 	b.WriteString(class)
 	return b.String()
 }
@@ -295,9 +297,9 @@ func (k Keeper) getAwayNewClassPath(scChain, destChain, class string) (newClassP
 	if strings.HasPrefix(class, CLASSPATHPREFIX) {
 		// nft/A/B/class -> nft/A/B/C/class
 		// [nft][A][B][class] -> [nft][A][B][C][class]
-		classSplit := strings.Split(class, "/")
+		classSplit := strings.Split(class, DELIMITER)
 		classSplit = append(classSplit[:len(classSplit)-1], append([]string{destChain}, classSplit[len(classSplit)-1:]...)...)
-		newClassPath = strings.Join(classSplit, "/")
+		newClassPath = strings.Join(classSplit, DELIMITER)
 	} else {
 		// class -> nft/A/B/class
 		newClassPath = k.concatClassPath(scChain, destChain, class)
@@ -307,7 +309,7 @@ func (k Keeper) getAwayNewClassPath(scChain, destChain, class string) (newClassP
 
 // getBackNewClassPath
 func (k Keeper) getBackNewClassPath(class string) (newClassPath string) {
-	classSplit := strings.Split(class, "/")
+	classSplit := strings.Split(class, DELIMITER)
 
 	if len(classSplit) == 4 {
 		// nft/A/B/class -> class
@@ -315,7 +317,7 @@ func (k Keeper) getBackNewClassPath(class string) (newClassPath string) {
 	} else {
 		// nft/A/B/C/class -> nft/A/B/class
 		classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
-		newClassPath = strings.Join(classSplit, "/")
+		newClassPath = strings.Join(classSplit, DELIMITER)
 	}
 	return
 }

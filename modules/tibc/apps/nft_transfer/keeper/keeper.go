@@ -9,7 +9,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
-
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
