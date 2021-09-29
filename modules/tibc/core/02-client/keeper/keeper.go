@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 
@@ -108,9 +109,12 @@ func (k Keeper) IterateConsensusStates(ctx sdk.Context, cb func(chainName string
 			continue
 		}
 		chainName := keySplit[1]
-		revinum := sdk.BigEndianToUint64(key[35:43])
-		revihei := sdk.BigEndianToUint64(key[44:])
-		height := types.MustParseHeight(fmt.Sprintf("%d-%d", revinum, revihei))
+		//revinum := sdk.BigEndianToUint64(key[35:43])
+		//revihei := sdk.BigEndianToUint64(key[44:])
+		heightBytes := keySplit[3]
+		revisionUint64 := binary.BigEndian.Uint64([]byte(heightBytes[:8]))
+		heightUint64 := binary.BigEndian.Uint64([]byte(heightBytes[8:]))
+		height := types.MustParseHeight(fmt.Sprintf("%d-%d", revisionUint64, heightUint64))
 		consensusState := k.MustUnmarshalConsensusState(iterator.Value())
 
 		consensusStateWithHeight := types.NewConsensusStateWithHeight(height, consensusState)

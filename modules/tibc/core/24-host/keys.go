@@ -103,9 +103,9 @@ func ConsensusStatePath(height exported.Height) string {
 func ConsensusStateKey(height exported.Height) (key []byte) {
 	reversionNumber := sdk.Uint64ToBigEndian(height.GetRevisionNumber())
 	reversionHeight := sdk.Uint64ToBigEndian(height.GetRevisionHeight())
+
 	key = append(key, []byte(KeyConsensusStatePrefix+"/")...)
 	key = append(key, reversionNumber...)
-	key = append(key, []byte("-")...)
 	key = append(key, reversionHeight...)
 	return key
 }

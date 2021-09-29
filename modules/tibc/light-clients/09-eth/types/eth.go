@@ -41,7 +41,7 @@ func (h EthHeader) ToHeader() Header {
 		TxHash:      h.TxHash[:],
 		ReceiptHash: h.ReceiptHash[:],
 		Bloom:       h.Bloom[:],
-		Difficulty:  h.Difficulty.Uint64(),
+		Difficulty:  h.Difficulty.String(),
 		Height:      clienttypes.NewHeight(0, h.Number.Uint64()),
 		GasLimit:    h.GasLimit,
 		GasUsed:     h.GasUsed,
@@ -49,7 +49,7 @@ func (h EthHeader) ToHeader() Header {
 		Extra:       h.Extra,
 		MixDigest:   h.MixDigest[:],
 		Nonce:       h.Nonce.Uint64(),
-		BaseFee:     h.BaseFee.Uint64(),
+		BaseFee:     h.BaseFee.String(),
 	}
 }
 
@@ -59,25 +59,4 @@ type ProofAccount struct {
 	Balance  *big.Int
 	Storage  common.Hash
 	Codehash common.Hash
-}
-
-func ToHeader(h types.Header) Header {
-	return Header{
-		ParentHash:  h.ParentHash[:],
-		UncleHash:   h.UncleHash[:],
-		Coinbase:    h.Coinbase[:],
-		Root:        h.Root[:],
-		TxHash:      h.TxHash[:],
-		ReceiptHash: h.ReceiptHash[:],
-		Bloom:       h.Bloom[:],
-		Difficulty:  h.Difficulty.Uint64(),
-		Height:      clienttypes.NewHeight(0, h.Number.Uint64()),
-		GasLimit:    h.GasLimit,
-		GasUsed:     h.GasUsed,
-		Time:        h.Time,
-		Extra:       h.Extra,
-		MixDigest:   h.MixDigest[:],
-		Nonce:       h.Nonce.Uint64(),
-		BaseFee:     h.BaseFee.Uint64(),
-	}
 }

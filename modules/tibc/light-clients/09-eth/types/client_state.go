@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -53,18 +52,13 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	marshalInterface, err := cdc.MarshalInterface(state)
+	header := m.Header
+	headerBytes, err := cdc.MarshalInterface(&header)
 	if err != nil {
 		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
-	consensusState, ok := state.(*ConsensusState)
-	if !ok {
-		return clienttypes.ErrInvalidConsensus
-	}
-	header := consensusState.Header.ToEthHeader()
-	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
-	// todo change consensusState.header -> header , metadata hash+height
-	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
+	SetEthHeaderIndex(store, header, headerBytes)
+	SetEthConsensusRoot(store, header.Height.RevisionHeight, header.ToEthHeader().Root, header.Hash())
 	return nil
 }
 
