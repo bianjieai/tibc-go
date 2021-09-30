@@ -322,6 +322,7 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
+// ValidatePacketSeq validates packet sequence
 func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) error {
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()))
 	if packet.GetSequence() <= currentCleanSeq {
@@ -330,6 +331,7 @@ func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) erro
 	return nil
 }
 
+// ValidateCleanPacket validates clean packet legal or not
 func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
 	packetSeq := cleanPacket.GetSequence()
 	sourceChain := cleanPacket.GetSourceChain()
@@ -347,18 +349,20 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanP
 	return nil
 }
 
+// cleanAcknowledgementBySeq clean acknowledgement by sequence
 func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	for seq := currentCleanSeq; seq <= sequence; seq++ {
+	for seq := currentCleanSeq + 1; seq <= sequence; seq++ {
 		if k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
 			k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
 		}
 	}
 }
 
+// cleanReceiptBySeq clean receipt by sequence
 func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
-	for seq := currentCleanSeq; seq <= sequence; seq++ {
+	for seq := currentCleanSeq + 1; seq <= sequence; seq++ {
 		if k.HasPacketReceipt(ctx, sourceChain, destChain, seq) {
 			k.deletePacketReceipt(ctx, sourceChain, destChain, seq)
 		}

@@ -92,30 +92,30 @@ func (k Keeper) RecvPacket(
 	}
 	commitment := types.CommitPacket(packet)
 	var isRelay bool
-	var targetChainName string
+	var fromChain string
 	if packet.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
-			targetChainName = packet.GetRelayChain()
+			fromChain = packet.GetRelayChain()
 		} else {
-			targetChainName = packet.GetSourceChain()
+			fromChain = packet.GetSourceChain()
 		}
 	} else {
 		isRelay = true
-		targetChainName = packet.GetSourceChain()
+		fromChain = packet.GetSourceChain()
 	}
 
-	targetClient, found := k.clientKeeper.GetClientState(ctx, targetChainName)
+	targetClient, found := k.clientKeeper.GetClientState(ctx, fromChain)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	// verify that the counterparty did commit to sending this packet
 	if err := targetClient.VerifyPacketCommitment(ctx,
-		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, fromChain), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), commitment,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
 	}
 
 	// All verification complete, update state
@@ -150,7 +150,7 @@ func (k Keeper) RecvPacket(
 		}
 
 		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 
 		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
@@ -268,29 +268,29 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	var isRelay bool
-	var targetChainName string
+	var fromChain string
 	if packet.GetSourceChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(packet.GetRelayChain()) > 0 {
-			targetChainName = packet.GetRelayChain()
+			fromChain = packet.GetRelayChain()
 		} else {
-			targetChainName = packet.GetDestChain()
+			fromChain = packet.GetDestChain()
 		}
 	} else {
 		isRelay = true
-		targetChainName = packet.GetDestChain()
+		fromChain = packet.GetDestChain()
 	}
 
-	clientState, found := k.clientKeeper.GetClientState(ctx, targetChainName)
+	clientState, found := k.clientKeeper.GetClientState(ctx, fromChain)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	if err := clientState.VerifyPacketAcknowledgement(ctx,
-		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, fromChain), k.cdc, proofHeight,
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", targetChainName)
+		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", fromChain)
 	}
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
@@ -317,11 +317,8 @@ func (k Keeper) AcknowledgePacket(
 	})
 
 	if isRelay {
-		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
-		}
 		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 		// set the acknowledgement so that it can be verified on the other side
 		k.SetPacketAcknowledgement(
@@ -349,7 +346,8 @@ func (k Keeper) AcknowledgePacket(
 	return nil
 }
 
-// CleanPacket.
+// CleanPacket is called by users to send an TIBC clean packet to clean ack and receipt whose
+// sequence smaller than the sequence in clean packet.
 func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
 	if err := cleanPacket.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
@@ -367,14 +365,8 @@ func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) 
 	if !found {
 		return clienttypes.ErrConsensusStateNotFound
 	}
-    //TODO logic move to cli and validate
-	sourceChain := cleanPacket.GetSourceChain()
-	if len(sourceChain) == 0 {
-		sourceChain = k.clientKeeper.GetChainName(ctx)
-	}
-	if sourceChain != k.clientKeeper.GetChainName(ctx) {
-		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "source chain of clean packet is not this chain")
-	}
+	sourceChain := k.clientKeeper.GetChainName(ctx)
+
 	k.SetCleanPacketCommitment(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 	k.cleanAcknowledgementBySeq(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 	k.cleanReceiptBySeq(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
@@ -399,7 +391,8 @@ func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) 
 	return nil
 }
 
-// RecvCleanPacket.
+// RecvCleanPacket is called by relayer to receive & process an TIBC clean packet
+// sent on the counterparty chain.
 func (k Keeper) RecvCleanPacket(
 	ctx sdk.Context,
 	cleanPacket exported.CleanPacketI,
@@ -407,32 +400,32 @@ func (k Keeper) RecvCleanPacket(
 	proofHeight exported.Height,
 ) error {
 	var isRelay bool
-	var targetChainName string
+	var fromChain string
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 	if cleanPacket.GetDestChain() == k.clientKeeper.GetChainName(ctx) {
 		if len(cleanPacket.GetRelayChain()) > 0 {
-			targetChainName = cleanPacket.GetRelayChain()
+			fromChain = cleanPacket.GetRelayChain()
 		} else {
-			targetChainName = cleanPacket.GetSourceChain()
+			fromChain = cleanPacket.GetSourceChain()
 		}
 	} else {
 		isRelay = true
-		targetChainName = cleanPacket.GetSourceChain()
+		fromChain = cleanPacket.GetSourceChain()
 	}
-	targetClient, found := k.clientKeeper.GetClientState(ctx, targetChainName)
+	targetClient, found := k.clientKeeper.GetClientState(ctx, fromChain)
 
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	if err := targetClient.VerifyPacketCleanCommitment(ctx,
-		k.clientKeeper.ClientStore(ctx, targetChainName), k.cdc, proofHeight,
+		k.clientKeeper.ClientStore(ctx, fromChain), k.cdc, proofHeight,
 		proof, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(),
 		cleanPacket.GetSequence(),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", targetChainName)
+		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
 	}
 
 	k.cleanAcknowledgementBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
@@ -456,7 +449,7 @@ func (k Keeper) RecvCleanPacket(
 
 	if isRelay {
 		if _, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, targetChainName)
+			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain

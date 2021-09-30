@@ -90,7 +90,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeRecvPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeRecvPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
@@ -127,7 +127,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeAcknowledgePacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeAcknowledgePacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
@@ -150,7 +150,7 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeSendCleanPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeSendCleanPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
@@ -172,7 +172,7 @@ func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvC
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeRecvCleanPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeRecvCleanPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),

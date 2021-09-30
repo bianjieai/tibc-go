@@ -14,6 +14,5 @@ var (
 )
 
 func init() {
-	FsSendCleanPacket.String(FlagSourceChain, "", "The name of source chain")
 	FsSendCleanPacket.String(FlagRelayChain, "", "The name of relay chain")
 }
