@@ -29,7 +29,7 @@ func (k Keeper) HandleCreateClientProposal(ctx sdk.Context, p *types.CreateClien
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "client", "create"},
+			[]string{"tibc", "client", "create"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(types.LabelClientType, clientState.ClientType()),
