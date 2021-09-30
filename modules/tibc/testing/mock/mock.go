@@ -2,6 +2,7 @@ package mock
 
 import (
 	"encoding/json"
+	tibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	ModuleName = "mock"
+	ModuleName = tibchost.ModuleName + "mock"
 )
 
 var (
