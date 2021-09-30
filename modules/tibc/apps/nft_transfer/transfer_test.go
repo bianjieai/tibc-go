@@ -90,7 +90,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	// check that voucher exists on chain B
 	// denomID :tibc-hash(nft/chainA.chainID/chainB.chainId/mobile)
-	classInchainB := "tibc-8FCDCBB1568991A40F81B043A61271144E39BFECEA91A1D6CFD3EBF2ABA57690"
+	classInchainB := "tibc-7BED49CE77F5E584208F2127E70DF048C3183C487DEEDE8A6B52CF86377BA132"
 	nft, _ := suite.chainB.App.NftKeeper.GetNFT(suite.chainB.GetContext(), classInchainB, "xiaomi")
 	suite.Require().Equal("xiaomi", nft.GetID())
 
@@ -109,7 +109,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, err1 := suite.chainB.SendMsgs(msgfromBToC)
 	suite.Require().NoError(err1) // message committed
 
-	fullClassPathFromBToC := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
+	fullClassPathFromBToC := "tibcnft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
 	// relay send
 	nftPacketFromBToC := types.NewNonFungibleTokenPacketData(
 		fullClassPathFromBToC, "xiaomi",
@@ -130,7 +130,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	// check that voucher exists on chain C
 	// denomID : tibc/nft/chainA.chainID/chainB.chainID/mobile
-	classInchainC := "tibc-DE7D2589EFE1DA87BC1FF9B7709D951263F1CCA56176D05B3DA07BF89C74099E"
+	classInchainC := "tibc-9328E6D912B23D9C9E5CF73E071859E2A19B2827826C18E58522AAF040E1E669"
 	nftInC, _ := suite.chainC.App.NftKeeper.GetNFT(suite.chainC.GetContext(), classInchainC, "xiaomi")
 	suite.Require().Equal("xiaomi", nftInC.GetID())
 
@@ -145,7 +145,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
 	suite.Require().NoError(err2) // message committed
 
-	fullClassPathFromCToB := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + "mobile"
+	fullClassPathFromCToB := "tibcnft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + "mobile"
 	// relay send
 	nftPacket := types.NewNonFungibleTokenPacketData(
 		fullClassPathFromCToB, "xiaomi",
@@ -175,7 +175,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
 	suite.Require().NoError(err) // message committed
 
-	fullClassPathFromBToA := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
+	fullClassPathFromBToA := "tibcnft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
 	// relay send
 	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(
 		fullClassPathFromBToA, "xiaomi",
