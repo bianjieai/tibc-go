@@ -155,7 +155,7 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	consensusStates := []types.ConsensusStateWithHeight{}
+	var consensusStates []types.ConsensusStateWithHeight
 	store := prefix.NewStore(ctx.KVStore(q.storeKey), host.FullClientKey(req.ChainName, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
@@ -163,8 +163,9 @@ func (q Keeper) ConsensusStates(c context.Context, req *types.QueryConsensusStat
 		if strings.Contains(string(key), "/") {
 			return false, nil
 		}
-
-		height, err := types.ParseHeight(string(key))
+		revNum := sdk.BigEndianToUint64(key[:8])
+		revHei := sdk.BigEndianToUint64(key[8:])
+		height, err := types.ParseHeight(fmt.Sprintf("%d-%d", revNum, revHei))
 		if err != nil {
 			return false, err
 		}

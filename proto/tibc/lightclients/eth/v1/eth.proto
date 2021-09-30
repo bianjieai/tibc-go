@@ -17,7 +17,7 @@ message Header {
   bytes tx_hash = 5;
   bytes receipt_hash = 6;
   bytes bloom = 7;
-  uint64 difficulty = 8;
+  string difficulty = 8;
   tibc.core.client.v1.Height height = 9 [ (gogoproto.nullable) = false ];
   uint64 gas_limit = 10;
   uint64 gas_used = 11;
@@ -25,7 +25,7 @@ message Header {
   bytes extra = 13;
   bytes mix_digest = 14;
   uint64 nonce = 15;
-  uint64  baseFee=16;
+  string baseFee=16;
 }
 
 // ClientState from eth tracks the current validator set, latest height,
@@ -51,8 +51,6 @@ message ConsensusState {
   uint64 timestamp = 1;
   tibc.core.client.v1.Height number = 2 [ (gogoproto.nullable) = false ];
   bytes root = 3;
-  Header header = 4 [ (gogoproto.nullable) = false ];
-
 }
 
 message StorageResult {

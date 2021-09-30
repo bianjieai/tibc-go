@@ -3,6 +3,9 @@ package types
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
+
+	"github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -16,69 +19,64 @@ import (
 )
 
 var (
-	KeyIterateConsensusStatePrefix = "iterateConsensusStates"
-	KeyIndexConsensusStatePrefix   = "consensusStatesIndex"
-	KeyProcessedTime               = []byte("/processedTime")
+	KeyIndexEthHeaderPrefix = "ethHeaderIndex"
+	KeyMainRootPrefix       = "ethRootMain"
 )
 
-func ConsensusStateIndexPath(hash common.Hash) string {
-	return fmt.Sprintf("%s/%s", KeyIndexConsensusStatePrefix, hash)
+func EthHeaderIndexPath(hash common.Hash, height uint64) string {
+	return fmt.Sprintf("%s/%s%d", KeyIndexEthHeaderPrefix, hash, height)
 }
 
-func ConsensusStateIndexKey(hash common.Hash) []byte {
-	return []byte(ConsensusStateIndexPath(hash))
+func EthHeaderIndexKey(hash common.Hash, height uint64) []byte {
+	return []byte(EthHeaderIndexPath(hash, height))
+}
+func EthRootMainPath(root common.Hash, height uint64) string {
+	return fmt.Sprintf("%s/%s%d", KeyMainRootPrefix, root, height)
+}
+func EthRootMainKey(root common.Hash, height uint64) []byte {
+	return []byte(EthRootMainPath(root, height))
 }
 
-// setConsensusMetadata sets context time as processed time and set context height as processed height
-// as this is internal tendermint light client logic.
-// client state and consensus state will be set by client keeper
-// set iteration key to provide ability for efficient ordered iteration of consensus states.
-func setConsensusMetadata(ctx sdk.Context, clientStore sdk.KVStore, height exported.Height) {
-	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
-}
-
-// setConsensusMetadataWithValues sets the consensus metadata with the provided values
-func setConsensusMetadataWithValues(
-	clientStore sdk.KVStore, height,
-	processedHeight exported.Height,
-	processedTime uint64,
+func SetEthHeaderIndex(
+	clientStore sdk.KVStore,
+	header Header,
+	headerBytes []byte,
 ) {
-	SetProcessedTime(clientStore, height, processedTime)
-	SetIterationKey(clientStore, height)
+	clientStore.Set(EthHeaderIndexKey(header.Hash(), header.Height.RevisionHeight), headerBytes)
 }
-
-// SetProcessedTime stores the time at which a header was processed and the corresponding consensus state was created.
-// This is useful when validating whether a packet has reached the specified delay period in the tendermint client's
-// verification functions
-func SetProcessedTime(clientStore sdk.KVStore, height exported.Height, timeNs uint64) {
-	key := ProcessedTimeKey(height)
-	val := sdk.Uint64ToBigEndian(timeNs)
-	clientStore.Set(key, val)
+func GetIterator(store sdk.KVStore, keyType string) types.Iterator {
+	iterator := sdk.KVStorePrefixIterator(store, []byte(keyType))
+	return iterator
 }
+func IteratorEthMetaDataByPrefix(store sdk.KVStore, keyType string, cb func(key, val []byte) bool) {
+	iterator := GetIterator(store, keyType)
+	defer iterator.Close()
 
-// GetProcessedTime gets the time (in nanoseconds) at which this chain received and processed a tendermint header.
-// This is used to validate that a received packet has passed the delay period.
-func GetProcessedTime(clientStore sdk.KVStore, height exported.Height) (uint64, bool) {
-	key := ProcessedTimeKey(height)
-	bz := clientStore.Get(key)
-	if bz == nil {
-		return 0, false
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(iterator.Key(), iterator.Value()) {
+			break
+		}
 	}
-	return sdk.BigEndianToUint64(bz), true
 }
 
-// SetIterationKey stores the consensus state key under a key that is more efficient for ordered iteration
-func SetIterationKey(clientStore sdk.KVStore, height exported.Height) {
-	key := IterationKey(height)
-	val := host.ConsensusStateKey(height)
-	clientStore.Set(key, val)
+func GetParentHeaderFromIndex(
+	clientStore sdk.KVStore,
+	header Header,
+) []byte {
+	get := clientStore.Get(EthHeaderIndexKey(header.ToEthHeader().ParentHash, header.Height.RevisionHeight-1))
+	return get
 }
 
-// GetIterationKey returns the consensus state key stored under the efficient iteration key.
-// NOTE: This function is currently only used for testing purposes
-func GetIterationKey(clientStore sdk.KVStore, height exported.Height) []byte {
-	key := IterationKey(height)
-	return clientStore.Get(key)
+// SetEthConsensusRoot sets the consensus metadata with the provided values
+func SetEthConsensusRoot(
+	clientStore sdk.KVStore,
+	height uint64,
+	root, headerHash common.Hash,
+) {
+	clientStore.Set(EthRootMainKey(root, height), EthHeaderIndexKey(headerHash, height))
+}
+func GetHeaderIndexKeyByEthConsensusRoot(clientStore sdk.KVStore, root common.Hash, height uint64) []byte {
+	return clientStore.Get(EthRootMainKey(root, height))
 }
 
 // GetConsensusState retrieves the consensus state from the client prefixed
@@ -114,12 +112,18 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 // callback on each height, until stop=true is returned.
 func IterateConsensusStateAscending(clientStore sdk.KVStore,
 	cb func(height exported.Height) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(KeyIterateConsensusStatePrefix))
+	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		iterKey := iterator.Key()
-		height := GetHeightFromIterationKey(iterKey)
+		key := iterator.Key()
+		keySplit := strings.Split(string(key), "/")
+		// processed time key in prefix store has format: "consensusStates/<height>"
+		if len(keySplit) != 2 {
+			// ignore all not consensus state keys
+			continue
+		}
+		height := GetHeightFromIterationKey(key)
 		if cb(height) {
 			return
 		}
@@ -128,33 +132,19 @@ func IterateConsensusStateAscending(clientStore sdk.KVStore,
 
 // GetHeightFromIterationKey takes an iteration key and returns the height that it references
 func GetHeightFromIterationKey(iterKey []byte) exported.Height {
-	bigEndianBytes := iterKey[len([]byte(KeyIterateConsensusStatePrefix)):]
+	bigEndianBytes := iterKey[len([]byte(host.KeyConsensusStatePrefix+"/")):]
 	revisionBytes := bigEndianBytes[0:8]
 	heightBytes := bigEndianBytes[8:]
-	revision := binary.BigEndian.Uint64(revisionBytes)
-	height := binary.BigEndian.Uint64(heightBytes)
+	revision := sdk.BigEndianToUint64(revisionBytes)
+	height := sdk.BigEndianToUint64(heightBytes)
 	return clienttypes.NewHeight(revision, height)
 }
-
-// deleteConsensusMetadata deletes the metadata stored for a particular consensus state.
-func deleteConsensusMetadata(clientStore sdk.KVStore, height exported.Height) {
-	deleteProcessedTime(clientStore, height)
-	deleteIterationKey(clientStore, height)
+func deleteRootMain(clientStore sdk.KVStore, root common.Hash, height exported.Height) {
+	clientStore.Delete(EthRootMainKey(root, height.GetRevisionHeight()))
 }
 
-// deleteProcessedTime deletes the processedTime for a given height
-func deleteProcessedTime(clientStore sdk.KVStore, height exported.Height) {
-	key := ProcessedTimeKey(height)
-	clientStore.Delete(key)
-}
-
-// ProcessedTimeKey returns the key under which the processed time will be stored in the client store.
-func ProcessedTimeKey(height exported.Height) []byte {
-	return append(host.ConsensusStateKey(height), KeyProcessedTime...)
-}
-
-// deleteConsensusState deletes the consensus state at the given height
-func deleteConsensusState(cdc codec.BinaryCodec, clientStore sdk.KVStore, height exported.Height) error {
+// deleteConsensusStateAndIndexHeader deletes the consensus state at the given height
+func deleteConsensusStateAndIndexHeader(cdc codec.BinaryCodec, clientStore sdk.KVStore, height exported.Height) error {
 	key := host.ConsensusStateKey(height)
 	consensusState := clientStore.Get(key)
 	if consensusState == nil {
@@ -171,23 +161,20 @@ func deleteConsensusState(cdc codec.BinaryCodec, clientStore sdk.KVStore, height
 	if !ok {
 		return ErrUnmarshalInterface
 	}
-	header := tmpConsensus.Header
-	clientStore.Delete(ConsensusStateIndexKey(header.Hash()))
+	root := tmpConsensus.Root
+	headerIndexKey := GetHeaderIndexKeyByEthConsensusRoot(clientStore, common.BytesToHash(root), height.GetRevisionHeight())
+	if headerIndexKey == nil {
+		return sdkerrors.Wrapf(ErrHeader,
+			"Header index not found in height %s", height,
+		)
+	}
+	// delete header index
+	clientStore.Delete(headerIndexKey)
+	// delete root main
+	deleteRootMain(clientStore, common.BytesToHash(root), height)
+	// delete consensus state
 	clientStore.Delete(key)
 	return nil
-}
-
-// deleteIterationKey deletes the iteration key for a given height
-func deleteIterationKey(clientStore sdk.KVStore, height exported.Height) {
-	key := IterationKey(height)
-	clientStore.Delete(key)
-}
-
-// IterationKey returns the key under which the consensus state key will be stored.
-// The iteration key is a BigEndian representation of the consensus state key to support efficient iteration.
-func IterationKey(height exported.Height) []byte {
-	heightBytes := bigEndianHeightBytes(height)
-	return append([]byte(KeyIterateConsensusStatePrefix), heightBytes...)
 }
 
 func bigEndianHeightBytes(height exported.Height) []byte {

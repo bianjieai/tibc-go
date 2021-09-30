@@ -53,17 +53,13 @@ func (m ClientState) Initialize(
 	store sdk.KVStore,
 	state exported.ConsensusState,
 ) error {
-	marshalInterface, err := cdc.MarshalInterface(state)
+	header := m.Header
+	headerBytes, err := cdc.MarshalInterface(&header)
 	if err != nil {
 		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
-	consensusState, ok := state.(*ConsensusState)
-	if !ok {
-		return clienttypes.ErrInvalidConsensus
-	}
-	header := consensusState.Header.ToEthHeader()
-	store.Set(ConsensusStateIndexKey(header.Hash()), marshalInterface)
-	setConsensusMetadata(ctx, store, header.ToHeader().GetHeight())
+	SetEthHeaderIndex(store, header, headerBytes)
+	SetEthConsensusRoot(store, header.Height.RevisionHeight, header.ToEthHeader().Root, header.Hash())
 	return nil
 }
 
@@ -83,8 +79,19 @@ func (m ClientState) Status(
 }
 
 func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
-	//TODO
-	return nil
+	gm := make([]exported.GenesisMetadata, 0)
+	callback := func(key, val []byte) bool {
+		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
+		return false
+	}
+
+	IteratorEthMetaDataByPrefix(store, KeyIndexEthHeaderPrefix, callback)
+	IteratorEthMetaDataByPrefix(store, KeyMainRootPrefix, callback)
+
+	if len(gm) == 0 {
+		return nil
+	}
+	return gm
 }
 
 func (m ClientState) VerifyPacketCommitment(
@@ -265,24 +272,27 @@ func verifyMerkleProof(
 	}
 
 	sp := ethProof.StorageProof[0]
-	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
-	if !bytes.Equal(storageKey, ProofKey) {
-		return fmt.Errorf("verifyMerkleProof,storageKey is error, storage key: %s, Key path: %s", storageKey, ProofKey)
+
+	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), ProofKey) {
+		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), ProofKey)
 	}
+
+	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
 
 	for _, prf := range sp.Proof {
 		_ = nodeList.Put(nil, common.FromHex(prf))
 	}
 
 	ns = nodeList.NodeSet()
-	val, err := trie.VerifyProof(storageHash, storageKey, ns)
+	_, err = trie.VerifyProof(storageHash, storageKey, ns)
 	if err != nil {
 		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
 	}
 
-	if !checkProofResult(val, commitment) {
-		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
-	}
+	// TODO: remove??
+	// if !checkProofResult(val, commitment) {
+	// 	return fmt.Errorf("verifyMerkleProof, verify storage result failed")
+	// }
 	return nil
 }
 
