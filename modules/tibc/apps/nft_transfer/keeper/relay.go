@@ -19,7 +19,7 @@ import (
 const (
 	CLASSPREFIX = "tibc-"
 
-	CLASSPATHPREFIX = "nft"
+	CLASSPATHPREFIX = "tibcnft"
 
 	DELIMITER = "/"
 
@@ -279,7 +279,7 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	return classSplit[len(classSplit)-3] != destChain
 }
 
-//fullClassPath = "nft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
+//fullClassPath = "tibcnft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
 func (k Keeper) concatClassPath(scChain, destChain, class string) string {
 	var b strings.Builder
 	b.WriteString(CLASSPATHPREFIX)
