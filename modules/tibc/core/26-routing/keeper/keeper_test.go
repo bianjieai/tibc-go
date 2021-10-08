@@ -60,24 +60,24 @@ func (suite *KeeperTestSuite) TestSetRouter() {
 func (suite KeeperTestSuite) TestSetRoutingRules() {
 	testCases := []testCase1{
 		{
-			"1 include *",
-			[]string{"xxx,*,**"},
+			"1 success with no *",
+			[]string{"source,dest,port"},
 			true,
 		},
 		{
-			"2 include ?",
-			[]string{"xxx,?,???"},
+			"2 success with *",
+			[]string{"*,*,*"},
 			true,
 		},
 		{
-			"3 include * and ?",
+			"3 success no rule",
+			[]string{},
+			true,
+		},
+		{
+			"4 fail due to invalid character",
 			[]string{"xxx,*dd,??dd"},
-			true,
-		},
-		{
-			"4 not inclde wildcard character",
-			[]string{"a,bbb,c"},
-			true,
+			false,
 		},
 		{
 			"5 fail due to number of commas -1",
@@ -98,11 +98,6 @@ func (suite KeeperTestSuite) TestSetRoutingRules() {
 			"8 fail no content",
 			[]string{""},
 			false,
-		},
-		{
-			"9 success no rule",
-			[]string{},
-			true,
 		},
 	}
 
@@ -132,59 +127,35 @@ func (suite KeeperTestSuite) TestGetRoutingRules() {
 func (suite KeeperTestSuite) TestAuthenticate() {
 	testCases := []testCase2{
 		{
-			"1 success, null",
+			"1 success with no *",
+			[]string{"source,dest,port"},
+			"source",
+			"dest",
+			"port",
+			true,
+		},
+		{
+			"2 success with *",
 			[]string{"*,*,*"},
-			"",
-			"",
-			"",
-			true,
-		},
-		{
-			"2 fail,?",
-			[]string{"?,???,tt"},
+			"aabb",
+			"cc",
 			"dd",
-			"d",
-			"tt",
-			false,
-		},
-		{
-			"3 success,?",
-			[]string{"?,??,???"},
-			"a",
-			"bb",
-			"ccc",
 			true,
 		},
 		{
-			"4 fail,*",
-			[]string{"*,*dd,p**"},
-			"",
-			"lsjdd",
-			"ddd",
-			false,
-		},
-		{
-			"5 success,* inner",
-			[]string{"ab*x,c*d,tt"},
-			"abddljdfx",
-			"ccd",
-			"tt",
-			true,
-		},
-		{
-			"6 success,* by side",
-			[]string{"ab*,*dd,t"},
-			"abfvs",
-			"lwjdd",
-			"t",
-			true,
-		},
-		{
-			"7 fail,null rules",
+			"3 fail,null rules",
 			[]string{},
 			"aabb",
 			"cc",
 			"dd",
+			false,
+		},
+		{
+			"4 fail,unauthenticated",
+			[]string{"source,dest,port"},
+			"source",
+			"dest",
+			"dgsbl",
 			false,
 		},
 	}
