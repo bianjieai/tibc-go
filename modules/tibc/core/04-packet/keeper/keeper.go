@@ -322,11 +322,18 @@ func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourc
 	}
 }
 
-// ValidatePacketSeq validates packet sequence
-func (k Keeper) ValidatePacketSeq(ctx sdk.Context, packet exported.PacketI) error {
+// ValidatePacket validates packet sequence
+func (k Keeper) ValidatePacket(ctx sdk.Context, packet exported.PacketI) error {
+	if err := packet.ValidateBasic(); err != nil {
+		return err
+	}
+	chainName := k.clientKeeper.GetChainName(ctx)
+	if packet.GetRelayChain() != chainName && packet.GetDestChain() != chainName && packet.GetSourceChain() != chainName {
+		return sdkerrors.Wrap(types.ErrInvalidPacket, "packet/ack illegal!")
+	}
 	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()))
 	if packet.GetSequence() <= currentCleanSeq {
-		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
+		return sdkerrors.Wrap(types.ErrInvalidPacket, "sequence illegal!")
 	}
 	return nil
 }

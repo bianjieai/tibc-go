@@ -195,7 +195,6 @@ func MaxAckSeqPath(sourceChain, destinationChain string) string {
 	return fmt.Sprintf("%s/%s", keyMaxAckSeqPrefix, packetPath(sourceChain, destinationChain))
 }
 
-
 // RoutingRulesPath defines the routing rules store path
 func RoutingRulesPath() string {
 	return "Routing/Rules"

@@ -42,7 +42,6 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 	k.Router.Seal()
 }
 
-
 // SetRoutingRules sets routing table to store.
 func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	for _, rule := range rules {
