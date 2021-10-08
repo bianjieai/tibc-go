@@ -139,7 +139,7 @@ func (k Keeper) RecvPacket(
 
 	if packet.GetRelayChain() == chainName {
 		if !k.routingKeeper.Authenticate(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetPort()) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "no rule in routing table to relay this packet")
+			return sdkerrors.ErrUnauthorized
 		}
 
 		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain()); !found {
