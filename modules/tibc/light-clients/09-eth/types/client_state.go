@@ -218,7 +218,7 @@ func verifyMerkleProof(
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
-	ProofKey []byte,
+	proofKey []byte,
 ) error {
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
@@ -273,8 +273,8 @@ func verifyMerkleProof(
 
 	sp := ethProof.StorageProof[0]
 
-	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), ProofKey) {
-		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), ProofKey)
+	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), proofKey) {
+		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), proofKey)
 	}
 
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
