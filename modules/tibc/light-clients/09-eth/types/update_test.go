@@ -46,7 +46,7 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 	tibcethtypes.SetEthHeaderIndex(store, protoHeader, headerBytes)
 	tibcethtypes.SetEthConsensusRoot(store, protoHeader.Height.RevisionHeight, protoHeader.ToEthHeader().Root, header.Hash())
 
-	for _, updateHeader := range updateHeaders[1:] {
+	for _, updateHeader := range updateHeaders[1:5] {
 		protoHeader := updateHeader.ToHeader()
 		suite.NoError(err)
 

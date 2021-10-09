@@ -120,7 +120,7 @@ func (m ClientState) VerifyPacketCommitment(
 	}
 	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment, constructor.GetCleanPacketCommitmentProofKey())
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment, constructor.GetPacketCommitmentProofKey())
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -284,15 +284,15 @@ func verifyMerkleProof(
 	}
 
 	ns = nodeList.NodeSet()
-	_, err = trie.VerifyProof(storageHash, storageKey, ns)
+	val, err := trie.VerifyProof(storageHash, storageKey, ns)
 	if err != nil {
 		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
 	}
 
-	// TODO: remove??
-	// if !checkProofResult(val, commitment) {
-	// 	return fmt.Errorf("verifyMerkleProof, verify storage result failed")
-	// }
+
+	if !checkProofResult(val, commitment) {
+		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
+	}
 	return nil
 }
 
