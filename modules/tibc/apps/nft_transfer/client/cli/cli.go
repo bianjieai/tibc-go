@@ -26,7 +26,7 @@ func NewTxCmd() *cobra.Command {
 // GetQueryCmd returns the query commands for TIBC connections
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
-		Use:                        "tibc-transfer",
+		Use:                        "tibc-nft-transfer",
 		Short:                      "TIBC non fungible token transfer query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
