@@ -120,7 +120,7 @@ func (m ClientState) VerifyPacketCommitment(
 	}
 	constructor := NewProofKeyConstructor(sourceChain, destChain, sequence)
 	// verify that the provided commitment has been stored
-	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment, constructor.GetCleanPacketCommitmentProofKey())
+	return verifyMerkleProof(ethProof, consensusState, m.ContractAddress, commitment, constructor.GetPacketCommitmentProofKey())
 }
 
 func (m ClientState) VerifyPacketAcknowledgement(
@@ -218,7 +218,7 @@ func verifyMerkleProof(
 	consensusState *ConsensusState,
 	contractAddr []byte,
 	commitment []byte,
-	ProofKey []byte,
+	proofKey []byte,
 ) error {
 	//1. prepare verify account
 	nodeList := new(light.NodeList)
@@ -273,8 +273,8 @@ func verifyMerkleProof(
 
 	sp := ethProof.StorageProof[0]
 
-	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), ProofKey) {
-		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), ProofKey)
+	if !bytes.Equal(common.HexToHash(sp.Key).Bytes(), proofKey) {
+		return fmt.Errorf("verifyMerkleProof, storageKey is error, storage key: %s, Key path: %s", common.HexToHash(sp.Key), proofKey)
 	}
 
 	storageKey := crypto.Keccak256(common.HexToHash(sp.Key).Bytes())
@@ -284,15 +284,15 @@ func verifyMerkleProof(
 	}
 
 	ns = nodeList.NodeSet()
-	_, err = trie.VerifyProof(storageHash, storageKey, ns)
+	val, err := trie.VerifyProof(storageHash, storageKey, ns)
 	if err != nil {
 		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
 	}
 
-	// TODO: remove??
-	// if !checkProofResult(val, commitment) {
-	// 	return fmt.Errorf("verifyMerkleProof, verify storage result failed")
-	// }
+
+	if !checkProofResult(val, commitment) {
+		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
+	}
 	return nil
 }
 
