@@ -52,30 +52,28 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 
 	// Perform TAO verification
 	if err := k.PacketKeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
-		if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
-			return nil, err2
+		switch err {
+		case sdkerrors.ErrUnauthorized:
+			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
+				return nil, err2
+			}
+			return &packettypes.MsgRecvPacketResponse{}, nil
+		default:
+			return nil, sdkerrors.Wrap(err, "receive packet verification failed")
 		}
-		return &packettypes.MsgRecvPacketResponse{}, nil
 	}
 
 	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx) {
 		// Retrieve callbacks from router
 		cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 		if !ok {
-			err := sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
-			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
-				return nil, err2
-			}
-			return &packettypes.MsgRecvPacketResponse{}, nil
+			return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
 		}
 
 		// Perform application logic callback
 		_, ack, err := cbs.OnRecvPacket(ctx, msg.Packet)
 		if err != nil {
-			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
-				return nil, err2
-			}
-			return &packettypes.MsgRecvPacketResponse{}, nil
+			return nil, sdkerrors.Wrap(err, "receive packet callback failed")
 		}
 
 		// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -90,7 +88,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeRecvPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeRecvPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
@@ -127,7 +125,7 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeAcknowledgePacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeAcknowledgePacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelPort, msg.Packet.Port),
@@ -150,7 +148,7 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeSendCleanPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeSendCleanPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
@@ -172,7 +170,7 @@ func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvC
 
 	defer func() {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", packettypes.EventTypeRecvCleanPacket},
+			[]string{"tx", "msg", "tibc", packettypes.EventTypeRecvCleanPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),

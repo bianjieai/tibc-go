@@ -19,7 +19,7 @@ import (
 const (
 	CLASSPREFIX = "tibc-"
 
-	CLASSPATHPREFIX = "tibcnft"
+	CLASSPATHPREFIX = "nft"
 
 	DELIMITER = "/"
 
@@ -69,7 +69,7 @@ func (k Keeper) SendNftTransfer(
 	awayFromOrigin := k.determineAwayFromOrigin(fullClassPath, destChain)
 
 	// get the next sequence
-	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
+	sequence := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	// get moudle address
 	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
@@ -270,7 +270,8 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 			2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
 			3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
 	*/
-	if !strings.HasPrefix(class, CLASSPATHPREFIX) {
+	if !strings.HasPrefix(class, CLASSPATHPREFIX) ||
+		(strings.HasPrefix(class, CLASSPATHPREFIX) && !strings.Contains(class, DELIMITER)) {
 		return true
 	}
 

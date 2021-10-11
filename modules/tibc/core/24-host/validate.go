@@ -22,7 +22,7 @@ const DefaultMaxCharacterLength = 64
 // - `.`, `_`, `+`, `-`, `#`
 // - `[`, `]`, `<`, `>`
 var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchString
-var IsValidRule = regexp.MustCompile(`^([^,]{1,50},){2}[^,]{1,50}$`).MatchString
+var IsValidRule = regexp.MustCompile(`^(([a-zA-Z0-9\.\_\+\-\#\[\]\<\>]{1,64}|[*]),){2}([a-zA-Z0-9\.\_\+\-\#\[\]\<\>]{1,64}|[*])$`).MatchString
 
 // TICS 024 Identifier and Path Validation Implementation
 //
