@@ -42,6 +42,7 @@ func (k *Keeper) SetRouter(rtr *types.Router) {
 	k.Router.Seal()
 }
 
+// SetRoutingRules sets routing table to store.
 func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	for _, rule := range rules {
 		valid, _ := regexp.MatchString(types.RulePattern, rule)
@@ -54,14 +55,15 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %s", err.Error())
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(RoutingRulesKey(), routingBz)
+	store.Set(host.RoutingRulesKey(), routingBz)
 	return nil
 }
 
+// GetRoutingRules returns the rules from store
 func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	var rules []string
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(RoutingRulesKey())
+	bz := store.Get(host.RoutingRulesKey())
 	if bz == nil {
 		return nil, false
 	}
@@ -69,6 +71,7 @@ func (k Keeper) GetRoutingRules(ctx sdk.Context) ([]string, bool) {
 	return rules, true
 }
 
+// Authenticate judges whether the packet compliance with white list
 func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, port string) bool {
 	rules, found := k.GetRoutingRules(ctx)
 	if !found {
@@ -84,20 +87,10 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	return flag
 }
 
-// ConvWildcardToRegular wildcard => regular
+// ConvWildcardToRegular convert wildcard to regular
 func ConvWildcardToRegular(wildcard string) string {
 	regular := strings.Replace(wildcard, ".", "\\.", -1)
 	regular = strings.Replace(regular, "*", ".*", -1)
-	regular = strings.Replace(regular, "?", ".", -1)
 	regular = "^" + regular + "$"
 	return regular
-}
-
-// RoutingRulesPath defines the routing rules store path
-func RoutingRulesPath() string {
-	return "Routing/Rules"
-}
-
-func RoutingRulesKey() []byte {
-	return []byte(RoutingRulesPath())
 }

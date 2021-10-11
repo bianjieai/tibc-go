@@ -16,5 +16,5 @@ const (
 
 const (
 	// RulePattern format "source,dest,port"
-	RulePattern = "^([^,]{1,50},){2}[^,]{1,50}$"
+	RulePattern = "^(([a-zA-Z0-9\\.\\_\\+\\-\\#\\[\\]\\<\\>]{1,64}|[*]),){2}([a-zA-Z0-9\\.\\_\\+\\-\\#\\[\\]\\<\\>]{1,64}|[*])$"
 )

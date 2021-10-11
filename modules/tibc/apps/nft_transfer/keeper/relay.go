@@ -69,7 +69,7 @@ func (k Keeper) SendNftTransfer(
 	awayFromOrigin := k.determineAwayFromOrigin(fullClassPath, destChain)
 
 	// get the next sequence
-	sequence, _ := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
+	sequence := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	// get moudle address
 	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)

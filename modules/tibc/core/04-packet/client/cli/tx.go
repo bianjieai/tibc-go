@@ -31,11 +31,6 @@ func NewSendCleanPacketCmd() *cobra.Command {
 				return err
 			}
 
-			sourceChain, err := cmd.Flags().GetString(FlagSourceChain)
-			if err != nil {
-				return err
-			}
-
 			relayChain, err := cmd.Flags().GetString(FlagRelayChain)
 			if err != nil {
 				return err
@@ -47,7 +42,6 @@ func NewSendCleanPacketCmd() *cobra.Command {
 			}
 			cleanPacket := types.CleanPacket{
 				Sequence:         sequence,
-				SourceChain:      sourceChain,
 				DestinationChain: destChain,
 				RelayChain:       relayChain,
 			}
