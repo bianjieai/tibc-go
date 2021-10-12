@@ -21,7 +21,7 @@ func NewSendCleanPacketCmd() *cobra.Command {
 		Short: "send a clean packet",
 		Long:  "send a clean packet",
 		Example: fmt.Sprintf(
-			"%s tx tibc %s send-clean-packet [dest-chain-name] [sequence] --source-chain-name test1 --relay-chain-name test2 --from node0",
+			"%s tx tibc %s send-clean-packet [dest-chain-name] [sequence] --relay-chain-name test2 --from node0",
 			version.AppName, types.SubModuleName,
 		),
 		Args: cobra.ExactArgs(2),
