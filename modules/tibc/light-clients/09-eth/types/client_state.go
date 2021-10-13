@@ -289,7 +289,6 @@ func verifyMerkleProof(
 		return fmt.Errorf("verifyMerkleProof, verify storage proof error:%s", err)
 	}
 
-
 	if !checkProofResult(val, commitment) {
 		return fmt.Errorf("verifyMerkleProof, verify storage result failed")
 	}
