@@ -84,8 +84,11 @@ func FullConsensusStatePath(chainName string, height exported.Height) string {
 
 // FullConsensusStateKey returns the store key for the consensus state of a particular
 // client.
-func FullConsensusStateKey(chainName string, height exported.Height) []byte {
-	return []byte(FullConsensusStatePath(chainName, height))
+func FullConsensusStateKey(chainName string, height exported.Height) (key []byte) {
+	key = append(key,KeyClientStorePrefix...)
+	key = append(key,[]byte("/"+chainName+"/")...)
+	key = append(key, ConsensusStateKey(height)...)
+	return key
 }
 
 // ConsensusStatePath returns the suffix store key for the consensus state at a
