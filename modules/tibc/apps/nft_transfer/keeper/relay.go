@@ -295,7 +295,7 @@ func (k Keeper) concatClassPath(scChain, destChain, class string) string {
 
 // getAwayNewClassPath
 func (k Keeper) getAwayNewClassPath(scChain, destChain, class string) (newClassPath string) {
-	if strings.HasPrefix(class, CLASSPATHPREFIX) {
+	if strings.HasPrefix(class, CLASSPATHPREFIX) && strings.Contains(class, DELIMITER) {
 		// nft/A/B/class -> nft/A/B/C/class
 		// [nft][A][B][class] -> [nft][A][B][C][class]
 		classSplit := strings.Split(class, DELIMITER)
