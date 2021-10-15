@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	FlagSourceChain = "source-chain"
-	FlagRelayChain  = "relay-chain"
+	FlagRelayChain = "relay-chain-name"
 )
 
 var (

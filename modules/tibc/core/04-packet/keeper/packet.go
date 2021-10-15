@@ -294,11 +294,13 @@ func (k Keeper) AcknowledgePacket(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
+			sdk.NewAttribute(types.AttributeKeyData, string(packet.GetData())),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
 			sdk.NewAttribute(types.AttributeKeyPort, packet.GetPort()),
 			sdk.NewAttribute(types.AttributeKeySrcChain, packet.GetSourceChain()),
 			sdk.NewAttribute(types.AttributeKeyDstChain, packet.GetDestChain()),
 			sdk.NewAttribute(types.AttributeKeyRelayChain, packet.GetRelayChain()),
+			sdk.NewAttribute(types.AttributeKeyAck, string(acknowledgement)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
