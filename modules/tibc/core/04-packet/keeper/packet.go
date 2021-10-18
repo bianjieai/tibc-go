@@ -341,10 +341,16 @@ func (k Keeper) AcknowledgePacket(
 // CleanPacket is called by users to send an TIBC clean packet to clean ack and receipt whose
 // sequence smaller than the sequence in clean packet.
 func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
+	sourceChain := k.clientKeeper.GetChainName(ctx)
 	if err := cleanPacket.ValidateBasic(); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
-	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
+	if err := k.ValidateCleanPacket(ctx, types.CleanPacket{
+		Sequence:         cleanPacket.GetSequence(),
+		SourceChain:      sourceChain,
+		DestinationChain: cleanPacket.GetDestChain(),
+		RelayChain:       cleanPacket.GetRelayChain(),
+	}); err != nil {
 		return sdkerrors.Wrap(err, "packet failed basic validation")
 	}
 
@@ -357,7 +363,6 @@ func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) 
 	if !found {
 		return clienttypes.ErrConsensusStateNotFound
 	}
-	sourceChain := k.clientKeeper.GetChainName(ctx)
 
 	k.SetCleanPacketCommitment(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
 	k.cleanAcknowledgementBySeq(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
