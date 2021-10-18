@@ -16,10 +16,12 @@ import (
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer [dest-chain] [receiver] [class] [id] ",
+		Use:   "transfer [dest-chain] [receiver] [class] [id]",
 		Short: "Transfer a non fungible token through TIBC",
 		Example: fmt.Sprintf(
-			"%s tx tibc-nft-transfer transfer <dest-chain-name> <receiver> <denom-id> <nft-id> --relay-chain=<relay-chain-name>",
+			"%s tx tibc-nft-transfer transfer <dest-chain-name> <receiver> <denom-id> <nft-id> "+
+				"--relay-chain=<relay-chain-name> "+
+				"--dest-contract=<receive-the-contract-address-of-nft>",
 			version.AppName,
 		),
 		Args: cobra.ExactArgs(4),
@@ -39,9 +41,14 @@ func NewTransferTxCmd() *cobra.Command {
 				return err
 			}
 
+			destContract, err := cmd.Flags().GetString(FlagDestContract)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgNftTransfer(
 				class, id, sender, receiver,
-				destChain, relayChain,
+				destChain, relayChain, destContract,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

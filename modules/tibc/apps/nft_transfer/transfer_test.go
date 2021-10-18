@@ -66,7 +66,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		dd.Id, "xiaomi",
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "",
+		suite.chainB.ChainID, "", "0xabcsda",
 	)
 
 	_, err := suite.chainA.SendMsgs(msg)
@@ -77,6 +77,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		true,
+		"0xabcsda",
 	)
 	packet := packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
@@ -104,6 +105,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainC.ChainID, "",
+		"0xabcsda",
 	)
 
 	_, err1 := suite.chainB.SendMsgs(msgfromBToC)
@@ -116,6 +118,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		"", suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccount.GetAddress().String(),
 		true,
+		"0xabcsda",
 	)
 	packetFromBToC := packettypes.NewPacket(
 		nftPacketFromBToC.GetBytes(), 1,
@@ -140,6 +143,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainB.ChainID, "",
+		"0xabcsda",
 	)
 
 	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
@@ -152,6 +156,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		"", suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		false,
+		"0xabcsda",
 	)
 	packetFromCToB := packettypes.NewPacket(
 		nftPacket.GetBytes(), 1,
@@ -169,7 +174,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInchainB, "xiaomi",
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainA.ChainID, "",
+		suite.chainA.ChainID, "", "0xabcsda",
 	)
 
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
@@ -182,6 +187,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		"", suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		false,
+		"0xabcsda",
 	)
 	packet = packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
