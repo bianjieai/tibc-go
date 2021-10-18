@@ -27,8 +27,8 @@
   string dest_chain = 5;
   // relay chain during transmission
   string realay_chain = 6;
-  // eth contract addr
-  string contract_addr = 7;
+  // receive the contract address of nft
+  string dest_contract = 7;
 }
 
 // MsgTransferResponse defines the Msg/NftTransfer response type.

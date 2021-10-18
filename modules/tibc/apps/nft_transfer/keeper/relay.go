@@ -34,7 +34,7 @@ func (k Keeper) SendNftTransfer(
 	receiver string,
 	destChain string,
 	relayChain string,
-	contractAddr string,
+	destContract string,
 ) error {
 	_, found := k.nk.GetDenom(ctx, class)
 	if !found {
@@ -104,7 +104,7 @@ func (k Keeper) SendNftTransfer(
 		sender.String(),
 		receiver,
 		awayFromOrigin,
-		contractAddr,
+		destContract,
 	)
 
 	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.NFT))

@@ -21,7 +21,7 @@ func NewTransferTxCmd() *cobra.Command {
 		Example: fmt.Sprintf(
 			"%s tx tibc-nft-transfer transfer <dest-chain-name> <receiver> <denom-id> <nft-id> "+
 				"--relay-chain=<relay-chain-name> "+
-				"--contract-addr=<contract-address>",
+				"--dest-contract=<receive-the-contract-address-of-nft>",
 			version.AppName,
 		),
 		Args: cobra.ExactArgs(4),
@@ -41,14 +41,14 @@ func NewTransferTxCmd() *cobra.Command {
 				return err
 			}
 
-			contractAddr, err := cmd.Flags().GetString(FlagContractAddr)
+			destContract, err := cmd.Flags().GetString(FlagDestContract)
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgNftTransfer(
 				class, id, sender, receiver,
-				destChain, relayChain, contractAddr,
+				destChain, relayChain, destContract,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

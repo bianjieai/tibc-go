@@ -6,7 +6,7 @@ import (
 
 const (
 	FlagRelayChain   = "relay-chain"
-	FlagContractAddr = "contract-addr"
+	FlagDestContract = "dest-contract"
 )
 
 var (
@@ -15,5 +15,5 @@ var (
 
 func init() {
 	FsNftTransfer.String(FlagRelayChain, "", "relay chain used by cross-chain NFT")
-	FsNftTransfer.String(FlagContractAddr, "", "eth contract address")
+	FsNftTransfer.String(FlagDestContract, "", "receive the contract address of nft")
 }
