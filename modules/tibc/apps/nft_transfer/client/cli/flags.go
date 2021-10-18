@@ -15,5 +15,5 @@ var (
 
 func init() {
 	FsNftTransfer.String(FlagRelayChain, "", "relay chain used by cross-chain NFT")
-	FsNftTransfer.String(FlagDestContract, "", "receive the contract address of nft")
+	FsNftTransfer.String(FlagDestContract, "", "the destination contract address to receive the nft")
 }

@@ -36,7 +36,7 @@ type NonFungibleTokenPacketData struct {
 	Receiver string `protobuf:"bytes,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// identify whether it is far away from the source chain
 	AwayFromOrigin bool `protobuf:"varint,6,opt,name=away_from_origin,json=awayFromOrigin,proto3" json:"away_from_origin,omitempty"`
-	// receive the contract address of nft
+	// the destination contract address to receive the nft
 	DestContract string `protobuf:"bytes,7,opt,name=dest_contract,json=destContract,proto3" json:"dest_contract,omitempty"`
 }
 

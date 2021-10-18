@@ -41,7 +41,7 @@ type MsgNftTransfer struct {
 	DestChain string `protobuf:"bytes,5,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
 	// relay chain during transmission
 	RealayChain string `protobuf:"bytes,6,opt,name=realay_chain,json=realayChain,proto3" json:"realay_chain,omitempty"`
-	// receive the contract address of nft
+	// the destination contract address to receive the nft
 	DestContract string `protobuf:"bytes,7,opt,name=dest_contract,json=destContract,proto3" json:"dest_contract,omitempty"`
 }
 
