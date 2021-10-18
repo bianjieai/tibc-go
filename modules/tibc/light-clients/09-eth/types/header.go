@@ -142,8 +142,8 @@ func verifyHeader(
 	parentHeaderBytes := GetParentHeaderFromIndex(store, header)
 	if parentHeaderBytes == nil {
 		return sdkerrors.Wrapf(
-			clienttypes.ErrConsensusStateNotFound,
-			"consensus state does not exist for hash %s", header.ToEthHeader().ParentHash,
+			clienttypes.ErrInvalidHeader,
+			"header does not exist for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
 	var parentHeaderInterface exported.Header
@@ -153,8 +153,8 @@ func verifyHeader(
 	parentHeader, ok := parentHeaderInterface.(*Header)
 	if !ok {
 		return sdkerrors.Wrapf(
-			clienttypes.ErrInvalidConsensus,
-			"parent consensus state Invalid for hash %s", header.ToEthHeader().ParentHash,
+			clienttypes.ErrInvalidHeader,
+			"parent header can not marshal Invalid header hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
 	//verify whether parent hash validity
