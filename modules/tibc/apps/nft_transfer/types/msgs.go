@@ -11,14 +11,15 @@ const (
 var _ sdk.Msg = &MsgNftTransfer{}
 
 // NewMsgNftTransfer creates a new NewMsgNftTransfer instance
-func NewMsgNftTransfer(class, id, sender, receiver, destChain, realayChain string) *MsgNftTransfer {
+func NewMsgNftTransfer(class, id, sender, receiver, destChain, realayChain, contractAddr string) *MsgNftTransfer {
 	return &MsgNftTransfer{
-		Class:       class,
-		Id:          id,
-		Sender:      sender,
-		Receiver:    receiver,
-		DestChain:   destChain,
-		RealayChain: realayChain,
+		Class:        class,
+		Id:           id,
+		Sender:       sender,
+		Receiver:     receiver,
+		DestChain:    destChain,
+		RealayChain:  realayChain,
+		ContractAddr: contractAddr,
 	}
 }
 

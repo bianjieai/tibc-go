@@ -8,7 +8,7 @@ import (
 
 // NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
 func NewNonFungibleTokenPacketData(
-	class, id, uri, sender, receiver string, awayFromOrigin bool,
+	class, id, uri, sender, receiver string, awayFromOrigin bool, contractAddr string,
 ) NonFungibleTokenPacketData {
 	return NonFungibleTokenPacketData{
 		Class:          class,
@@ -17,6 +17,7 @@ func NewNonFungibleTokenPacketData(
 		Sender:         sender,
 		Receiver:       receiver,
 		AwayFromOrigin: awayFromOrigin,
+		ContractAddr:   contractAddr,
 	}
 }
 

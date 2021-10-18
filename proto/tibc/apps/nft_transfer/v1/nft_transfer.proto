@@ -18,6 +18,8 @@
   string receiver = 5;
   // identify whether it is far away from the source chain
   bool away_from_origin = 6;
+  // eth contract addr
+  string contract_addr = 7;
 }
  // ClassTrace contains the base class for TICS30 Non fungible tokens and the
  // source tracing information path.

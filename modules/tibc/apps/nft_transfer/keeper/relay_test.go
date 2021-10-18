@@ -73,6 +73,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				true,
+				"0xabcsda",
 			)
 
 			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
@@ -99,7 +100,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 					"taidy",
 					suite.chainB.SenderAccount.GetAddress(),
 					suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainA.ChainID, "")
+					suite.chainA.ChainID, "",
+					"0xabcsda")
 
 				suite.Require().NoError(err) // message committed
 
@@ -110,7 +112,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				"taidy",
 				suite.chainA.SenderAccount.GetAddress(),
 				suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.ChainID, "")
+				suite.chainB.ChainID, "",
+				"0xabcsda")
 
 			if tc.expPass {
 				suite.Require().NoError(err)
@@ -172,6 +175,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					true,
+					"0xabcsda",
 				)
 
 				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
@@ -190,6 +194,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.chainB.SenderAccount.GetAddress().String(),
 					suite.chainA.SenderAccount.GetAddress().String(),
 					false,
+					"0xabcsda",
 				)
 				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainB.ChainID, suite.chainA.ChainID, "", string(routingtypes.NFT))
 				err := suite.chainA.App.NftTransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, data)
@@ -242,7 +247,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetContext(), "dog", "taidy",
 				suite.chainA.SenderAccount.GetAddress(),
 				suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.ChainID, "",
+				suite.chainB.ChainID, "", "0xabcsda",
 			); err != nil {
 				fmt.Println("occur err :", err.Error())
 			}
@@ -256,6 +261,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				true,
+				"0xabcsda",
 			)
 			packet := packettypes.NewPacket(
 				data.GetBytes(),
@@ -285,6 +291,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainB.SenderAccount.GetAddress().String(),
 					true,
+					"0xabcsda",
 				)
 
 				err := suite.chainA.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), data, tc.ack)
@@ -310,7 +317,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					suite.chainB.SenderAccount.GetAddress(),
 					suite.chainA.SenderAccount.GetAddress().String(),
 					suite.chainA.ChainID,
-					"")
+					"",
+					"0xabcsda")
 
 				data := types.NewNonFungibleTokenPacketData(
 					fullClassPath,
@@ -318,7 +326,8 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					"",
 					suite.chainB.SenderAccount.GetAddress().String(),
 					suite.chainA.SenderAccount.GetAddress().String(),
-					false)
+					false,
+					"0xabcsda")
 
 				err := suite.chainB.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), data, tc.ack)
 
