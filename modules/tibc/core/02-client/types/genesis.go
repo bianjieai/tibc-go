@@ -18,8 +18,13 @@ var (
 )
 
 var (
-	_ sort.Interface           = ClientsConsensusStates{}
-	_ exported.GenesisMetadata = GenesisMetadata{}
+	_              sort.Interface           = ClientsConsensusStates{}
+	_              exported.GenesisMetadata = GenesisMetadata{}
+	defaultGenesis                          = GenesisState{
+		Clients:          []IdentifiedClientState{},
+		ClientsConsensus: ClientsConsensusStates{},
+		NativeChainName:  "tibc-test",
+	}
 )
 
 // ClientsConsensusStates defines a slice of ClientConsensusStates that supports the sort interface
@@ -85,11 +90,12 @@ func NewGenesisState(
 
 // DefaultGenesisState returns the tibc client submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		Clients:          []IdentifiedClientState{},
-		ClientsConsensus: ClientsConsensusStates{},
-		NativeChainName:  "tibc-test",
-	}
+	return defaultGenesis
+}
+
+// DefaultGenesisState returns the tibc client submodule's default genesis state.
+func SetDefaultGenesisState(genesis GenesisState) {
+	defaultGenesis = genesis
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces

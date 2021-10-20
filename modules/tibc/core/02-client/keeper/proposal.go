@@ -68,10 +68,10 @@ func (k Keeper) HandleUpgradeClientProposal(ctx sdk.Context, p *types.UpgradeCli
 
 // HandleRegisterRelayerProposal will try to save the registered relayer address under the specified client
 func (k Keeper) HandleRegisterRelayerProposal(ctx sdk.Context, p *types.RegisterRelayerProposal) error {
-	_, has := k.GetClientState(ctx, p.ChainName)
-	if !has {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "chain-name: %s", p.ChainName)
-	}
+	// _, has := k.GetClientState(ctx, p.ChainName)
+	// if !has {
+	// 	return sdkerrors.Wrapf(types.ErrClientNotFound, "chain-name: %s", p.ChainName)
+	// }
 	k.RegisterRelayers(ctx, p.ChainName, p.Relayers)
 	return nil
 }

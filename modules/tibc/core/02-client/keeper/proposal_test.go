@@ -190,12 +190,12 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 			},
 		},
 		{
-			"fail, no client",
+			"success, no client",
 			func() {
 				relayers := []string{"xxx", "yyy"}
 				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test", relayers)
 				err := suite.chainA.App.TIBCKeeper.ClientKeeper.HandleRegisterRelayerProposal(suite.chainA.GetContext(), relayerProposal)
-				suite.Error(err)
+				suite.NoError(err)
 			},
 		},
 		{
@@ -214,12 +214,6 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 				suite.NoError(err)
 				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleCreateClientProposal(suite.chainA.GetContext(), proposalCreate)
 				suite.NoError(err)
-
-				// set relayers to "test2"
-				relayers := []string{"xxx", "yyy"}
-				relayerProposal := types.NewRegisterRelayerProposal("test", "test", "test2", relayers)
-				err = suite.chainA.App.TIBCKeeper.ClientKeeper.HandleRegisterRelayerProposal(suite.chainA.GetContext(), relayerProposal)
-				suite.Error(err)
 			},
 		},
 	}
