@@ -52,7 +52,3 @@ dependency-graph.png
 *.aux
 *.out
 *.synctex.gz
-
-#testnet
-testA
-testC
