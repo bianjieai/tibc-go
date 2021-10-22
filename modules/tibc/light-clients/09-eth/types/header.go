@@ -138,7 +138,13 @@ func verifyHeader(
 	clientState *ClientState,
 	header Header,
 ) error {
-	//height := header.Height.RevisionHeight
+	found := store.Get(EthRootMainKey(header.ToEthHeader().Root, header.ToEthHeader().Number.Uint64()))
+	if found != nil {
+		return sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader,
+			"header already exist for hash %s", header.Hash(),
+		)
+	}
 	parentHeaderBytes := GetParentHeaderFromIndex(store, header)
 	if parentHeaderBytes == nil {
 		return sdkerrors.Wrapf(

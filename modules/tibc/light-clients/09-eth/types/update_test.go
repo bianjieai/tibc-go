@@ -64,4 +64,24 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 
 		suite.Equal(updateHeader.Number.Uint64(), clientState.GetLatestHeight().GetRevisionHeight())
 	}
+	// test update back
+	updateHeader :=  updateHeaders[1]
+	protoHeader = updateHeader.ToHeader()
+	suite.NoError(err)
+
+	clientState, consensusState, err = clientState.CheckHeaderAndUpdateState(
+		suite.ctx,
+		suite.app.AppCodec(),
+		suite.app.TIBCKeeper.ClientKeeper.ClientStore(suite.ctx, chainName), // pass in chainName prefixed clientStore
+		&protoHeader,
+	)
+
+	suite.NoError(err)
+
+	number.RevisionHeight = protoHeader.Height.RevisionHeight
+	suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
+
+	suite.Equal(updateHeader.Number.Uint64(), clientState.GetLatestHeight().GetRevisionHeight())
+
+
 }
