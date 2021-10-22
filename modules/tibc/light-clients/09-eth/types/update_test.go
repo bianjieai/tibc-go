@@ -76,12 +76,5 @@ func (suite *ETHTestSuite) TestCheckHeaderAndUpdateState() {
 		&protoHeader,
 	)
 
-	suite.NoError(err)
-
-	number.RevisionHeight = protoHeader.Height.RevisionHeight
-	suite.app.TIBCKeeper.ClientKeeper.SetClientConsensusState(suite.ctx, chainName, number, consensusState)
-
-	suite.Equal(updateHeader.Number.Uint64(), clientState.GetLatestHeight().GetRevisionHeight())
-
-
+	suite.Error(err)
 }
