@@ -138,7 +138,7 @@ func verifyHeader(
 	clientState *ClientState,
 	header Header,
 ) error {
-	found := store.Get(EthRootMainKey(header.ToEthHeader().Root, header.ToEthHeader().Number.Uint64()))
+	found := store.Get(EthHeaderIndexKey(header.Hash(), header.Height.RevisionHeight))
 	if found != nil {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidHeader,
