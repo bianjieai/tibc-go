@@ -19,7 +19,7 @@ func (k Keeper) NftTransfer(goCtx context.Context, msg *types.MsgNftTransfer) (*
 	}
 
 	if err := k.SendNftTransfer(
-		ctx, msg.Class, msg.Id, sender, msg.Receiver, msg.DestChain, msg.RealayChain, msg.DestContract); err != nil {
+		ctx, msg.Class, msg.Id, sender, msg.Receiver, msg.DestChain, msg.RelayChain, msg.DestContract); err != nil {
 		return nil, err
 	}
 

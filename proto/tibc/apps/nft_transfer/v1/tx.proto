@@ -26,7 +26,7 @@
   // target chain of transmission
   string dest_chain = 5;
   // relay chain during transmission
-  string realay_chain = 6;
+  string relay_chain = 6;
   // the destination contract address to receive the nft
   string dest_contract = 7;
 }
