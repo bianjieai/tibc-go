@@ -8,7 +8,7 @@ require (
 	github.com/confio/ics23/go v0.6.6
 	github.com/cosmos/cosmos-sdk v0.44.2
 	github.com/edsrzf/mmap-go v1.0.0
-	github.com/ethereum/go-ethereum v1.10.7
+	github.com/ethereum/go-ethereum v1.10.13
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
