@@ -36,13 +36,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			issueDenomMsg := nfttypes.NewMsgIssueDenom(
 				"dog", "dog-name", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
-				"", false, false,
+				"", false, false, "", "", "", "",
 			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
 			mintNftMsg := nfttypes.NewMsgMintNFT(
-				"taidy", "dog", "", "", "",
+				"taidy", "dog", "", "", "", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 			)
@@ -56,13 +56,13 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			issueDenomMsg := nfttypes.NewMsgIssueDenom(
 				"dog", "dog-name", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
-				"", false, false,
+				"", false, false, "", "", "", "",
 			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
 			mintNftMsg := nfttypes.NewMsgMintNFT(
-				"taidy", "dog", "taidy", "www.test.com", "none",
+				"taidy", "dog", "taidy", "", "www.test.com", "none",
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 			)
@@ -141,13 +141,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			issueDenomMsg := nfttypes.NewMsgIssueDenom(
 				"dog", "dog-name", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
-				"", false, false,
+				"", false, false, "", "", "", "",
 			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
 			mintNftMsg := nfttypes.NewMsgMintNFT(
-				"taidy", "dog", "", "", "",
+				"taidy", "dog", "", "", "", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 			)
@@ -230,13 +230,13 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			issueDenomMsg := nfttypes.NewMsgIssueDenom(
 				"dog", "dog-name", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
-				"", false, false,
+				"", false, false, "", "", "", "",
 			)
 			_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 			// mint nft
 			mintNftMsg := nfttypes.NewMsgMintNFT(
-				"taidy", "dog", "",
+				"taidy", "dog", "", "",
 				"", "", suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 			)
