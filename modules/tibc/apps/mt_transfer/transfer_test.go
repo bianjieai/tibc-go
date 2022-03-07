@@ -1,271 +1,306 @@
 package mt_transfer_test
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"fmt"
+	"testing"
 
-// 	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/suite"
 
-// 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
+	mttypes "github.com/irisnet/irismod/modules/mt/types"
 
-// 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
-// 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
-// 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
-// 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
-// )
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
+)
 
-// type TransferTestSuite struct {
-// 	suite.Suite
+const (
+	ClassID = "c02a799c8fee067a7f9b944554d8431ee539847234441833e45a3a2d3123fd99" //sha256("mt-denom-1")
+	MtID    = "ff6e57b41cb52ae7d58d854b2123da2c5657fd15d525821a13fe7da1b9cebd80" //sha256("mt-1")
+	Amount  = 2
+)
 
-// 	coordinator *tibctesting.Coordinator
+type TransferTestSuite struct {
+	suite.Suite
 
-// 	// testing chains used for convenience and readability
-// 	chainA *tibctesting.TestChain
-// 	chainB *tibctesting.TestChain
-// 	chainC *tibctesting.TestChain
-// }
+	coordinator *tibctesting.Coordinator
 
-// func (suite *TransferTestSuite) SetupTest() {
-// 	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 3)
-// 	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
-// 	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
-// 	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
-// }
+	// testing chains used for convenience and readability
+	chainA *tibctesting.TestChain
+	chainB *tibctesting.TestChain
+	chainC *tibctesting.TestChain
+}
 
-// /*
-// nft
-// A->B B->C
-// */
-// func (suite *TransferTestSuite) TestHandleMsgTransfer() {
-// 	// setup between chainA and chainB
+func (suite *TransferTestSuite) SetupTest() {
+	suite.coordinator = tibctesting.NewCoordinator(suite.T(), 3)
+	suite.chainA = suite.coordinator.GetChain(tibctesting.GetChainID(0))
+	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
+	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
+}
 
-// 	path := tibctesting.NewPath(suite.chainA, suite.chainB)
+/*
+mt
+A->B B->C
+*/
+func (suite *TransferTestSuite) TestHandleMsgTransfer() {
+	// setup between chainA and chainB
 
-// 	suite.coordinator.SetupClients(path)
+	path := tibctesting.NewPath(suite.chainA, suite.chainB)
 
-// 	// issue denom
-// 	issueDenomMsg := nfttypes.NewMsgIssueDenom(
-// 		"mobile", "mobile-name", "",
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		"", false, false,
-// 	)
-// 	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
+	suite.coordinator.SetupClients(path)
 
-// 	// mint nft
-// 	mintNftMsg := nfttypes.NewMsgMintNFT(
-// 		"xiaomi", "mobile", "", "", "",
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 	)
-// 	_, _ = suite.chainA.SendMsgs(mintNftMsg)
+	// issue denom
+	issueDenomMsg := mttypes.NewMsgIssueDenom(
+		"mobile-name", "",
+		suite.chainA.SenderAccount.GetAddress().String(),
+	)
+	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
-// 	dd, _ := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
+	// mint mt
+	mintNftMsg := mttypes.NewMsgMintMT(
+		"", ClassID, Amount, "",
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+	)
+	_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-// 	// send nft from A To B
-// 	msg := types.NewMsgNftTransfer(
-// 		dd.Id, "xiaomi",
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainB.ChainID, "", "0xabcsda",
-// 	)
+	dd, has := suite.chainA.App.MtKeeper.GetDenom(suite.chainA.GetContext(), ClassID)
+	suite.Require().Truef(has, "denom %s not found", ClassID)
 
-// 	_, err := suite.chainA.SendMsgs(msg)
-// 	suite.Require().NoError(err) // message committed
-// 	//// relay send
-// 	NonfungibleTokenPacket := types.NewNonFungibleTokenPacketData(
-// 		"mobile", "xiaomi", "",
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		true,
-// 		"0xabcsda",
-// 	)
-// 	packet := packettypes.NewPacket(
-// 		NonfungibleTokenPacket.GetBytes(), 1,
-// 		path.EndpointA.ChainName, path.EndpointB.ChainName,
-// 		"", string(routingtypes.NFT),
-// 	)
+	// send mt from A To B
+	msg := types.NewMsgMtTransfer(
+		dd.Id, MtID,
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainB.ChainID, "", "0xabcsda", 1,
+	)
 
-// 	ack := packettypes.NewResultAcknowledgement([]byte{byte(1)})
-// 	err = path.RelayPacket(packet, ack.GetBytes())
-// 	suite.Require().NoError(err) // relay committed
+	_, err := suite.chainA.SendMsgs(msg)
+	suite.Require().NoError(err) // message committed
+	//// relay send
+	multiTokenPacketData := types.NewMultiTokenPacketData(
+		dd.Id, MtID,
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		true,
+		"0xabcsda",
+		1,
+		[]byte(""),
+	)
+	packet := packettypes.NewPacket(
+		multiTokenPacketData.GetBytes(), 1,
+		path.EndpointA.ChainName, path.EndpointB.ChainName,
+		"", string(routingtypes.MT),
+	)
 
-// 	// check that voucher exists on chain B
-// 	// denomID :tibc-hash(nft/chainA.chainID/chainB.chainId/mobile)
-// 	classInchainB := "tibc-8FCDCBB1568991A40F81B043A61271144E39BFECEA91A1D6CFD3EBF2ABA57690"
-// 	nft, _ := suite.chainB.App.NftKeeper.GetNFT(suite.chainB.GetContext(), classInchainB, "xiaomi")
-// 	suite.Require().Equal("xiaomi", nft.GetID())
+	ack := packettypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = path.RelayPacket(packet, ack.GetBytes())
+	suite.Require().NoError(err) // relay committed
 
-// 	// setup between chainB to chainC
-// 	pathBtoC := tibctesting.NewPath(suite.chainB, suite.chainC)
-// 	suite.coordinator.SetupClients(pathBtoC)
+	// check that voucher exists on chain B
+	// denomID :tibc-hash(mt/chainA.chainID/chainB.chainId/mobile)
+	classInChainB := "tibc-1AA90CD7273981C2E2CFFC5415D887C17FB03A7FCB49EFE4A7B6878E384F1670"
+	mt, err := suite.chainB.App.MtKeeper.GetMT(suite.chainB.GetContext(), classInChainB, MtID)
+	suite.Require().NoError(err) // message committed
+	suite.Require().Equal(MtID, mt.GetID())
 
-// 	// send nft from chainB to chainC
-// 	msgfromBToC := types.NewMsgNftTransfer(
-// 		classInchainB, "xiaomi",
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainC.SenderAccount.GetAddress().String(),
-// 		suite.chainC.ChainID, "",
-// 		"0xabcsda",
-// 	)
+	balanceInChainA := suite.chainA.App.MtKeeper.GetBalance(suite.chainA.GetContext(), ClassID, MtID, suite.chainA.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(1), balanceInChainA)
 
-// 	_, err1 := suite.chainB.SendMsgs(msgfromBToC)
-// 	suite.Require().NoError(err1) // message committed
+	balanceInChainB := suite.chainB.App.MtKeeper.GetBalance(suite.chainB.GetContext(), classInChainB, MtID, suite.chainB.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(1), balanceInChainB)
 
-// 	fullClassPathFromBToC := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
-// 	// relay send
-// 	nftPacketFromBToC := types.NewNonFungibleTokenPacketData(
-// 		fullClassPathFromBToC, "xiaomi",
-// 		"", suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainC.SenderAccount.GetAddress().String(),
-// 		true,
-// 		"0xabcsda",
-// 	)
-// 	packetFromBToC := packettypes.NewPacket(
-// 		nftPacketFromBToC.GetBytes(), 1,
-// 		pathBtoC.EndpointA.ChainName,
-// 		pathBtoC.EndpointB.ChainName,
-// 		"", string(routingtypes.NFT),
-// 	)
+	// setup between chainB to chainC
+	pathBtoC := tibctesting.NewPath(suite.chainB, suite.chainC)
+	suite.coordinator.SetupClients(pathBtoC)
 
-// 	ack1 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
-// 	err = pathBtoC.RelayPacket(packetFromBToC, ack1.GetBytes())
-// 	suite.Require().NoError(err) // relay committed
+	// send ft from chainB to chainC
+	msgfromBToC := types.NewMsgMtTransfer(
+		classInChainB, MtID,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainC.SenderAccount.GetAddress().String(),
+		suite.chainC.ChainID, "",
+		"0xabcsda",
+		1,
+	)
 
-// 	// check that voucher exists on chain C
-// 	// denomID : tibc-{hash(nft/chainA.chainID/chainB.chainID/chainC.chainID/mobile)}
-// 	classInchainC := "tibc-DE7D2589EFE1DA87BC1FF9B7709D951263F1CCA56176D05B3DA07BF89C74099E"
-// 	nftInC, _ := suite.chainC.App.NftKeeper.GetNFT(suite.chainC.GetContext(), classInchainC, "xiaomi")
-// 	suite.Require().Equal("xiaomi", nftInC.GetID())
+	_, err1 := suite.chainB.SendMsgs(msgfromBToC)
+	suite.Require().NoError(err1) // message committed
 
-// 	// send nft  from chainC back to chainB
-// 	msgfromCToB := types.NewMsgNftTransfer(
-// 		classInchainC, "xiaomi",
-// 		suite.chainC.SenderAccount.GetAddress().String(),
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainB.ChainID, "",
-// 		"0xabcsda",
-// 	)
+	fullClassPathFromBToC := "mt" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + ClassID
+	// relay send
+	mtPacketFromBToC := types.NewMultiTokenPacketData(
+		fullClassPathFromBToC, MtID,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainC.SenderAccount.GetAddress().String(),
+		true,
+		"0xabcsda",
+		1,
+		[]byte(""),
+	)
+	packetFromBToC := packettypes.NewPacket(
+		mtPacketFromBToC.GetBytes(), 1,
+		pathBtoC.EndpointA.ChainName,
+		pathBtoC.EndpointB.ChainName,
+		"", string(routingtypes.MT),
+	)
 
-// 	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
-// 	suite.Require().NoError(err2) // message committed
+	ack1 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = pathBtoC.RelayPacket(packetFromBToC, ack1.GetBytes())
+	suite.Require().NoError(err) // relay committed
 
-// 	fullClassPathFromCToB := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + "mobile"
-// 	// relay send
-// 	nftPacket := types.NewNonFungibleTokenPacketData(
-// 		fullClassPathFromCToB, "xiaomi",
-// 		"", suite.chainC.SenderAccount.GetAddress().String(),
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		false,
-// 		"0xabcsda",
-// 	)
-// 	packetFromCToB := packettypes.NewPacket(
-// 		nftPacket.GetBytes(), 1,
-// 		pathBtoC.EndpointB.ChainName,
-// 		pathBtoC.EndpointA.ChainName,
-// 		"", string(routingtypes.NFT),
-// 	)
+	// check that voucher exists on chain C
+	// denomID : tibc-{hash(mt/chainA.chainID/chainB.chainID/chainC.chainID/mobile)}
+	classInchainC := "tibc-14B78BCCA85B511A58AF995DFFE2621CC6BD00FAF43FC33B2270508709DE2C94"
+	nftInC, err := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
+	suite.Require().NoError(err)
+	suite.Require().Equal(MtID, nftInC.GetID())
 
-// 	ack2 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
-// 	err = pathBtoC.RelayPacket(packetFromCToB, ack2.GetBytes())
-// 	suite.Require().NoError(err) // relay committed
+	balanceInChainB = suite.chainB.App.MtKeeper.GetBalance(suite.chainB.GetContext(), classInChainB, MtID, suite.chainB.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(0), balanceInChainB)
 
-// 	// send nft  from chainB back to chainA
-// 	msgFromBToA := types.NewMsgNftTransfer(
-// 		classInchainB, "xiaomi",
-// 		suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		suite.chainA.ChainID, "", "0xabcsda",
-// 	)
+	balanceInChainC := suite.chainC.App.MtKeeper.GetBalance(suite.chainC.GetContext(), classInchainC, MtID, suite.chainC.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(1), balanceInChainC)
 
-// 	_, err = suite.chainB.SendMsgs(msgFromBToA)
-// 	suite.Require().NoError(err) // message committed
+	// send mt from chainC back to chainB
+	msgfromCToB := types.NewMsgMtTransfer(
+		classInchainC, MtID,
+		suite.chainC.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainB.ChainID, "",
+		"0xabcsda",
+		1,
+	)
 
-// 	fullClassPathFromBToA := "nft" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + "mobile"
-// 	// relay send
-// 	NonfungibleTokenPacket = types.NewNonFungibleTokenPacketData(
-// 		fullClassPathFromBToA, "xiaomi",
-// 		"", suite.chainB.SenderAccount.GetAddress().String(),
-// 		suite.chainA.SenderAccount.GetAddress().String(),
-// 		false,
-// 		"0xabcsda",
-// 	)
-// 	packet = packettypes.NewPacket(
-// 		NonfungibleTokenPacket.GetBytes(), 1,
-// 		path.EndpointB.ChainName, path.EndpointA.ChainName,
-// 		"", string(routingtypes.NFT),
-// 	)
+	_, err2 := suite.chainC.SendMsgs(msgfromCToB)
+	suite.Require().NoError(err2) // message committed
 
-// 	ack = packettypes.NewResultAcknowledgement([]byte{byte(1)})
-// 	err = path.RelayPacket(packet, ack.GetBytes())
-// 	suite.Require().NoError(err) // relay committed
+	fullClassPathFromCToB := "mt" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + ClassID
+	// relay send
+	nftPacket := types.NewMultiTokenPacketData(
+		fullClassPathFromCToB, MtID,
+		suite.chainC.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		false,
+		"0xabcsda",
+		1,
+		[]byte(""),
+	)
+	packetFromCToB := packettypes.NewPacket(
+		nftPacket.GetBytes(), 1,
+		pathBtoC.EndpointB.ChainName,
+		pathBtoC.EndpointA.ChainName,
+		"", string(routingtypes.MT),
+	)
 
-// 	// Query whether there are corresponding nfts for C, B, and A respectively
-// 	/* just do  A->B->C
-// 	denom found in A: mobile
-// 	nft found in A: xiaomi
+	ack2 := packettypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = pathBtoC.RelayPacket(packetFromCToB, ack2.GetBytes())
+	suite.Require().NoError(err) // relay committed
+	balanceInChainB = suite.chainB.App.MtKeeper.GetBalance(suite.chainB.GetContext(), classInChainB, MtID, suite.chainB.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(1), balanceInChainB)
 
-// 	denom found in B: tibc/nft/testchain0/mobile
-// 	nft found in B: xiaomi
+	balanceInChainC = suite.chainC.App.MtKeeper.GetBalance(suite.chainC.GetContext(), classInchainC, MtID, suite.chainC.SenderAccount.GetAddress())
+	suite.Require().Equal(uint64(0), balanceInChainC)
 
-// 	denom found in C: tibc/nft/testchain0/testchain1/mobile
-// 	nft found in C: xiaomi
-// 	*/
+	// send nft  from chainB back to chainA
+	msgFromBToA := types.NewMsgMtTransfer(
+		classInChainB, MtID,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainA.ChainID, "", "0xabcsda", 1,
+	)
 
-// 	/* do A->B->C  then do C->B->A
-// 	denom found in A: mobile
-// 	nft found in A: xiaomi
+	_, err = suite.chainB.SendMsgs(msgFromBToA)
+	suite.Require().NoError(err) // message committed
 
-// 	denom found in B: tibc/nft/testchain0/mobile
-// 	nft not found in B
+	fullClassPathFromBToA := "mt" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + ClassID
+	// relay send
+	multiTokenPacketData = types.NewMultiTokenPacketData(
+		fullClassPathFromBToA, MtID,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		false,
+		"0xabcsda",
+		1,
+		[]byte(""),
+	)
+	packet = packettypes.NewPacket(
+		multiTokenPacketData.GetBytes(), 1,
+		path.EndpointB.ChainName, path.EndpointA.ChainName,
+		"", string(routingtypes.MT),
+	)
 
-// 	denom found in C: tibc/nft/testchain0/testchain1/mobile
-// 	nft not found in C
+	ack = packettypes.NewResultAcknowledgement([]byte{byte(1)})
+	err = path.RelayPacket(packet, ack.GetBytes())
+	suite.Require().NoError(err) // relay committed
 
-// 	*/
-// 	// query A
-// 	denomInA, found := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
-// 	if found {
-// 		fmt.Println("denom found in A:", denomInA.Id)
-// 	} else {
-// 		fmt.Println("denom not found in A:", denomInA.Id)
-// 	}
-// 	nftInA, errA := suite.chainA.App.NftKeeper.GetNFT(suite.chainA.GetContext(), "mobile", "xiaomi")
+	// Query whether there are corresponding mt for C, B, and A respectively
+	/* just do  A->B->C
+	denom found in A: ClassID
+	mt found in A: MtID
 
-// 	if errA != nil {
-// 		fmt.Println("nft not found in A")
-// 	} else {
-// 		fmt.Println("nft found in A:", nftInA.GetID())
-// 	}
+	denom found in B: tibc/mt/testchain0/ClassID
+	nft found in B: MtID
 
-// 	// query B
-// 	denomInB, found := suite.chainB.App.NftKeeper.GetDenom(suite.chainB.GetContext(), classInchainB)
-// 	if found {
-// 		fmt.Println("denom found in B:", denomInB.Id)
-// 	} else {
-// 		fmt.Println("denom not found in B:", denomInB.Id)
-// 	}
-// 	nftInB, errB := suite.chainB.App.NftKeeper.GetNFT(suite.chainB.GetContext(), classInchainB, "xiaomi")
-// 	if errB != nil {
-// 		fmt.Println("nft not found in B")
-// 	} else {
-// 		fmt.Println("nft found in B:", nftInB.GetID())
-// 	}
+	denom found in C: tibc/mt/testchain0/testchain1/ClassID
+	nft found in C: MtID
+	*/
 
-// 	// query C
-// 	denomInC, found := suite.chainC.App.NftKeeper.GetDenom(suite.chainC.GetContext(), classInchainC)
-// 	if found {
-// 		fmt.Println("denom found in C:", denomInC.Id)
-// 	} else {
-// 		fmt.Println("denom not found in C:", denomInC.Id)
-// 	}
-// 	nftInC, errC := suite.chainC.App.NftKeeper.GetNFT(suite.chainC.GetContext(), classInchainC, "xiaomi")
-// 	if errC != nil {
-// 		fmt.Println("nft not found in C")
-// 	} else {
-// 		fmt.Println("nft found in C:", nftInC.GetID())
-// 	}
-// }
+	/* do A->B->C  then do C->B->A
+	denom found in A: ClassID
+	mt found in A: MtID
 
-// func TestTransferTestSuite(t *testing.T) {
-// 	suite.Run(t, new(TransferTestSuite))
-// }
+	denom found in B: tibc/mt/testchain0/ClassID
+	mt not found in B
+
+	denom found in C: tibc/mt/testchain0/testchain1/MtID
+	mt not found in C
+
+	*/
+	// query A
+	denomInA, found := suite.chainA.App.MtKeeper.GetDenom(suite.chainA.GetContext(), ClassID)
+	if found {
+		fmt.Println("denom found in A:", denomInA.Id)
+	} else {
+		fmt.Println("denom not found in A:", denomInA.Id)
+	}
+	nftInA, errA := suite.chainA.App.MtKeeper.GetMT(suite.chainA.GetContext(), ClassID, MtID)
+
+	if errA != nil {
+		fmt.Println("nft not found in A")
+	} else {
+		fmt.Println("nft found in A:", nftInA.GetID())
+	}
+
+	// query B
+	denomInB, found := suite.chainB.App.MtKeeper.GetDenom(suite.chainB.GetContext(), classInChainB)
+	if found {
+		fmt.Println("denom found in B:", denomInB.Id)
+	} else {
+		fmt.Println("denom not found in B:", denomInB.Id)
+	}
+	nftInB, errB := suite.chainB.App.MtKeeper.GetMT(suite.chainB.GetContext(), classInChainB, MtID)
+	if errB != nil {
+		fmt.Println("nft not found in B")
+	} else {
+		fmt.Println("nft found in B:", nftInB.GetID())
+	}
+
+	// query C
+	denomInC, found := suite.chainC.App.MtKeeper.GetDenom(suite.chainC.GetContext(), classInchainC)
+	if found {
+		fmt.Println("denom found in C:", denomInC.Id)
+	} else {
+		fmt.Println("denom not found in C:", denomInC.Id)
+	}
+	nftInC, errC := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
+	if errC != nil {
+		fmt.Println("nft not found in C")
+	} else {
+		fmt.Println("nft found in C:", nftInC.GetID())
+	}
+}
+
+func TestTransferTestSuite(t *testing.T) {
+	suite.Run(t, new(TransferTestSuite))
+}
