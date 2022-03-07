@@ -27,7 +27,7 @@ func (k Keeper) MtTransfer(goCtx context.Context, msg *types.MsgMtTransfer) (*ty
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("TIBC non fungible token transfer", "nft", msg.Id, "sender", msg.Sender, "receiver", msg.Receiver)
+	k.Logger(ctx).Info("TIBC non fungible token transfer", "mt", msg.Id, "sender", msg.Sender, "receiver", msg.Receiver)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

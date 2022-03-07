@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// NewNonFungibleTokenPacketData contructs a new NonFungibleTokenPacketData instance
+// NewMultiTokenPacketData contructs a new MultiTokenPacketData instance
 func NewMultiTokenPacketData(
 	class, id, sender, receiver string,
 	awayFromOrigin bool, destContract string,
@@ -24,20 +24,20 @@ func NewMultiTokenPacketData(
 	}
 }
 
-// ValidateBasic is used for validating the nft transfer.
+// ValidateBasic is used for validating the mt transfer.
 // NOTE: The addresses formats are not validated as the sender and recipient can have different
 // formats defined by their corresponding chains that are not known to TIBC.
-func (nftpd MultiTokenPacketData) ValidateBasic() error {
-	if strings.TrimSpace(nftpd.Sender) == "" {
+func (mtpd MultiTokenPacketData) ValidateBasic() error {
+	if strings.TrimSpace(mtpd.Sender) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
 	}
-	if strings.TrimSpace(nftpd.Receiver) == "" {
+	if strings.TrimSpace(mtpd.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
 	return nil
 }
 
 // GetBytes is a helper for serialising
-func (nftpd MultiTokenPacketData) GetBytes() []byte {
-	return ModuleCdc.MustMarshal(&nftpd)
+func (mtpd MultiTokenPacketData) GetBytes() []byte {
+	return ModuleCdc.MustMarshal(&mtpd)
 }

@@ -12,7 +12,7 @@ import (
 // MtKeeper defines the expected mt keeper
 type MtKeeper interface {
 	IssueDenom(ctx sdk.Context,
-		name string, sender sdk.AccAddress, data []byte,
+		id, name string, sender sdk.AccAddress, data []byte,
 	) types.Denom
 
 	MintMT(ctx sdk.Context,

@@ -8,7 +8,7 @@ import (
 	mttransfertypes "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
 )
 
-// NewHandler defines the TIBC nft transfer handler
+// NewHandler defines the TIBC mt transfer handler
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())

@@ -5,13 +5,13 @@ import (
 )
 
 const (
-	TypeMsgNftTransfer = "tibc_nft_transfer"
+	TypeMsgMtTransfer = "tibc_mt_transfer"
 )
 
 var _ sdk.Msg = &MsgMtTransfer{}
 
-// NewMsgNftTransfer creates a new NewMsgNftTransfer instance
-func NewMsgNftTransfer(class, id, sender, receiver, destChain, realayChain, destContract string) *MsgMtTransfer {
+// NewMsgMtTransfer creates a new NewMsgMtTransfer instance
+func NewMsgMtTransfer(class, id, sender, receiver, destChain, realayChain, destContract string) *MsgMtTransfer {
 	return &MsgMtTransfer{
 		Class:        class,
 		Id:           id,

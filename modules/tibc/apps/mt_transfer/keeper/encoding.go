@@ -1,6 +1,8 @@
 package keeper
 
-import "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+import (
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+)
 
 // MustMarshalClassTrace attempts to encode an ClassTrace object and returns the
 // raw encoded bytes. It panics on error.

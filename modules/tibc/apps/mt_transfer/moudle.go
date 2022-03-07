@@ -35,7 +35,7 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic is the TIBC nft Transfer AppModuleBasic
+// AppModuleBasic is the TIBC mt Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
 func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
@@ -49,7 +49,7 @@ func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONCodec, config client
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-nft-transfer module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-mt-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
@@ -101,7 +101,7 @@ func (a AppModule) WeightedOperations(simState module.SimulationState) []simtype
 	panic("implement me")
 }
 
-// NewAppModule creates a new tibc-nft-transfer module
+// NewAppModule creates a new tibc-mt-transfer module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,

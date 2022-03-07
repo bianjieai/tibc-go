@@ -19,12 +19,9 @@ import (
 const (
 	CLASSPREFIX = "tibc-"
 
-	CLASSPATHPREFIX = "nft"
+	CLASSPATHPREFIX = "mt"
 
 	DELIMITER = "/"
-
-	// DoNotModify used to indicate that some field should not be updated
-	DoNotModify = "[do-not-modify]"
 )
 
 func (k Keeper) SendMtTransfer(
@@ -54,7 +51,7 @@ func (k Keeper) SendMtTransfer(
 
 	fullClassPath := class
 
-	// deconstruct the nft class into the class trace info to determine if the sender is the source chain
+	// deconstruct the mt class into the class trace info to determine if the sender is the source chain
 	if strings.HasPrefix(class, CLASSPREFIX) {
 		fullClassPath, err = k.ClassPathFromHash(ctx, class)
 		if err != nil {
@@ -67,25 +64,25 @@ func (k Keeper) SendMtTransfer(
 		telemetry.NewLabel(coretypes.LabelDestinationChain, destChain),
 	}
 
-	// determine whether nft is sent from the source chain or sent back to the source chain from other chains
+	// determine whether mt is sent from the source chain or sent back to the source chain from other chains
 	awayFromOrigin := k.determineAwayFromOrigin(fullClassPath, destChain)
 
 	// get the next sequence
 	sequence := k.pk.GetNextSequenceSend(ctx, sourceChain, destChain)
 
 	// get moudle address
-	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
+	moudleAddr := k.GetMtTransferModuleAddr(types.ModuleName)
 
 	labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, strconv.FormatBool(awayFromOrigin)))
 	if awayFromOrigin {
 		// Two conversion scenarios
-		// 1. nftClass -> tibc-hash(nft/A/B/nftClass)
-		// 2. tibc-hash(nft/A/B/nftClass) -> tibc-hash(nft/A/B/C/nftClass)
+		// 1. mtClass -> tibc-hash(mt/A/B/nftClass)
+		// 2. tibc-hash(mt/A/B/mtClass) -> tibc-hash(mt/A/B/C/mtClass)
 
 		// Two things need to be done
-		// 1. lock nft  |send to moduleAccount
+		// 1. lock mt  |send to moduleAccount
 		// 2. send packet
-		// The nft attribute must be marked as unchanged (it cannot be changed in practice)
+		// The mt attribute must be marked as unchanged (it cannot be changed in practice)
 		// because the TransferOwner method will verify when UpdateRestricted is true
 		if err := k.nk.TransferOwner(ctx, class, id, amount, sender, moudleAddr); err != nil {
 			return err
@@ -109,11 +106,11 @@ func (k Keeper) SendMtTransfer(
 		mt.GetData(),
 	)
 
-	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.NFT))
+	packet := packetType.NewPacket(packetData.GetBytes(), sequence, sourceChain, destChain, relayChain, string(routingtypes.MT))
 
 	defer func() {
 		telemetry.SetGaugeWithLabels(
-			[]string{"tx", "msg", "tibc", "nfttransfer"},
+			[]string{"tx", "msg", "tibc", "mttransfer"},
 			1,
 			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, fullClassPath)},
 		)
@@ -131,11 +128,11 @@ func (k Keeper) SendMtTransfer(
 /*
 OnRecvPacket
 A->B->C  away_from_source == true
-	B receive packet from A : class -> nft/A/B/class
-	c receive packet from B : nft/A/B/class -> nft/A/B/C/class
+	B receive packet from A : class -> mt/A/B/class
+	c receive packet from B : mt/A/B/class -> mt/A/B/C/class
 C->B->A  away_from_source == flase
-	B receive packet from C : nft/A/B/C/class -> nft/A/B/class
-	A receive packet from B : nft/A/B/class -> class
+	B receive packet from C : mt/A/B/C/class -> mt/A/B/class
+	A receive packet from B : mt/A/B/class -> class
 */
 func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data types.MultiTokenPacketData) error {
 	// validate packet data upon receiving
@@ -153,27 +150,24 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		telemetry.NewLabel(coretypes.LabelDestinationChain, packet.DestinationChain),
 	}
 
-	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
+	moudleAddr := k.GetMtTransferModuleAddr(types.ModuleName)
 	var newClassPath string
 	if data.AwayFromOrigin {
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "true"))
 		newClassPath = k.getAwayNewClassPath(packet.SourceChain, packet.DestinationChain, data.Class)
 		voucherClass := k.getIBCClassFromClassPath(ctx, newClassPath)
 
-		//TODO
 		_, found := k.nk.GetDenom(ctx, voucherClass)
 		if !found {
 			// The creator of cross-chain denom must be a module account,
-			// and only the owner of Denom can issue NFT under this category,
+			// and only the owner of Denom can issue MT under this category,
 			// and no one under this category can update NFT,
 			// that is, updateRestricted is true and mintRestricted is true
-			if err := k.nk.IssueDenom(ctx, voucherClass, moudleAddr, data.Data); err != nil {
-				return err
-			}
+			_ = k.nk.IssueDenom(ctx, voucherClass, "", moudleAddr, data.Data)
 		}
 
-		// Only module accounts can mint nft, because mintRestricted is true,
-		// you must first mint nft to the module account, and then transfer nft ownership to the receiver
+		// Only module accounts can mint mt, because mintRestricted is true,
+		// you must first mint mt to the module account, and then transfer nft ownership to the receiver
 		k.nk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
 		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, data.Amount, moudleAddr, receiver); err != nil {
 			return err
@@ -189,7 +183,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		classTrace := types.ParseClassTrace(newClassPath)
 		voucherClass := classTrace.IBCClass()
 		// unlock
-		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, DoNotModify, DoNotModify, DoNotModify, moudleAddr, receiver); err != nil {
+		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, data.Amount, moudleAddr, receiver); err != nil {
 			return err
 		}
 	}
@@ -228,19 +222,18 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, data types.MultiTokenPacketDa
 		return err
 	}
 
-	moudleAddr := k.GetNftTransferModuleAddr(types.ModuleName)
-
+	moudleAddr := k.GetMtTransferModuleAddr(types.ModuleName)
 	classTrace := types.ParseClassTrace(data.Class)
 	voucherClass := classTrace.IBCClass()
 
 	if data.AwayFromOrigin {
 		// unlock
-		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, data.Amount
+		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, data.Amount,
 			k.GetMtTransferModuleAddr(types.ModuleName), sender); err != nil {
 			return err
 		}
 	} else {
-		// mintNFT
+		// MintMT
 		// Corresponding to burnNft, because the mintRestricted attribute of denom generated by any cross-chain nft is true,
 		// so to re-mint nft, you must first mintnft to the module account, and then transfer the nft ownership to the sender account
 		k.nk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
@@ -263,9 +256,9 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 		    if it is equal, it means it is close to the source chain,
 		    if it is not equal then Indicates that we continue to stay away from the source chain
 
-			1. B -> C    class:nft/A/B/class 	| sourceChain:B  | destChain:C |awayFromOrigin = true
-			2. C -> B    class:nft/A/B/C/class  | sourceChain:C  | destChain:B |awayFromOrigin = false
-			3. B -> A    class:nft/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
+			1. B -> C    class:mt/A/B/class 	| sourceChain:B  | destChain:C |awayFromOrigin = true
+			2. C -> B    class:mt/A/B/C/class   | sourceChain:C  | destChain:B |awayFromOrigin = false
+			3. B -> A    class:mt/A/B/class 	| sourceChain:B  | destChain:A |awayFromOrigin = false
 	*/
 	if !strings.HasPrefix(class, CLASSPATHPREFIX) ||
 		(strings.HasPrefix(class, CLASSPATHPREFIX) && !strings.Contains(class, DELIMITER)) {
@@ -277,7 +270,7 @@ func (k Keeper) determineAwayFromOrigin(class, destChain string) (awayFromOrigin
 	return classSplit[len(classSplit)-3] != destChain
 }
 
-//fullClassPath = "tibcnft" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
+//fullClassPath = "tibcmt" + "/" + packet.SourceChain + "/" + packet.DestinationChain + "/" + data.Class
 func (k Keeper) concatClassPath(scChain, destChain, class string) string {
 	var b strings.Builder
 	b.WriteString(CLASSPATHPREFIX)
@@ -293,8 +286,8 @@ func (k Keeper) concatClassPath(scChain, destChain, class string) string {
 // getAwayNewClassPath
 func (k Keeper) getAwayNewClassPath(scChain, destChain, class string) (newClassPath string) {
 	if strings.HasPrefix(class, CLASSPATHPREFIX) && strings.Contains(class, DELIMITER) {
-		// nft/A/B/class -> nft/A/B/C/class
-		// [nft][A][B][class] -> [nft][A][B][C][class]
+		// mt/A/B/class -> mt/A/B/C/class
+		// [mt][A][B][class] -> [mt][A][B][C][class]
 		classSplit := strings.Split(class, DELIMITER)
 		classSplit = append(classSplit[:len(classSplit)-1], append([]string{destChain}, classSplit[len(classSplit)-1:]...)...)
 		newClassPath = strings.Join(classSplit, DELIMITER)
@@ -310,17 +303,17 @@ func (k Keeper) getBackNewClassPath(class string) (newClassPath string) {
 	classSplit := strings.Split(class, DELIMITER)
 
 	if len(classSplit) == 4 {
-		// nft/A/B/class -> class
+		// mt/A/B/class -> class
 		newClassPath = classSplit[len(classSplit)-1]
 	} else {
-		// nft/A/B/C/class -> nft/A/B/class
+		// mt/A/B/C/class -> mt/A/B/class
 		classSplit = append(classSplit[:len(classSplit)-2], classSplit[len(classSplit)-1])
 		newClassPath = strings.Join(classSplit, DELIMITER)
 	}
 	return
 }
 
-// example : nft/A/B/class -> tibc-hash(nft/A/B/class)
+// example : mt/A/B/class -> tibc-hash(mt/A/B/class)
 func (k Keeper) getIBCClassFromClassPath(ctx sdk.Context, classPath string) string {
 	// construct the class trace from the full raw class
 	classTrace := types.ParseClassTrace(classPath)
