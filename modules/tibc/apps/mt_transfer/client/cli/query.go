@@ -17,7 +17,7 @@ func GetCmdQueryClassTrace() *cobra.Command {
 		Use:     "class-trace [hash]",
 		Short:   "Query the class trace info from a given trace hash",
 		Long:    "Query the class trace info from a given trace hash",
-		Example: fmt.Sprintf("%s query tibc-nft-transfer class-trace [hash]", version.AppName),
+		Example: fmt.Sprintf("%s query tibc-mt-transfer class-trace [hash]", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -48,9 +48,9 @@ func GetCmdQueryClassTrace() *cobra.Command {
 func GetCmdQueryClassTraces() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "class-traces",
-		Short:   "Query the trace info for all nft classes",
-		Long:    "Query the trace info for all nft classes",
-		Example: fmt.Sprintf("%s query tibc-nft-transfer class-traces", version.AppName),
+		Short:   "Query the trace info for all mt classes",
+		Long:    "Query the trace info for all mt classes",
+		Example: fmt.Sprintf("%s query tibc-mt-transfer class-traces", version.AppName),
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

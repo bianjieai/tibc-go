@@ -15,6 +15,13 @@ type MtKeeper interface {
 		id, name string, sender sdk.AccAddress, data []byte,
 	) types.Denom
 
+	IssueMT(ctx sdk.Context,
+		denomID string, mtID string,
+		amount uint64,
+		data []byte,
+		recipient sdk.AccAddress,
+	) types.MT
+
 	MintMT(ctx sdk.Context,
 		denomID, mtID string,
 		amount uint64,
@@ -32,6 +39,7 @@ type MtKeeper interface {
 		amount uint64,
 		owner sdk.AccAddress) error
 
+	HasMT(ctx sdk.Context, denomID, mtID string) bool
 	GetMT(ctx sdk.Context, denomID, mtID string) (mt mtexported.MT, err error)
 	GetDenom(ctx sdk.Context, id string) (denom types.Denom, found bool)
 }

@@ -166,9 +166,14 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 			_ = k.nk.IssueDenom(ctx, voucherClass, "", moudleAddr, data.Data)
 		}
 
-		// Only module accounts can mint mt, because mintRestricted is true,
-		// you must first mint mt to the module account, and then transfer nft ownership to the receiver
-		k.nk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
+		if !k.nk.HasMT(ctx, voucherClass, data.Id) {
+			_ = k.nk.IssueMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr, data.Data)
+		} else {
+			// Only module accounts can mint mt, because mintRestricted is true,
+			// you must first mint mt to the module account, and then transfer nft ownership to the receiver
+			k.nk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
+		}
+
 		if err := k.nk.TransferOwner(ctx, voucherClass, data.Id, data.Amount, moudleAddr, receiver); err != nil {
 			return err
 		}

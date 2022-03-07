@@ -9,8 +9,8 @@ import (
 // NewTxCmd returns the transaction commands for TIBC non-fungible token transfer
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        "tibc-nft-transfer",
-		Short:                      "TIBC non-fungible token transfer transaction subcommands",
+		Use:                        "tibc-mt-transfer",
+		Short:                      "TIBC multi Token transfer transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -26,8 +26,8 @@ func NewTxCmd() *cobra.Command {
 // GetQueryCmd returns the query commands for TIBC connections
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
-		Use:                        "tibc-nft-transfer",
-		Short:                      "TIBC non fungible token transfer query subcommands",
+		Use:                        "tibc-mt-transfer",
+		Short:                      "TIBC multi Token token transfer query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}

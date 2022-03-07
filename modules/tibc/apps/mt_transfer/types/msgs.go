@@ -11,7 +11,7 @@ const (
 var _ sdk.Msg = &MsgMtTransfer{}
 
 // NewMsgMtTransfer creates a new NewMsgMtTransfer instance
-func NewMsgMtTransfer(class, id, sender, receiver, destChain, realayChain, destContract string) *MsgMtTransfer {
+func NewMsgMtTransfer(class, id, sender, receiver, destChain, realayChain, destContract string, amount uint64) *MsgMtTransfer {
 	return &MsgMtTransfer{
 		Class:        class,
 		Id:           id,
@@ -20,6 +20,7 @@ func NewMsgMtTransfer(class, id, sender, receiver, destChain, realayChain, destC
 		DestChain:    destChain,
 		RealayChain:  realayChain,
 		DestContract: destContract,
+		Amount:       amount,
 	}
 }
 
