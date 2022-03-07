@@ -35,7 +35,7 @@ func NewKeeper(
 	ck types.ClientKeeper,
 ) Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the TIBC nft-transfer module account has not been set")
+		panic("the TIBC mt-transfer module account has not been set")
 	}
 
 	return Keeper{

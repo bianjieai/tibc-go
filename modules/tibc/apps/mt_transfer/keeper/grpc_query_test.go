@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryClassTrace() {
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 			func() {
 				expTrace.Path = "nft/A/B"
 				expTrace.BaseClass = "uiris"
-				suite.chainA.App.NftTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
+				suite.chainA.App.MtTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
 				req = &types.QueryClassTraceRequest{
 					Hash: expTrace.Hash().String(),
 				}
@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 				expTraces = append(expTraces, types.ClassTrace{Path: "nft/A/B", BaseClass: "uiris"})
 
 				for _, trace := range expTraces {
-					suite.chainA.App.NftTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
+					suite.chainA.App.MtTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
 				}
 
 				req = &types.QueryClassTracesRequest{

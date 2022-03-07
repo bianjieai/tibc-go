@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
 	tibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.App.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.App.NftTransferKeeper)
+	types.RegisterQueryServer(queryHelper, suite.chainA.App.MtTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 

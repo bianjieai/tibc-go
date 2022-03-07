@@ -136,6 +136,7 @@ var (
 		feegrantmodule.AppModuleBasic{},
 		tibc.AppModuleBasic{},
 		tibcnfttransfer.AppModuleBasic{},
+		tibcmttransfer.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
@@ -152,6 +153,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		tibcnfttypes.ModuleName:        nil,
+		tibcmttypes.ModuleName:         nil,
 	}
 )
 
@@ -250,6 +252,7 @@ func NewSimApp(
 		evidencetypes.StoreKey,
 		capabilitytypes.StoreKey,
 		nfttypes.StoreKey,
+		mttypes.StoreKey,
 		tibcnfttypes.StoreKey,
 		tibcmttypes.StoreKey,
 	)
@@ -397,6 +400,8 @@ func NewSimApp(
 		params.NewAppModule(app.ParamsKeeper),
 		nfttransferModule,
 		nft.NewAppModule(appCodec, app.NftKeeper, app.AccountKeeper, app.BankKeeper),
+		mttransferModule,
+		mt.NewAppModule(appCodec, app.MtKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
