@@ -57,12 +57,12 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 	// mint mt
-	mintNftMsg := mttypes.NewMsgMintMT(
+	mintMtMsg := mttypes.NewMsgMintMT(
 		"", ClassID, Amount, "",
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 	)
-	_, _ = suite.chainA.SendMsgs(mintNftMsg)
+	_, _ = suite.chainA.SendMsgs(mintMtMsg)
 
 	dd, has := suite.chainA.App.MtKeeper.GetDenom(suite.chainA.GetContext(), ClassID)
 	suite.Require().Truef(has, "denom %s not found", ClassID)
@@ -150,11 +150,11 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	suite.Require().NoError(err) // relay committed
 
 	// check that voucher exists on chain C
-	// denomID : tibc-{hash(mt/chainA.chainID/chainB.chainID/chainC.chainID/mobile)}
+	// denomID : tibc-{hash(mt/chainA.chainID/chainB.chainID/chainC.chainID/ClassID)}
 	classInchainC := "tibc-14B78BCCA85B511A58AF995DFFE2621CC6BD00FAF43FC33B2270508709DE2C94"
-	nftInC, err := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
+	mtInC, err := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
 	suite.Require().NoError(err)
-	suite.Require().Equal(MtID, nftInC.GetID())
+	suite.Require().Equal(MtID, mtInC.GetID())
 
 	balanceInChainB = suite.chainB.App.MtKeeper.GetBalance(suite.chainB.GetContext(), classInChainB, MtID, suite.chainB.SenderAccount.GetAddress())
 	suite.Require().Equal(uint64(0), balanceInChainB)
@@ -177,7 +177,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	fullClassPathFromCToB := "mt" + "/" + suite.chainA.ChainID + "/" + suite.chainB.ChainID + "/" + suite.chainC.ChainID + "/" + ClassID
 	// relay send
-	nftPacket := types.NewMultiTokenPacketData(
+	mtPacket := types.NewMultiTokenPacketData(
 		fullClassPathFromCToB, MtID,
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
@@ -187,7 +187,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		[]byte(""),
 	)
 	packetFromCToB := packettypes.NewPacket(
-		nftPacket.GetBytes(), 1,
+		mtPacket.GetBytes(), 1,
 		pathBtoC.EndpointB.ChainName,
 		pathBtoC.EndpointA.ChainName,
 		"", string(routingtypes.MT),
@@ -253,7 +253,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	denom found in B: tibc/mt/testchain0/ClassID
 	mt not found in B
 
-	denom found in C: tibc/mt/testchain0/testchain1/MtID
+	denom found in C: tibc/mt/testchain0/testchain1/ClassID
 	mt not found in C
 
 	*/
@@ -264,12 +264,12 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	} else {
 		fmt.Println("denom not found in A:", denomInA.Id)
 	}
-	nftInA, errA := suite.chainA.App.MtKeeper.GetMT(suite.chainA.GetContext(), ClassID, MtID)
+	mtInA, errA := suite.chainA.App.MtKeeper.GetMT(suite.chainA.GetContext(), ClassID, MtID)
 
 	if errA != nil {
-		fmt.Println("nft not found in A")
+		fmt.Println("mt not found in A")
 	} else {
-		fmt.Println("nft found in A:", nftInA.GetID())
+		fmt.Println("mt found in A:", mtInA.GetID())
 	}
 
 	// query B
@@ -279,11 +279,11 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	} else {
 		fmt.Println("denom not found in B:", denomInB.Id)
 	}
-	nftInB, errB := suite.chainB.App.MtKeeper.GetMT(suite.chainB.GetContext(), classInChainB, MtID)
+	mtInB, errB := suite.chainB.App.MtKeeper.GetMT(suite.chainB.GetContext(), classInChainB, MtID)
 	if errB != nil {
-		fmt.Println("nft not found in B")
+		fmt.Println("mt not found in B")
 	} else {
-		fmt.Println("nft found in B:", nftInB.GetID())
+		fmt.Println("mt found in B:", mtInB.GetID())
 	}
 
 	// query C
@@ -293,11 +293,11 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	} else {
 		fmt.Println("denom not found in C:", denomInC.Id)
 	}
-	nftInC, errC := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
+	mtInC, errC := suite.chainC.App.MtKeeper.GetMT(suite.chainC.GetContext(), classInchainC, MtID)
 	if errC != nil {
-		fmt.Println("nft not found in C")
+		fmt.Println("mt not found in C")
 	} else {
-		fmt.Println("nft found in C:", nftInC.GetID())
+		fmt.Println("mt found in C:", mtInC.GetID())
 	}
 }
 
