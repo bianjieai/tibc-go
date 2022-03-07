@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 		{
 			"not found denom trace",
 			func() {
-				expTrace.Path = "nft/A/B"
+				expTrace.Path = "mt/A/B"
 				expTrace.BaseClass = "uiris"
 				req = &types.QueryClassTraceRequest{
 					Hash: expTrace.Hash().String(),
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestQueryClassTrace() {
 		{
 			"success",
 			func() {
-				expTrace.Path = "nft/A/B"
+				expTrace.Path = "mt/A/B"
 				expTrace.BaseClass = "uiris"
 				suite.chainA.App.MtTransferKeeper.SetClassTrace(suite.chainA.GetContext(), expTrace)
 				req = &types.QueryClassTraceRequest{
@@ -96,8 +96,8 @@ func (suite *KeeperTestSuite) TestQueryDenomTraces() {
 			"success",
 			func() {
 				expTraces = append(expTraces, types.ClassTrace{Path: "", BaseClass: "uiris"})
-				expTraces = append(expTraces, types.ClassTrace{Path: "nft/B", BaseClass: "uiris"})
-				expTraces = append(expTraces, types.ClassTrace{Path: "nft/A/B", BaseClass: "uiris"})
+				expTraces = append(expTraces, types.ClassTrace{Path: "mt/B", BaseClass: "uiris"})
+				expTraces = append(expTraces, types.ClassTrace{Path: "mt/A/B", BaseClass: "uiris"})
 
 				for _, trace := range expTraces {
 					suite.chainA.App.MtTransferKeeper.SetClassTrace(suite.chainA.GetContext(), trace)
