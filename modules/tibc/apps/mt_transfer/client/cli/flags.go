@@ -10,10 +10,10 @@ const (
 )
 
 var (
-	FsNftTransfer = flag.NewFlagSet("", flag.ContinueOnError)
+	FsMtTransfer = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
-	FsNftTransfer.String(FlagRelayChain, "", "relay chain used by cross-chain NFT")
-	FsNftTransfer.String(FlagDestContract, "", "the destination contract address to receive the nft")
+	FsMtTransfer.String(FlagRelayChain, "", "relay chain used by cross-chain mt")
+	FsMtTransfer.String(FlagDestContract, "", "the destination contract address to receive the mt")
 }

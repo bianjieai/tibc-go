@@ -6,11 +6,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
-// NewTxCmd returns the transaction commands for TIBC non-fungible token transfer
+// NewTxCmd returns the transaction commands for TIBC multi token transfer
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        "tibc-mt-transfer",
-		Short:                      "TIBC multi Token transfer transaction subcommands",
+		Short:                      "TIBC multi token transfer transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -23,11 +23,11 @@ func NewTxCmd() *cobra.Command {
 	return txCmd
 }
 
-// GetQueryCmd returns the query commands for TIBC connections
+// GetQueryCmd returns the query commands for TIBC multi token transfer
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        "tibc-mt-transfer",
-		Short:                      "TIBC multi Token token transfer query subcommands",
+		Short:                      "TIBC multi token transfer query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 	}

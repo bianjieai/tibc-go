@@ -34,6 +34,9 @@ func (mtpd MultiTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(mtpd.Receiver) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
+	if mtpd.Amount <= 0 {
+		return ErrInvalidAmount
+	}
 	return nil
 }
 

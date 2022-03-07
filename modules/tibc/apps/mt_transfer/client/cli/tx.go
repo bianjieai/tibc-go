@@ -18,7 +18,7 @@ import (
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer [dest-chain] [receiver] [class] [id] [amount]",
-		Short: "Transfer a non fungible token through TIBC",
+		Short: "Transfer a mt through TIBC",
 		Example: fmt.Sprintf(
 			"%s tx tibc-mt-transfer transfer <dest-chain-name> <receiver> <denom-id> <mt-id> "+
 				"--relay-chain=<relay-chain-name> "+
@@ -64,7 +64,7 @@ func NewTransferTxCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNftTransfer)
+	cmd.Flags().AddFlagSet(FsMtTransfer)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

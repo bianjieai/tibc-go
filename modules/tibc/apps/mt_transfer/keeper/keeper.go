@@ -19,7 +19,7 @@ type Keeper struct {
 	paramSpace paramtypes.Subspace
 
 	ak types.AccountKeeper
-	nk types.MtKeeper
+	mk types.MtKeeper
 	pk types.PacketKeeper
 	ck types.ClientKeeper
 }
@@ -30,7 +30,7 @@ func NewKeeper(
 	key sdk.StoreKey,
 	paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper,
-	nk types.MtKeeper,
+	mk types.MtKeeper,
 	pk types.PacketKeeper,
 	ck types.ClientKeeper,
 ) Keeper {
@@ -43,7 +43,7 @@ func NewKeeper(
 		storeKey:   key,
 		paramSpace: paramSpace,
 		ak:         ak,
-		nk:         nk,
+		mk:         mk,
 		pk:         pk,
 		ck:         ck,
 	}

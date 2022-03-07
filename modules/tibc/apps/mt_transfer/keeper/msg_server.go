@@ -27,11 +27,11 @@ func (k Keeper) MtTransfer(goCtx context.Context, msg *types.MsgMtTransfer) (*ty
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("TIBC non fungible token transfer", "mt", msg.Id, "sender", msg.Sender, "receiver", msg.Receiver)
+	k.Logger(ctx).Info("TIBC multi token transfer", "mt", msg.Id, "sender", msg.Sender, "receiver", msg.Receiver)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeNftTransfer,
+			types.EventTypeMtTransfer,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
 		),

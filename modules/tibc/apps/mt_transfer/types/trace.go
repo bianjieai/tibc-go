@@ -36,7 +36,7 @@ func (t Traces) Sort() Traces {
 //
 // Examples:
 //
-// 	- "nft/A/B/dog" => ClassTrace{Path: "nft/A/B", BaseClass: "dog"}
+// 	- "mt/A/B/dog" => ClassTrace{Path: "mt/A/B", BaseClass: "dog"}
 // 	- "dog" => ClassTrace{Path: "", BaseClass: "dog"}
 func ParseClassTrace(rawClass string) ClassTrace {
 	classSplit := strings.Split(rawClass, "/")
