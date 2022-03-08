@@ -3,8 +3,6 @@
  package tibc.apps.mt_transfer.v1;
  option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types";
 
- import "gogoproto/gogo.proto";
-
  message MultiTokenPacketData {
   // the class to which the Mt to be transferred belongs
   string class = 1;

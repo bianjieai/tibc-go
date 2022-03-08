@@ -29,13 +29,13 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgMtTransfer struct {
-	// the class to which the NFT to be transferred belongs
+	// the class to which the mt to be transferred belongs
 	Class string `protobuf:"bytes,1,opt,name=class,proto3" json:"class,omitempty"`
-	// the nft id
+	// the mt id
 	Id string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	// the nft sender
+	// the mt sender
 	Sender string `protobuf:"bytes,3,opt,name=sender,proto3" json:"sender,omitempty"`
-	// the nft receiver
+	// the mt receiver
 	Receiver string `protobuf:"bytes,4,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// target chain of transmission
 	DestChain string `protobuf:"bytes,5,opt,name=dest_chain,json=destChain,proto3" json:"dest_chain,omitempty"`
