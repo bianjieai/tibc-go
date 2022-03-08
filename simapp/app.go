@@ -89,6 +89,14 @@ import (
 	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
+	tibcmttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer"
+	tibcmttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/keeper"
+	tibcmttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+
+	mt "github.com/irisnet/irismod/modules/mt"
+	mtkeeper "github.com/irisnet/irismod/modules/mt/keeper"
+	mttypes "github.com/irisnet/irismod/modules/mt/types"
+
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	tibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	tibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -128,10 +136,12 @@ var (
 		feegrantmodule.AppModuleBasic{},
 		tibc.AppModuleBasic{},
 		tibcnfttransfer.AppModuleBasic{},
+		tibcmttransfer.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		mt.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -143,6 +153,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		tibcnfttypes.ModuleName:        nil,
+		tibcmttypes.ModuleName:         nil,
 	}
 )
 
@@ -172,6 +183,7 @@ type SimApp struct {
 	BankKeeper        bankkeeper.Keeper
 	CapabilityKeeper  *capabilitykeeper.Keeper
 	NftKeeper         nftkeeper.Keeper
+	MtKeeper          mtkeeper.Keeper
 	StakingKeeper     stakingkeeper.Keeper
 	SlashingKeeper    slashingkeeper.Keeper
 	MintKeeper        mintkeeper.Keeper
@@ -182,6 +194,7 @@ type SimApp struct {
 	ParamsKeeper      paramskeeper.Keeper
 	TIBCKeeper        *tibckeeper.Keeper // TIBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	NftTransferKeeper tibcnfttransferkeeper.Keeper
+	MtTransferKeeper  tibcmttransferkeeper.Keeper
 	EvidenceKeeper    evidencekeeper.Keeper
 	FeeGrantKeeper    feegrantkeeper.Keeper
 
@@ -239,7 +252,9 @@ func NewSimApp(
 		evidencetypes.StoreKey,
 		capabilitytypes.StoreKey,
 		nfttypes.StoreKey,
+		mttypes.StoreKey,
 		tibcnfttypes.StoreKey,
+		tibcmttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -309,6 +324,7 @@ func NewSimApp(
 	)
 
 	app.NftKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
+	app.MtKeeper = mtkeeper.NewKeeper(appCodec, keys[mttypes.StoreKey])
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -328,7 +344,16 @@ func NewSimApp(
 		app.AccountKeeper, nftkeeper.NewLegacyKeeper(app.NftKeeper),
 		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
 	)
+
+	// Create Transfer Keepers
+	app.MtTransferKeeper = tibcmttransferkeeper.NewKeeper(
+		appCodec, keys[tibcnfttypes.StoreKey], app.GetSubspace(tibcnfttypes.ModuleName),
+		app.AccountKeeper, app.MtKeeper,
+		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
+	)
+
 	nfttransferModule := tibcnfttransfer.NewAppModule(app.NftTransferKeeper)
+	mttransferModule := tibcmttransfer.NewAppModule(app.MtTransferKeeper)
 
 	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
 	// note replicate if you do not need to test core TIBC or light clients.
@@ -337,6 +362,7 @@ func NewSimApp(
 	// Create static TIBC router, add nft-transfer route, then set and seal it
 	tibcRouter := tibcroutingtypes.NewRouter()
 	tibcRouter.AddRoute(tibcnfttypes.ModuleName, nfttransferModule)
+	tibcRouter.AddRoute(tibcmttypes.ModuleName, mttransferModule)
 	tibcRouter.AddRoute(tibcmock.ModuleName, mockModule)
 	app.TIBCKeeper.SetRouter(tibcRouter)
 
@@ -374,6 +400,8 @@ func NewSimApp(
 		params.NewAppModule(app.ParamsKeeper),
 		nfttransferModule,
 		nft.NewAppModule(appCodec, app.NftKeeper, app.AccountKeeper, app.BankKeeper),
+		mttransferModule,
+		mt.NewAppModule(appCodec, app.MtKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

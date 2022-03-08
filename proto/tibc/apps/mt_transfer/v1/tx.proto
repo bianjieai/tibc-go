@@ -1,0 +1,37 @@
+ syntax = "proto3";
+ package tibc.apps.mt_transfer.v1;
+
+ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types";
+
+ import "gogoproto/gogo.proto";
+
+// Msg defines the tibc/MtTransfer Msg service.
+ service Msg {
+  // MtTransfer defines a rpc handler method for MsgMtTransfer.
+  rpc MtTransfer(MsgMtTransfer) returns (MsgMtTransferResponse);
+}
+
+ message MsgMtTransfer {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // the class to which the mt to be transferred belongs
+  string class = 1;
+  // the mt id
+  string id = 2;
+  // the mt sender
+  string sender = 3;
+  // the mt receiver
+  string receiver = 4;
+  // target chain of transmission
+  string dest_chain = 5;
+  // relay chain during transmission
+  string realay_chain = 6;
+  // the destination contract address to receive the nft
+  string dest_contract = 7;
+  // the amount defined by MT outside the chain
+  uint64 amount = 8;
+}
+
+// MsgMtTransferResponse defines the Msg/MtTransfer response type.
+ message MsgMtTransferResponse {}
