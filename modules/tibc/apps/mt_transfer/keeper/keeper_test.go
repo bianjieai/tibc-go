@@ -17,7 +17,6 @@ import (
 
 type KeeperTestSuite struct {
 	suite.Suite
-	ctx sdk.Context
 
 	coordinator *tibctesting.Coordinator
 

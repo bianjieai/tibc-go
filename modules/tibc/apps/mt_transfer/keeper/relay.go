@@ -163,9 +163,13 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		}
 
 		if !k.mk.HasMT(ctx, voucherClass, data.Id) {
-			_ = k.mk.IssueMT(ctx, voucherClass, data.Id, data.Amount, data.Data, moudleAddr)
+			if _, err = k.mk.IssueMT(ctx, voucherClass, data.Id, data.Amount, data.Data, moudleAddr); err != nil {
+				return err
+			}
 		} else {
-			k.mk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
+			if err := k.mk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr); err != nil {
+				return err
+			}
 		}
 
 		if err := k.mk.TransferOwner(ctx, voucherClass, data.Id, data.Amount, moudleAddr, receiver); err != nil {
@@ -232,7 +236,10 @@ func (k Keeper) refundPacketToken(ctx sdk.Context, data types.MultiTokenPacketDa
 			return err
 		}
 	} else {
-		k.mk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr)
+		if err := k.mk.MintMT(ctx, voucherClass, data.Id, data.Amount, moudleAddr); err != nil {
+			return err
+		}
+
 		if err := k.mk.TransferOwner(ctx, voucherClass, data.Id, data.Amount, moudleAddr, sender); err != nil {
 			return err
 		}
