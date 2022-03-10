@@ -20,13 +20,13 @@ type MtKeeper interface {
 		amount uint64,
 		data []byte,
 		recipient sdk.AccAddress,
-	) types.MT
+	) (types.MT, error)
 
 	MintMT(ctx sdk.Context,
 		denomID, mtID string,
 		amount uint64,
 		recipient sdk.AccAddress,
-	)
+	) error
 
 	TransferOwner(ctx sdk.Context,
 		denomID, mtID string,
