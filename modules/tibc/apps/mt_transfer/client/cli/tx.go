@@ -20,9 +20,9 @@ func NewTransferTxCmd() *cobra.Command {
 		Use:   "transfer [dest-chain] [receiver] [class] [id] [amount]",
 		Short: "Transfer a mt through TIBC",
 		Example: fmt.Sprintf(
-			"%s tx tibc-mt-transfer transfer <dest-chain-name> <receiver> <denom-id> <mt-id> <amount>"+
+			"%s tx tibc-mt-transfer transfer <dest-chain-name> <receiver> <denom-id> <mt-id> <amount> "+
 				"--relay-chain=<relay-chain-name> "+
-				"--dest-contract=<receive-the-contract-address-of-nft>",
+				"--dest-contract=<receive-the-contract-address-of-mt>",
 			version.AppName,
 		),
 		Args: cobra.ExactArgs(5),
