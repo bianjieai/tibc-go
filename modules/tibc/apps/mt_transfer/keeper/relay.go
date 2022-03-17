@@ -159,7 +159,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 
 		_, found := k.mk.GetDenom(ctx, voucherClass)
 		if !found {
-			_ = k.mk.IssueDenom(ctx, voucherClass, "", moudleAddr, data.Data)
+			_ = k.mk.IssueDenom(ctx, voucherClass, "", moudleAddr, []byte(""))
 		}
 
 		if !k.mk.HasMT(ctx, voucherClass, data.Id) {
