@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	ics23 "github.com/confio/ics23/go"
 
 	"github.com/tendermint/tendermint/light"
@@ -181,8 +183,11 @@ func (cs ClientState) VerifyPacketCommitment(
 		return err
 	}
 
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(sourceChain, destChain, sequence))
-	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), commitmentPath)
+	commitmentPath, prefix, err := getMerklePathAndMerklePrefix(cs, sourceChain, destChain, sequence, packetCommitmentType)
+	if err != nil {
+		return err
+	}
+	path, err := commitmenttypes.ApplyPrefix(prefix, commitmentPath)
 	if err != nil {
 		return err
 	}
@@ -217,8 +222,11 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(sourceChain, destChain, sequence))
-	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), ackPath)
+	ackPath, prefix, err := getMerklePathAndMerklePrefix(cs, sourceChain, destChain, sequence, ackCommitmentType)
+	if err != nil {
+		return err
+	}
+	path, err := commitmenttypes.ApplyPrefix(prefix, ackPath)
 	if err != nil {
 		return err
 	}
@@ -252,8 +260,12 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 		return err
 	}
 
-	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain))
-	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), cleanCommitmentPath)
+	cleanCommitmentPath, prefix, err := getMerklePathAndMerklePrefix(cs, sourceChain, destChain, sequence, cleanCommitmentType)
+	if err != nil {
+		return err
+	}
+
+	path, err := commitmenttypes.ApplyPrefix(prefix, cleanCommitmentPath)
 	if err != nil {
 		return err
 	}
@@ -263,6 +275,55 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 	}
 
 	return nil
+}
+
+// getEthermintMerklePathAndMerklePrefix will get the MerklePath and MerklePrefix related to ethermint
+func getMerklePathAndMerklePrefix(
+	cs ClientState,
+	sourceChain string,
+	destChain string,
+	sequence uint64,
+	typ string,
+) (commitmenttypes.MerklePath, exported.Prefix, error) {
+
+	if cs.Option == nil {
+		var key string
+		switch typ {
+		case packetCommitmentType:
+			key = host.PacketCommitmentPath(sourceChain, destChain, sequence)
+		case ackCommitmentType:
+			key = host.PacketAcknowledgementPath(sourceChain, destChain, sequence)
+		case cleanCommitmentType:
+			key = host.CleanPacketCommitmentPath(sourceChain, destChain)
+		}
+
+		return commitmenttypes.NewMerklePath(key),
+			cs.GetPrefix(), nil
+	}
+
+	// If it is ethermint, go to the current branch
+	if len(cs.Option.ContractAddress) == 0 || len(cs.Option.Prefix) == 0 {
+		return commitmenttypes.MerklePath{}, nil, sdkerrors.Wrapf(
+			commitmenttypes.ErrInvalidProof,
+			"option structure is invalid",
+		)
+	}
+	pkConstr := NewProofKeyConstructor(sourceChain, destChain, sequence)
+	address := common.HexToAddress(cs.Option.ContractAddress)
+	addressStoragePrefix := append([]byte{ethermintPrefixStorage}, address.Bytes()...)
+	var key []byte
+	switch typ {
+	case packetCommitmentType:
+		key = pkConstr.GetPacketCommitmentProofKey()
+	case ackCommitmentType:
+		key = pkConstr.GetAckProofKey()
+	case cleanCommitmentType:
+		key = pkConstr.GetCleanPacketCommitmentProofKey()
+	}
+	stateKey := append(addressStoragePrefix, key...)
+
+	return commitmenttypes.NewMerklePath(string(stateKey)),
+		commitmenttypes.NewMerklePrefix(cs.Option.Prefix), nil
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
