@@ -38,6 +38,7 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -89,6 +90,14 @@ import (
 	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
 	nfttypes "github.com/irisnet/irismod/modules/nft/types"
 
+	tibcmttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer"
+	tibcmttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/keeper"
+	tibcmttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+
+	mt "github.com/irisnet/irismod/modules/mt"
+	mtkeeper "github.com/irisnet/irismod/modules/mt/keeper"
+	mttypes "github.com/irisnet/irismod/modules/mt/types"
+
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	tibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	tibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -128,10 +137,12 @@ var (
 		feegrantmodule.AppModuleBasic{},
 		tibc.AppModuleBasic{},
 		tibcnfttransfer.AppModuleBasic{},
+		tibcmttransfer.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		mt.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -143,6 +154,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		tibcnfttypes.ModuleName:        nil,
+		tibcmttypes.ModuleName:         nil,
 	}
 )
 
@@ -172,6 +184,7 @@ type SimApp struct {
 	BankKeeper        bankkeeper.Keeper
 	CapabilityKeeper  *capabilitykeeper.Keeper
 	NftKeeper         nftkeeper.Keeper
+	MtKeeper          mtkeeper.Keeper
 	StakingKeeper     stakingkeeper.Keeper
 	SlashingKeeper    slashingkeeper.Keeper
 	MintKeeper        mintkeeper.Keeper
@@ -182,6 +195,7 @@ type SimApp struct {
 	ParamsKeeper      paramskeeper.Keeper
 	TIBCKeeper        *tibckeeper.Keeper // TIBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	NftTransferKeeper tibcnfttransferkeeper.Keeper
+	MtTransferKeeper  tibcmttransferkeeper.Keeper
 	EvidenceKeeper    evidencekeeper.Keeper
 	FeeGrantKeeper    feegrantkeeper.Keeper
 
@@ -239,7 +253,9 @@ func NewSimApp(
 		evidencetypes.StoreKey,
 		capabilitytypes.StoreKey,
 		nfttypes.StoreKey,
+		mttypes.StoreKey,
 		tibcnfttypes.StoreKey,
+		tibcmttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -309,6 +325,7 @@ func NewSimApp(
 	)
 
 	app.NftKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
+	app.MtKeeper = mtkeeper.NewKeeper(appCodec, keys[mttypes.StoreKey])
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
@@ -325,10 +342,19 @@ func NewSimApp(
 	// Create Transfer Keepers
 	app.NftTransferKeeper = tibcnfttransferkeeper.NewKeeper(
 		appCodec, keys[tibcnfttypes.StoreKey], app.GetSubspace(tibcnfttypes.ModuleName),
-		app.AccountKeeper, app.NftKeeper,
+		app.AccountKeeper, nftkeeper.NewLegacyKeeper(app.NftKeeper),
 		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
 	)
+
+	// Create Transfer Keepers
+	app.MtTransferKeeper = tibcmttransferkeeper.NewKeeper(
+		appCodec, keys[tibcnfttypes.StoreKey], app.GetSubspace(tibcnfttypes.ModuleName),
+		app.AccountKeeper, app.MtKeeper,
+		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
+	)
+
 	nfttransferModule := tibcnfttransfer.NewAppModule(app.NftTransferKeeper)
+	mttransferModule := tibcmttransfer.NewAppModule(app.MtTransferKeeper)
 
 	// NOTE: the TIBC mock keeper and application module is used only for testing core TIBC. Do
 	// note replicate if you do not need to test core TIBC or light clients.
@@ -337,6 +363,7 @@ func NewSimApp(
 	// Create static TIBC router, add nft-transfer route, then set and seal it
 	tibcRouter := tibcroutingtypes.NewRouter()
 	tibcRouter.AddRoute(tibcnfttypes.ModuleName, nfttransferModule)
+	tibcRouter.AddRoute(tibcmttypes.ModuleName, mttransferModule)
 	tibcRouter.AddRoute(tibcmock.ModuleName, mockModule)
 	app.TIBCKeeper.SetRouter(tibcRouter)
 
@@ -374,6 +401,8 @@ func NewSimApp(
 		params.NewAppModule(app.ParamsKeeper),
 		nfttransferModule,
 		nft.NewAppModule(appCodec, app.NftKeeper, app.AccountKeeper, app.BankKeeper),
+		mttransferModule,
+		mt.NewAppModule(appCodec, app.MtKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -381,10 +410,23 @@ func NewSimApp(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
-		upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
-		evidencetypes.ModuleName, stakingtypes.ModuleName, tibchost.ModuleName,
+		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName,
+		distrtypes.ModuleName, slashingtypes.ModuleName, evidencetypes.ModuleName,
+		stakingtypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		govtypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName,
+		tibchost.ModuleName, nfttypes.ModuleName, tibcnfttypes.ModuleName,
+		tibcmttypes.ModuleName, mttypes.ModuleName,
 	)
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
+	app.mm.SetOrderEndBlockers(
+		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName,
+		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName,
+		genutiltypes.ModuleName, evidencetypes.ModuleName, feegrant.ModuleName,
+		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
+		tibchost.ModuleName, nfttypes.ModuleName, tibcnfttypes.ModuleName,
+		tibcmttypes.ModuleName, mttypes.ModuleName,
+	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
@@ -392,9 +434,13 @@ func NewSimApp(
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	app.mm.SetOrderInitGenesis(
-		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
-		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
-		tibchost.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, feegrant.ModuleName,
+		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName,
+		govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
+		genutiltypes.ModuleName, evidencetypes.ModuleName, feegrant.ModuleName,
+		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
+		tibchost.ModuleName, nfttypes.ModuleName, tibcnfttypes.ModuleName,
+		tibcmttypes.ModuleName, mttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -423,6 +469,7 @@ func NewSimApp(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		tibc.NewAppModule(app.TIBCKeeper),
 		nfttransferModule,
+		mttransferModule,
 	)
 
 	app.sm.RegisterStoreDecoders()

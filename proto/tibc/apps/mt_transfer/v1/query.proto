@@ -1,0 +1,56 @@
+ syntax = "proto3";
+ package tibc.apps.mt_transfer.v1;
+
+ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types";
+
+ import "gogoproto/gogo.proto";
+ import "cosmos/base/query/v1beta1/pagination.proto";
+ import "tibc/apps/mt_transfer/v1/mt_transfer.proto";
+ import "google/api/annotations.proto";
+
+
+ // Query provides defines the gRPC querier service.
+ service Query {
+  // ClassTrace queries a class trace information.
+  rpc ClassTrace(QueryClassTraceRequest) returns (QueryClassTraceResponse) {
+   option (google.api.http).get = "/tibc/apps/mt_transfer/v1/class_traces/{hash}";
+  }
+
+  // ClassTraces queries all class traces.
+  rpc ClassTraces(QueryClassTracesRequest) returns (QueryClassTracesResponse) {
+   option (google.api.http).get = "/tibc/apps/mt_transfer/v1/class_traces";
+  }
+ }
+
+ // QueryClassTraceRequest is the request type for the Query/ClassTrace RPC
+ // method
+ message QueryClassTraceRequest {
+  // hash (in hex format) of the class trace information.
+  string hash = 1;
+ }
+
+ // QueryClassTraceResponse is the response type for the Query/ClassTrace RPC
+ // method.
+ message QueryClassTraceResponse {
+  // class_trace returns the requested class trace information.
+  ClassTrace class_trace = 1;
+ }
+
+ // QueryConnectionsRequest is the request type for the Query/ClassTraces RPC
+ // method
+ message QueryClassTracesRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+ }
+
+ // QueryConnectionsResponse is the response type for the Query/ClassTraces RPC
+ // method.
+ message QueryClassTracesResponse {
+  // class_traces returns all class trace information.
+  repeated ClassTrace class_traces = 1 [(gogoproto.castrepeated) = "Traces", (gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+ }
+
+
+

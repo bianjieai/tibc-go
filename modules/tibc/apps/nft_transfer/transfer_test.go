@@ -47,13 +47,13 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	issueDenomMsg := nfttypes.NewMsgIssueDenom(
 		"mobile", "mobile-name", "",
 		suite.chainA.SenderAccount.GetAddress().String(),
-		"", false, false,
+		"", false, false, "", "", "", "",
 	)
 	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
 
 	// mint nft
 	mintNftMsg := nfttypes.NewMsgMintNFT(
-		"xiaomi", "mobile", "", "", "",
+		"xiaomi", "mobile", "", "", "", "",
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 	)

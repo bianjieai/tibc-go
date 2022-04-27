@@ -29,7 +29,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, packet exported.PacketI) error {
 
 	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
 	if !found {
-		return clienttypes.ErrConsensusStateNotFound
+		return clienttypes.ErrClientNotFound
 	}
 
 	nextSequenceSend := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
@@ -205,7 +205,7 @@ func (k Keeper) WriteAcknowledgement(
 
 	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
 	if !found {
-		return clienttypes.ErrConsensusStateNotFound
+		return clienttypes.ErrClientNotFound
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
@@ -361,7 +361,7 @@ func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) 
 
 	_, found := k.clientKeeper.GetClientState(ctx, targetChain)
 	if !found {
-		return clienttypes.ErrConsensusStateNotFound
+		return clienttypes.ErrClientNotFound
 	}
 
 	k.SetCleanPacketCommitment(ctx, sourceChain, cleanPacket.GetDestChain(), cleanPacket.GetSequence())
