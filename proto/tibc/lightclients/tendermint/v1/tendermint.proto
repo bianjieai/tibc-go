@@ -39,7 +39,7 @@ message ClientState {
   // period of transaction confirmation delay
   uint64 timeDelay = 9;
   // json structure, some additional options can be stored here
-  Option option = 10;
+  bytes extra = 10;
 }
 
 // ConsensusState defines the consensus state from Tendermint.
@@ -82,9 +82,4 @@ message Header {
 message Fraction {
   uint64 numerator = 1;
   uint64 denominator = 2;
-}
-
-message Option {
-  string contract_address = 1;
-  bytes prefix = 2;
 }

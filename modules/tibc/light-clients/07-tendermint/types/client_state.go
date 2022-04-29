@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -286,7 +287,7 @@ func getMerklePathAndMerklePrefix(
 	typ string,
 ) (commitmenttypes.MerklePath, exported.Prefix, error) {
 
-	if cs.Option == nil {
+	if len(cs.Extra) == 0 {
 		var key string
 		switch typ {
 		case packetCommitmentType:
@@ -301,15 +302,26 @@ func getMerklePathAndMerklePrefix(
 			cs.GetPrefix(), nil
 	}
 
-	// If it is ethermint, go to the current branch
-	if len(cs.Option.ContractAddress) == 0 || len(cs.Option.Prefix) == 0 {
+	ethConfig := &EthermintConfig{}
+
+	err := json.Unmarshal(cs.Extra, ethConfig)
+
+	if err != nil {
 		return commitmenttypes.MerklePath{}, nil, sdkerrors.Wrapf(
 			commitmenttypes.ErrInvalidProof,
-			"option structure is invalid",
+			"extra field cannot be deserialized",
+		)
+	}
+
+	// If it is ethermint, go to the current branch
+	if len(ethConfig.ContractAddress) == 0 || len(ethConfig.Prefix) == 0 {
+		return commitmenttypes.MerklePath{}, nil, sdkerrors.Wrapf(
+			commitmenttypes.ErrInvalidProof,
+			"data validation failed for extension extra",
 		)
 	}
 	pkConstr := NewProofKeyConstructor(sourceChain, destChain, sequence)
-	address := common.HexToAddress(cs.Option.ContractAddress)
+	address := common.HexToAddress(ethConfig.ContractAddress)
 	addressStoragePrefix := append([]byte{ethermintPrefixStorage}, address.Bytes()...)
 	var key []byte
 	switch typ {
@@ -323,7 +335,7 @@ func getMerklePathAndMerklePrefix(
 	stateKey := append(addressStoragePrefix, key...)
 
 	return commitmenttypes.NewMerklePath(string(stateKey)),
-		commitmenttypes.NewMerklePrefix(cs.Option.Prefix), nil
+		commitmenttypes.NewMerklePrefix(ethConfig.Prefix), nil
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
