@@ -15,7 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -84,7 +84,7 @@ func NewCreateClientProposalCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -210,7 +210,7 @@ func NewUpgradeClientProposalCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
 				return err
 			}
@@ -265,7 +265,7 @@ func NewRegisterRelayerProposalCmd() *cobra.Command {
 				return err
 			}
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}

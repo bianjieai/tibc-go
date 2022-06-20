@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -21,8 +22,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/snapshots"
+	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
@@ -54,9 +57,16 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		Use:   "simd",
 		Short: "simulation app",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
 
-			initClientCtx, err := config.ReadFromClientConfig(initClientCtx)
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			initClientCtx, err = config.ReadFromClientConfig(initClientCtx)
 			if err != nil {
 				return err
 			}
@@ -65,13 +75,60 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
+			customAppTemplate, customAppConfig := initAppConfig()
+			customTMConfig := initTendermintConfig()
+
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
 	}
 
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig
+}
+
+// initAppConfig helps to override default appConfig template and configs.
+// return "", nil if no custom configuration is required for the application.
+func initAppConfig() (string, interface{}) {
+	// The following code snippet is just for reference.
+
+	type CustomAppConfig struct {
+		serverconfig.Config
+	}
+
+	// Optionally allow the chain developer to overwrite the SDK's default
+	// server config.
+	srvCfg := serverconfig.DefaultConfig()
+	// The SDK's default minimum gas price is set to "" (empty value) inside
+	// app.toml. If left empty by validators, the node will halt on startup.
+	// However, the chain developer can set a default app.toml value for their
+	// validators here.
+	//
+	// In summary:
+	// - if you leave srvCfg.MinGasPrices = "", all validators MUST tweak their
+	//   own app.toml config,
+	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
+	//   own app.toml to override, or use this default value.
+	//
+	// In simapp, we set the min gas prices to 0.
+	srvCfg.MinGasPrices = "0stake"
+
+	customAppConfig := CustomAppConfig{
+		Config: *srvCfg,
+	}
+
+	customAppTemplate := serverconfig.DefaultConfigTemplate
+	return customAppTemplate, customAppConfig
+}
+
+func initTendermintConfig() *tmcfg.Config {
+	cfg := tmcfg.DefaultConfig()
+
+	// these values put a higher strain on node memory
+	// cfg.P2P.MaxNumInboundPeers = 100
+	// cfg.P2P.MaxNumOutboundPeers = 40
+
+	return cfg
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
@@ -192,6 +249,11 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		panic(err)
 	}
 
+	snapshotOptions := snapshottypes.NewSnapshotOptions(
+		cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval)),
+		cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent)),
+	)
+
 	return simapp.NewSimApp(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
@@ -206,9 +268,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetInterBlockCache(cache),
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		baseapp.SetSnapshotStore(snapshotStore),
-		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval))),
-		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent))),
+		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 	)
 }
 

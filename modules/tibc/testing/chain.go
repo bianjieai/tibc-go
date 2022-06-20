@@ -2,6 +2,7 @@ package tibctesting
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -11,7 +12,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
@@ -102,7 +102,7 @@ type TestChain struct {
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// generate validator private/public key
 	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
+	pubKey, err := privVal.GetPubKey(nil)
 	require.NoError(t, err)
 
 	// create validator set with single validator
@@ -481,7 +481,7 @@ func (chain *TestChain) CreateTMClientHeader(
 	vsetHash := tmValSet.Hash()
 
 	tmHeader := tmtypes.Header{
-		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+		Version:            tmversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
 		ChainID:            chainID,
 		Height:             blockHeight,
 		Time:               timestamp,
@@ -500,7 +500,7 @@ func (chain *TestChain) CreateTMClientHeader(
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
-	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
+	commit, err := MakeCommit(context.Background(), blockID, blockHeight, 1, voteSet, signers, timestamp)
 	require.NoError(chain.t, err)
 
 	signedHeader := &tmproto.SignedHeader{

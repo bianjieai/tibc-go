@@ -30,8 +30,8 @@ import (
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // SimApp testing.
-var DefaultConsensusParams = &abci.ConsensusParams{
-	Block: &abci.BlockParams{
+var DefaultConsensusParams = &tmproto.ConsensusParams{
+	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   2000000,
 	},
@@ -104,7 +104,7 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
 
 		buffer.WriteString(numString) // adding on final two digits to make addresses unique
-		res, _ := sdk.AccAddressFromHex(buffer.String())
+		res, _ := sdk.AccAddressFromHexUnsafe(buffer.String())
 		bech := res.String()
 		addr, _ := TestAddr(buffer.String(), bech)
 
@@ -161,7 +161,7 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 }
 
 func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
-	res, err := sdk.AccAddressFromHex(addr)
+	res, err := sdk.AccAddressFromHexUnsafe(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func SignAndDeliver(
 
 	// Simulate a sending a transaction and committing a block
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
-	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
+	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
 		require.NoError(t, err)

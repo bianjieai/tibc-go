@@ -1,12 +1,10 @@
 package routing
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/keeper"
@@ -14,19 +12,12 @@ import (
 )
 
 var (
-	SetRoutingRulesProposalHandler = govclient.NewProposalHandler(cli.NewSetRoutingRulesProposalCmd, EmptyRESTHandler)
+	SetRoutingRulesProposalHandler = govclient.NewProposalHandler(cli.NewSetRoutingRulesProposalCmd)
 )
 
-func EmptyRESTHandler(clientCtx client.Context) govrest.ProposalRESTHandler {
-	return govrest.ProposalRESTHandler{
-		SubRoute: "tibc",
-		Handler:  nil,
-	}
-}
-
 // NewSetRoutingProposalHandler defines the routing manager proposal handler
-func NewSetRoutingProposalHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
+func NewSetRoutingProposalHandler(k keeper.Keeper) govv1beta1.Handler {
+	return func(ctx sdk.Context, content govv1beta1.Content) error {
 		switch c := content.(type) {
 		case *types.SetRoutingRulesProposal:
 			return k.HandleSetRoutingRulesProposal(ctx, c)

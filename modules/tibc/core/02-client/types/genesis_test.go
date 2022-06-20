@@ -45,7 +45,7 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 
 func (suite *TypesTestSuite) TestValidateGenesis() {
 	privVal := tibctestingmock.NewPV()
-	pubKey, err := privVal.GetPubKey()
+	pubKey, err := privVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	now := time.Now().UTC()
