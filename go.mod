@@ -1,6 +1,6 @@
 module github.com/bianjieai/tibc-go
 
-go 1.17
+go 1.18
 
 require (
 	cosmossdk.io/math v1.0.0-beta.2
