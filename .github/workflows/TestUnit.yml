@@ -6,11 +6,10 @@ jobs:
     name: Test Units
     runs-on: ubuntu-18.04
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v1
-      - name: Run unit tests
-        uses: cedrickring/golang-action/go1.15@1.6.0
-        env:
-          GO111MODULE: "on"
-        with:
+       - name: Checkout source code
+         uses: actions/checkout@v3
+       - name: Run unit tests
+         uses: actions/setup-go@v3
+         with:
+          go-version: '^1.18' # The Go version to download (if necessary) and use.
           args: make test-unit
