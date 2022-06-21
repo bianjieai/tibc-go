@@ -66,7 +66,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			clientState := path.EndpointA.GetClientState()
 			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
-			content, err = clienttypes.NewUpgradeClientProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, clientState, consensusState)
+			content, err = clienttypes.NewUpgradeClientProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.Chain.ChainName, clientState, consensusState)
 			suite.Require().NoError(err)
 		},
 		true,
@@ -82,7 +82,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 			}
 
-			content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.ChainName, relayers)
+			content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.Chain.ChainName, relayers)
 			suite.Require().NoError(err)
 		},
 		true,

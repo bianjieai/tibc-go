@@ -42,6 +42,7 @@ func (suite *TransferTestSuite) SetupTest() {
 mt
 A->B B->C
 */
+// TODO
 func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// setup between chainA and chainB
 
@@ -89,7 +90,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet := packettypes.NewPacket(
 		multiTokenPacketData.GetBytes(), 1,
-		path.EndpointA.ChainName, path.EndpointB.ChainName,
+		path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName,
 		"", string(routingtypes.MT),
 	)
 
@@ -140,8 +141,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromBToC := packettypes.NewPacket(
 		mtPacketFromBToC.GetBytes(), 1,
-		pathBtoC.EndpointA.ChainName,
-		pathBtoC.EndpointB.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
 		"", string(routingtypes.MT),
 	)
 
@@ -188,8 +189,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromCToB := packettypes.NewPacket(
 		mtPacket.GetBytes(), 1,
-		pathBtoC.EndpointB.ChainName,
-		pathBtoC.EndpointA.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
 		"", string(routingtypes.MT),
 	)
 
@@ -226,7 +227,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet = packettypes.NewPacket(
 		multiTokenPacketData.GetBytes(), 1,
-		path.EndpointB.ChainName, path.EndpointA.ChainName,
+		path.EndpointB.Chain.ChainName, path.EndpointA.Chain.ChainName,
 		"", string(routingtypes.MT),
 	)
 

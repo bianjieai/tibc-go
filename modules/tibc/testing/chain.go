@@ -3,7 +3,6 @@ package tibctesting
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
 	"testing"
 	"time"
@@ -514,10 +513,6 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 		return nil, err
 	}
 	header.TrustedValidators = trustedVals
-	chain.Log(
-		"TrustedHeight", trustedHeight.RevisionHeight,
-		"TrustedValidators", hex.EncodeToString(tmTrustedVals.Hash()),
-	)
 	return header, nil
 
 }

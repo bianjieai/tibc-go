@@ -81,7 +81,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet := packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointA.ChainName, path.EndpointB.ChainName,
+		path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -122,8 +122,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromBToC := packettypes.NewPacket(
 		nftPacketFromBToC.GetBytes(), 1,
-		pathBtoC.EndpointA.ChainName,
-		pathBtoC.EndpointB.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -160,8 +160,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromCToB := packettypes.NewPacket(
 		nftPacket.GetBytes(), 1,
-		pathBtoC.EndpointB.ChainName,
-		pathBtoC.EndpointA.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -191,7 +191,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet = packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointB.ChainName, path.EndpointA.ChainName,
+		path.EndpointB.Chain.ChainName, path.EndpointA.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
