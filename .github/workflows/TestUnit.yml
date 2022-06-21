@@ -8,7 +8,7 @@ jobs:
     steps:
        - name: Checkout source code
          uses: actions/checkout@v3
-       - name: Run unit tests
+       - name: Setup go
          uses: actions/setup-go@v3
          with:
           go-version: '^1.18' # The Go version to download (if necessary) and use.
