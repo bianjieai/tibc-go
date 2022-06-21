@@ -12,4 +12,4 @@ jobs:
          uses: actions/setup-go@v3
          with:
           go-version: '^1.18' # The Go version to download (if necessary) and use.
-          args: make test-unit
+       - run: make test-unit
