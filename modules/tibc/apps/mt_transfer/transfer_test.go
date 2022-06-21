@@ -73,7 +73,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		dd.Id, MtID,
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "", "0xabcsda", 1,
+		suite.chainB.ChainName, "", "0xabcsda", 1,
 	)
 
 	_, err := suite.chainA.SendMsgs(msg)
@@ -120,7 +120,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInChainB, MtID,
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccount.GetAddress().String(),
-		suite.chainC.ChainID, "",
+		suite.chainC.ChainName, "",
 		"0xabcsda",
 		1,
 	)
@@ -168,7 +168,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInchainC, MtID,
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "",
+		suite.chainB.ChainName, "",
 		"0xabcsda",
 		1,
 	)
@@ -208,7 +208,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInChainB, MtID,
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainA.ChainID, "", "0xabcsda", 1,
+		suite.chainA.ChainName, "", "0xabcsda", 1,
 	)
 
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
