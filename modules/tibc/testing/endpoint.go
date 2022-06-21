@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -24,7 +22,6 @@ import (
 type Endpoint struct {
 	Chain        *TestChain
 	Counterparty *Endpoint
-	ChainName    string
 	ClientConfig ClientConfig
 }
 
@@ -42,7 +39,6 @@ func NewEndpoint(chain *TestChain, clientConfig ClientConfig) *Endpoint {
 func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 	return &Endpoint{
 		Chain:        chain,
-		ChainName:    chain.ChainID,
 		ClientConfig: NewTendermintConfig(),
 	}
 }
@@ -51,7 +47,7 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.ChainName)
+	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Chain.ChainName)
 	// query proof on the counterparty using the latest height of the TIBC client
 	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
 }
@@ -78,7 +74,7 @@ func (endpoint *Endpoint) CreateClient() error {
 	}
 
 	tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
-	require.True(endpoint.Chain.t, ok)
+	require.True(endpoint.Chain.T, ok)
 
 	height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
 	clientState := ibctmtypes.NewClientState(
@@ -90,29 +86,27 @@ func (endpoint *Endpoint) CreateClient() error {
 
 	ctx := endpoint.Chain.GetContext()
 
-	// set selft chain name
-	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.ChainName)
+	// set self chain name
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetChainName(ctx, endpoint.Chain.ChainName)
 
 	// set send sequence
-	endpoint.Chain.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctx, endpoint.ChainName, endpoint.Counterparty.ChainName, 1)
+	endpoint.Chain.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(ctx, endpoint.Chain.ChainName, endpoint.Counterparty.Chain.ChainName, 1)
 
 	// set relayers
 	relayers := []string{endpoint.Chain.SenderAccount.GetAddress().String()}
-	endpoint.Chain.App.TIBCKeeper.ClientKeeper.RegisterRelayers(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, relayers)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.RegisterRelayers(ctx, endpoint.Counterparty.Chain.ChainName, relayers)
 
 	// create counterparty chain light client
 	err := endpoint.Chain.App.TIBCKeeper.ClientKeeper.CreateClient(
-		endpoint.Chain.GetContext(),
-		endpoint.Counterparty.ChainName,
+		ctx,
+		endpoint.Counterparty.Chain.ChainName,
 		clientState,
 		consensusState,
 	)
-	require.NoError(endpoint.Chain.t, err)
-
-	endpoint.Chain.App.EndBlock(abci.RequestEndBlock{})
-	endpoint.Chain.App.Commit()
-
+	require.NoError(endpoint.Chain.T, err)
+	// NextBlock calls app.Commit()
 	endpoint.Chain.NextBlock()
+	// increment sequence for successful transaction execution
 	endpoint.Chain.Coordinator.IncrementTime()
 
 	return nil
@@ -127,16 +121,16 @@ func (endpoint *Endpoint) UpdateClient() error {
 		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
-	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.Counterparty.ChainName)
+	header, err := endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.Counterparty.Chain.ChainName)
 	if err != nil {
 		return err
 	}
 
 	msg, err := clienttypes.NewMsgUpdateClient(
-		endpoint.Counterparty.ChainName, header,
+		endpoint.Counterparty.Chain.ChainName, header,
 		endpoint.Chain.SenderAccount.GetAddress(),
 	)
-	require.NoError(endpoint.Chain.t, err)
+	require.NoError(endpoint.Chain.T, err)
 
 	return endpoint.Chain.sendMsgs(msg)
 }
@@ -223,32 +217,32 @@ func (endpoint *Endpoint) RecvCleanPacket(cleanPacket packettypes.CleanPacket) e
 }
 
 func (endpoint *Endpoint) ClientStore() sdk.KVStore {
-	return endpoint.Chain.App.TIBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName)
+	return endpoint.Chain.App.TIBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.Chain.ChainName)
 }
 
 // GetClientState retrieves the Client State for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
-	return endpoint.Chain.GetClientState(endpoint.Counterparty.ChainName)
+	return endpoint.Chain.GetClientState(endpoint.Counterparty.Chain.ChainName)
 }
 
 // SetClientState sets the client state for this endpoint.
 func (endpoint *Endpoint) SetClientState(clientState exported.ClientState) {
-	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, clientState)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.Counterparty.Chain.ChainName, clientState)
 }
 
 // GetConsensusState retrieves the Consensus State for this endpoint at the provided height.
 // The consensus state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.ConsensusState {
-	consensusState, found := endpoint.Chain.GetConsensusState(endpoint.Counterparty.ChainName, height)
-	require.True(endpoint.Chain.t, found)
+	consensusState, found := endpoint.Chain.GetConsensusState(endpoint.Counterparty.Chain.ChainName, height)
+	require.True(endpoint.Chain.T, found)
 
 	return consensusState
 }
 
 // SetConsensusState sets the consensus state for this endpoint.
 func (endpoint *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
-	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.Counterparty.ChainName, height, consensusState)
+	endpoint.Chain.App.TIBCKeeper.ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.Counterparty.Chain.ChainName, height, consensusState)
 }
 
 // QueryClientStateProof performs and abci query for a client stat associated
@@ -257,7 +251,7 @@ func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte)
 	// retrieve client state to provide proof for
 	clientState := endpoint.GetClientState()
 
-	clientKey := host.FullClientStateKey(endpoint.Counterparty.ChainName)
+	clientKey := host.FullClientStateKey(endpoint.Counterparty.Chain.ChainName)
 	proofClient, _ := endpoint.QueryProof(clientKey)
 
 	return clientState, proofClient
