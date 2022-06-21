@@ -14,7 +14,7 @@ func (suite KeeperTestSuite) TestHandleCreateClientProposal() {
 		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
 		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
 		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
-		suite.chainA.Vals, suite.chainA.Signers,
+		suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers,
 	)
 	testCases := []struct {
 		msg      string
@@ -86,7 +86,7 @@ func (suite KeeperTestSuite) TestHandleUpgradeClientProposal() {
 	header := suite.chainA.CreateTMClientHeader(
 		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
 		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Vals, suite.chainA.Signers,
 	)
 	testCases := []struct {
@@ -155,7 +155,7 @@ func (suite KeeperTestSuite) TestHandleRegisterRelayerProposal() {
 	header := suite.chainA.CreateTMClientHeader(
 		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
 		types.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Vals, suite.chainA.Signers,
 	)
 	testCases := []struct {

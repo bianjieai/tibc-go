@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 
 			clientStateA1 := path.EndpointA.GetClientState()
 
-			idcs := types.NewIdentifiedClientState(path.EndpointB.ChainName, clientStateA1)
+			idcs := types.NewIdentifiedClientState(path.EndpointB.Chain.ChainName, clientStateA1)
 
 			// order is sorted by client id, localhost is last
 			expClientStates = types.IdentifiedClientStates{idcs}.Sort()

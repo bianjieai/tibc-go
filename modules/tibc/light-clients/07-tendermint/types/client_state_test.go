@@ -87,7 +87,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	suite.Require().NoError(err)
 
 	clientState := path.EndpointA.GetClientState()
-	relayers := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+	relayers := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.Chain.ChainName)
 	suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
 	store := path.EndpointA.ClientStore()
 
@@ -143,14 +143,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			suite.coordinator.SetupClients(path)
 
-			relayerAs := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.ChainName)
+			relayerAs := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.Chain.ChainName)
 			suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
 
-			relayerBs := path.EndpointB.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.ChainName)
+			relayerBs := path.EndpointB.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.Chain.ChainName)
 			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
 
 			// setup testing conditions
-			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", tibctesting.MockPort)
+			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, "", tibctesting.MockPort)
 
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
@@ -225,7 +225,7 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, "", tibctesting.MockPort)
+			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, "", tibctesting.MockPort)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)

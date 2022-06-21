@@ -45,7 +45,7 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 
 func (suite *TypesTestSuite) TestValidateGenesis() {
 	privVal := tibctestingmock.NewPV()
-	pubKey, err := privVal.GetPubKey()
+	pubKey, err := privVal.GetPubKey(nil)
 	suite.Require().NoError(err)
 
 	now := time.Now().UTC()
@@ -53,8 +53,11 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	val := tmtypes.NewValidator(pubKey, 10)
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{val})
 
+	signers := make(map[string]tmtypes.PrivValidator)
+	signers[val.Address.String()] = privVal
+
 	heightMinus1 := types.NewHeight(0, height-1)
-	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, []tmtypes.PrivValidator{privVal})
+	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, valSet, signers)
 
 	testCases := []struct {
 		name     string

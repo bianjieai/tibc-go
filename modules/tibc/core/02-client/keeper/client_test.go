@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -21,7 +19,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 		return suite.chainA.CreateTMClientHeader(
 			testChainID, int64(heightPlus3.RevisionHeight), height, suite.header.Header.Time.Add(time.Hour),
-			suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal},
+			suite.valSet, suite.valSet, suite.valSet, suite.signers,
 		)
 	}
 	createPastUpdateFn := func(s *KeeperTestSuite) *ibctmtypes.Header {
@@ -30,7 +28,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 		return suite.chainA.CreateTMClientHeader(
 			testChainID, int64(heightMinus2.RevisionHeight), heightMinus4, suite.header.Header.Time,
-			suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal},
+			suite.valSet, suite.valSet, suite.valSet, suite.signers,
 		)
 	}
 

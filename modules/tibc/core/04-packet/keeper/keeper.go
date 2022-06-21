@@ -8,6 +8,7 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -18,7 +19,7 @@ import (
 
 // Keeper defines the TIBC packet keeper
 type Keeper struct {
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	cdc           codec.BinaryCodec
 	clientKeeper  types.ClientKeeper
 	routingKeeper types.RoutingKeeper
@@ -26,7 +27,7 @@ type Keeper struct {
 
 // NewKeeper creates a new tibc packet Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey,
+	cdc codec.BinaryCodec, key storetypes.StoreKey,
 	clientKeeper types.ClientKeeper,
 	routingKeeper types.RoutingKeeper,
 ) Keeper {

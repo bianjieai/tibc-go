@@ -3,10 +3,11 @@ package routing_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/stretchr/testify/suite"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	routing "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
@@ -33,7 +34,7 @@ func TestRoutingTestSuite(t *testing.T) {
 
 func (suite *RoutingTestSuite) TestNewSetRoutingRulesProposalHandler() {
 	var (
-		content govtypes.Content
+		content govv1beta1.Content
 		err     error
 	)
 

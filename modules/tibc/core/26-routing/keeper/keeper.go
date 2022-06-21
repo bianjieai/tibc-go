@@ -7,6 +7,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -17,11 +18,11 @@ import (
 // Keeper defines the TIBC routing keeper
 type Keeper struct {
 	Router   *types.Router
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 }
 
 // NewKeeper creates a new TIBC connection Keeper instance
-func NewKeeper(key sdk.StoreKey) Keeper {
+func NewKeeper(key storetypes.StoreKey) Keeper {
 	return Keeper{
 		storeKey: key,
 	}
