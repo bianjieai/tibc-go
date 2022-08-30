@@ -334,7 +334,7 @@ func NewSimApp(
 		appCodec, keys[tibchost.StoreKey], app.GetSubspace(tibchost.ModuleName), app.StakingKeeper,
 	)
 
-	app.NftKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.AccountKeeper, app.BankKeeper)
+	app.NftKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
 	app.MtKeeper = mtkeeper.NewKeeper(appCodec, keys[mttypes.StoreKey])
 
 	// register the proposal types
@@ -444,7 +444,7 @@ func NewSimApp(
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
-    app.mm.SetOrderInitGenesis(
+	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
 		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName,
 		govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
