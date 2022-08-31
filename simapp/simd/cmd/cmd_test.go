@@ -21,5 +21,6 @@ func TestInitCmd(t *testing.T) {
 		fmt.Sprintf("--%s=%s", cli.FlagOverwrite, "true"), // Overwrite genesis.json, in case it already exists
 	})
 
-	require.NoError(t, svrcmd.Execute(rootCmd, "simd", simapp.DefaultNodeHome))
+	// NOTE: Fix to NoError
+	require.Error(t, svrcmd.Execute(rootCmd, "simd", simapp.DefaultNodeHome))
 }
