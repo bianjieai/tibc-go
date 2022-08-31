@@ -1,6 +1,7 @@
 package tibctesting
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"encoding/json"
 	"testing"
 	"time"
@@ -36,7 +37,7 @@ func SetupTestingApp() (*simapp.SimApp, map[string]json.RawMessage) {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdk.Int, balances ...banktypes.Balance) *simapp.SimApp {
+func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) *simapp.SimApp {
 	app, genesisState := DefaultTestingAppInit()
 
 	// set genesis accounts
