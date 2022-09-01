@@ -2,8 +2,6 @@ package types
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/tendermint/tendermint/light"
@@ -103,10 +101,6 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	// to do this, we check that trustedVals.Hash() == consState.NextValidatorsHash
 	tvalHash := tmTrustedValidators.Hash()
 	if !bytes.Equal(consState.NextValidatorsHash, tvalHash) {
-		fmt.Println(
-			"NextValidatorsHash", hex.EncodeToString(consState.NextValidatorsHash),
-			"ValHash", hex.EncodeToString(tvalHash),
-		)
 		return sdkerrors.Wrapf(
 			ErrInvalidValidatorSet,
 			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
