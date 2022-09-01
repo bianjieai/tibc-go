@@ -11,12 +11,18 @@ import "tibc/core/routing/v1/genesis.proto";
 // GenesisState defines the tibc module's genesis state.
 message GenesisState {
   // TICS002 - Clients genesis state
-  tibc.core.client.v1.GenesisState client_genesis = 1
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"client_genesis\""];
+  tibc.core.client.v1.GenesisState client_genesis = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"client_genesis\""
+  ];
   // TICS004 - Packet genesis state
-  tibc.core.packet.v1.GenesisState packet_genesis = 3
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_genesis\""];
+  tibc.core.packet.v1.GenesisState packet_genesis = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"packet_genesis\""
+  ];
   // TICS026 - Routing genesis state
-  tibc.core.routing.v1.GenesisState routing_genesis = 4
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"routing_genesis\""];
+  tibc.core.routing.v1.GenesisState routing_genesis = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"routing_genesis\""
+  ];
 }

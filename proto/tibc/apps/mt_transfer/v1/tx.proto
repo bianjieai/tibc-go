@@ -1,18 +1,18 @@
- syntax = "proto3";
- package tibc.apps.mt_transfer.v1;
+syntax = "proto3";
+package tibc.apps.mt_transfer.v1;
 
- option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types";
+option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types";
 
- import "gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 
 // Msg defines the tibc/MtTransfer Msg service.
- service Msg {
+service Msg {
   // MtTransfer defines a rpc handler method for MsgMtTransfer.
   rpc MtTransfer(MsgMtTransfer) returns (MsgMtTransferResponse);
 }
 
- message MsgMtTransfer {
-  option (gogoproto.equal)           = false;
+message MsgMtTransfer {
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // the class to which the mt to be transferred belongs
@@ -34,4 +34,4 @@
 }
 
 // MsgMtTransferResponse defines the Msg/MtTransfer response type.
- message MsgMtTransferResponse {}
+message MsgMtTransferResponse {}
