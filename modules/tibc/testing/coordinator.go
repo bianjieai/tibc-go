@@ -20,7 +20,7 @@ var (
 // Coordinator is a testing struct which contains N TestChain's. It handles keeping all chains
 // in sync with regards to time.
 type Coordinator struct {
-	t *testing.T
+	*testing.T
 
 	CurrentTime time.Time
 	Chains      map[string]*TestChain
@@ -30,7 +30,7 @@ type Coordinator struct {
 func NewCoordinator(t *testing.T, n int) *Coordinator {
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
-		t:           t,
+		T:           t,
 		CurrentTime: globalStartTime,
 	}
 
@@ -76,17 +76,17 @@ func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
 // caller does not anticipate any errors.
 func (coord *Coordinator) SetupClients(path *Path) {
 	err := path.EndpointA.CreateClient()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 
 	err = path.EndpointB.CreateClient()
-	require.NoError(coord.t, err)
+	require.NoError(coord.T, err)
 }
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does
 // not exist.
 func (coord *Coordinator) GetChain(chainID string) *TestChain {
 	chain, found := coord.Chains[chainID]
-	require.True(coord.t, found, fmt.Sprintf("%s chain does not exist", chainID))
+	require.True(coord.T, found, fmt.Sprintf("%s chain does not exist", chainID))
 	return chain
 }
 
@@ -100,7 +100,6 @@ func GetChainID(index int) string {
 // CONTRACT: the passed in list of indexes must not contain duplicates
 func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
-		chain.App.Commit()
 		chain.NextBlock()
 	}
 	coord.IncrementTime()
@@ -110,7 +109,6 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for i := uint64(0); i < n; i++ {
 		chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
-		chain.App.Commit()
 		chain.NextBlock()
 		coord.IncrementTime()
 	}

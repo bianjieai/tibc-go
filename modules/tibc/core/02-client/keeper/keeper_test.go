@@ -62,6 +62,7 @@ type KeeperTestSuite struct {
 	privVal        tmtypes.PrivValidator
 	now            time.Time
 	past           time.Time
+	signers        map[string]tmtypes.PrivValidator
 
 	queryClient types.QueryClient
 }
@@ -81,6 +82,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testChainName, Time: now2})
 	suite.keeper = &app.TIBCKeeper.ClientKeeper
+
 	suite.privVal = ibctestingmock.NewPV()
 
 	pubKey, err := suite.privVal.GetPubKey()
@@ -91,10 +93,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	validator := tmtypes.NewValidator(pubKey, 1)
 	suite.valSet = tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 	suite.valSetHash = suite.valSet.Hash()
+
+	suite.signers = make(map[string]tmtypes.PrivValidator, 1)
+	suite.signers[validator.Address.String()] = suite.privVal
 	suite.header = suite.chainA.CreateTMClientHeader(
-		testChainID, int64(testClientHeight.RevisionHeight),
-		testClientHeightMinus1, now2, suite.valSet, suite.valSet,
-		[]tmtypes.PrivValidator{suite.privVal},
+		testChainID, int64(testClientHeight.RevisionHeight), testClientHeightMinus1, now2, suite.valSet, suite.valSet, suite.valSet, suite.signers,
 	)
 	suite.consensusState = ibctmtypes.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("hash")), suite.valSetHash)
 
@@ -220,7 +223,7 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 	header := suite.chainA.CreateTMClientHeader(
 		testChainName, int64(testClientHeightPlus5.RevisionHeight),
 		testClientHeight, suite.header.Header.Time.Add(time.Minute),
-		suite.valSet, suite.valSet, []tmtypes.PrivValidator{suite.privVal},
+		suite.valSet, suite.valSet, suite.valSet, suite.signers,
 	)
 
 	// mock update functionality
@@ -240,19 +243,19 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	suite.coordinator.SetupClients(path)
 
-	clientState := suite.chainA.GetClientState(path.EndpointB.ChainName)
+	clientState := suite.chainA.GetClientState(path.EndpointB.Chain.ChainName)
 	expConsensusHeight0 := clientState.GetLatestHeight()
-	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointB.ChainName, expConsensusHeight0)
+	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointB.Chain.ChainName, expConsensusHeight0)
 	suite.Require().True(ok)
 
 	// update client to create a second consensus state
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	clientState = suite.chainA.GetClientState(path.EndpointB.ChainName)
+	clientState = suite.chainA.GetClientState(path.EndpointB.Chain.ChainName)
 	expConsensusHeight1 := clientState.GetLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
-	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointB.ChainName, expConsensusHeight1)
+	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointB.Chain.ChainName, expConsensusHeight1)
 	suite.Require().True(ok)
 
 	consensusStateAny0, err := types.PackConsensusState(consensusState0)
@@ -267,6 +270,6 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 
 	consStates := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
 	suite.Require().Len(consStates, 1)
-	suite.Require().Equal(path.EndpointB.ChainName, consStates[0].ChainName)
+	suite.Require().Equal(path.EndpointB.Chain.ChainName, consStates[0].ChainName)
 	suite.Require().Equal(expConsensus, consStates[0].ConsensusStates)
 }

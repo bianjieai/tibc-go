@@ -4,7 +4,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -17,18 +17,18 @@ const (
 )
 
 var (
-	_ govtypes.Content = &CreateClientProposal{}
-	_ govtypes.Content = &UpgradeClientProposal{}
-	_ govtypes.Content = &RegisterRelayerProposal{}
+	_ govv1beta1.Content = &CreateClientProposal{}
+	_ govv1beta1.Content = &UpgradeClientProposal{}
+	_ govv1beta1.Content = &RegisterRelayerProposal{}
 
 	_ codectypes.UnpackInterfacesMessage = &CreateClientProposal{}
 	_ codectypes.UnpackInterfacesMessage = &UpgradeClientProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeClientCreate)
-	govtypes.RegisterProposalType(ProposalTypeClientUpgrade)
-	govtypes.RegisterProposalType(ProposalTypeRelayerRegister)
+	govv1beta1.RegisterProposalType(ProposalTypeClientCreate)
+	govv1beta1.RegisterProposalType(ProposalTypeClientUpgrade)
+	govv1beta1.RegisterProposalType(ProposalTypeRelayerRegister)
 }
 
 // NewCreateClientProposal creates a new creating client proposal.
@@ -66,7 +66,7 @@ func (cup *CreateClientProposal) ProposalType() string { return ProposalTypeClie
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *CreateClientProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cup)
+	err := govv1beta1.ValidateAbstract(cup)
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (cup *UpgradeClientProposal) ProposalType() string { return ProposalTypeCli
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *UpgradeClientProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cup)
+	err := govv1beta1.ValidateAbstract(cup)
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func (rrp *RegisterRelayerProposal) ProposalType() string { return ProposalTypeR
 
 // ValidateBasic runs basic stateless validity checks
 func (rrp *RegisterRelayerProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(rrp); err != nil {
+	if err := govv1beta1.ValidateAbstract(rrp); err != nil {
 		return err
 	}
 
@@ -196,7 +196,7 @@ func (rrp *RegisterRelayerProposal) ValidateBasic() error {
 	}
 
 	if len(rrp.Relayers) == 0 {
-		return govtypes.ErrInvalidLengthGov
+		return govv1beta1.ErrInvalidLengthGov
 	}
 
 	for _, relayer := range rrp.Relayers {

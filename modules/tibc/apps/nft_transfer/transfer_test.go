@@ -66,7 +66,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		dd.Id, "xiaomi",
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "", "0xabcsda",
+		suite.chainB.ChainName, "", "0xabcsda",
 	)
 
 	_, err := suite.chainA.SendMsgs(msg)
@@ -81,7 +81,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet := packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointA.ChainName, path.EndpointB.ChainName,
+		path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -104,7 +104,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInchainB, "xiaomi",
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainC.SenderAccount.GetAddress().String(),
-		suite.chainC.ChainID, "",
+		suite.chainC.ChainName, "",
 		"0xabcsda",
 	)
 
@@ -122,8 +122,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromBToC := packettypes.NewPacket(
 		nftPacketFromBToC.GetBytes(), 1,
-		pathBtoC.EndpointA.ChainName,
-		pathBtoC.EndpointB.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -142,7 +142,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInchainC, "xiaomi",
 		suite.chainC.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainB.ChainID, "",
+		suite.chainB.ChainName, "",
 		"0xabcsda",
 	)
 
@@ -160,8 +160,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packetFromCToB := packettypes.NewPacket(
 		nftPacket.GetBytes(), 1,
-		pathBtoC.EndpointB.ChainName,
-		pathBtoC.EndpointA.ChainName,
+		pathBtoC.EndpointB.Chain.ChainName,
+		pathBtoC.EndpointA.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -174,7 +174,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		classInchainB, "xiaomi",
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainA.ChainID, "", "0xabcsda",
+		suite.chainA.ChainName, "", "0xabcsda",
 	)
 
 	_, err = suite.chainB.SendMsgs(msgFromBToA)
@@ -191,7 +191,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	packet = packettypes.NewPacket(
 		NonfungibleTokenPacket.GetBytes(), 1,
-		path.EndpointB.ChainName, path.EndpointA.ChainName,
+		path.EndpointB.Chain.ChainName, path.EndpointA.Chain.ChainName,
 		"", string(routingtypes.NFT),
 	)
 
@@ -223,8 +223,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	*/
 	// query A
-	denomInA, found := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
-	if found {
+	denomInA, exists := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
+	if exists {
 		fmt.Println("denom found in A:", denomInA.Id)
 	} else {
 		fmt.Println("denom not found in A:", denomInA.Id)
@@ -238,8 +238,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query B
-	denomInB, found := suite.chainB.App.NftKeeper.GetDenom(suite.chainB.GetContext(), classInchainB)
-	if found {
+	denomInB, exists := suite.chainB.App.NftKeeper.GetDenom(suite.chainB.GetContext(), classInchainB)
+	if exists {
 		fmt.Println("denom found in B:", denomInB.Id)
 	} else {
 		fmt.Println("denom not found in B:", denomInB.Id)
@@ -252,8 +252,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query C
-	denomInC, found := suite.chainC.App.NftKeeper.GetDenom(suite.chainC.GetContext(), classInchainC)
-	if found {
+	denomInC, exists := suite.chainC.App.NftKeeper.GetDenom(suite.chainC.GetContext(), classInchainC)
+	if exists {
 		fmt.Println("denom found in C:", denomInC.Id)
 	} else {
 		fmt.Println("denom not found in C:", denomInC.Id)

@@ -12,50 +12,72 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/ty
 // Query provides defines the gRPC querier service
 service Query {
   // PacketCommitment queries a stored packet commitment hash.
-  rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
+  rpc PacketCommitment(QueryPacketCommitmentRequest)
+      returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get =
-        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_commitments/{sequence}";
   }
 
   // PacketCommitments returns all the packet commitments hashes associated
-  rpc PacketCommitments(QueryPacketCommitmentsRequest) returns (QueryPacketCommitmentsResponse) {
-    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments";
+  rpc PacketCommitments(QueryPacketCommitmentsRequest)
+      returns (QueryPacketCommitmentsResponse) {
+    option (google.api.http).get =
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_commitments";
   }
 
-  // PacketReceipt queries if a given packet sequence has been received on the queried chain
-  rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
+  // PacketReceipt queries if a given packet sequence has been received on the
+  // queried chain
+  rpc PacketReceipt(QueryPacketReceiptRequest)
+      returns (QueryPacketReceiptResponse) {
     option (google.api.http).get =
-        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_receipts/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_receipts/{sequence}";
   }
 
   // PacketAcknowledgement queries a stored packet acknowledgement hash.
-  rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest) returns (QueryPacketAcknowledgementResponse) {
+  rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest)
+      returns (QueryPacketAcknowledgementResponse) {
     option (google.api.http).get =
-        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acks/{sequence}";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_acks/{sequence}";
   }
 
   // PacketAcknowledgements returns all the packet acknowledgements associated
-  rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest) returns (QueryPacketAcknowledgementsResponse) {
+  rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest)
+      returns (QueryPacketAcknowledgementsResponse) {
     option (google.api.http).get =
-        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_acknowledgements";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_acknowledgements";
   }
 
-  // UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
-  rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
-    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
-                                   "{packet_commitment_sequences}/unreceived_packets";
+  // UnreceivedPackets returns all the unreceived TIBC packets associated with
+  // sequences.
+  rpc UnreceivedPackets(QueryUnreceivedPacketsRequest)
+      returns (QueryUnreceivedPacketsResponse) {
+    option (google.api.http).get =
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_commitments/"
+        "{packet_commitment_sequences}/unreceived_packets";
   }
 
-  // UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
-  rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
-    option (google.api.http).get = "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/packet_commitments/"
-                                   "{packet_ack_sequences}/unreceived_acks";
+  // UnreceivedAcks returns all the unreceived TIBC acknowledgements associated
+  // with sequences.
+  rpc UnreceivedAcks(QueryUnreceivedAcksRequest)
+      returns (QueryUnreceivedAcksResponse) {
+    option (google.api.http).get =
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/packet_commitments/"
+        "{packet_ack_sequences}/unreceived_acks";
   }
 
   // CleanPacketCommitment queries a stored packet commitment hash.
-  rpc CleanPacketCommitment(QueryCleanPacketCommitmentRequest) returns (QueryCleanPacketCommitmentResponse) {
+  rpc CleanPacketCommitment(QueryCleanPacketCommitmentRequest)
+      returns (QueryCleanPacketCommitmentResponse) {
     option (google.api.http).get =
-        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/{dest_chain}/clean_packet_commitments";
+        "/tibc/core/packet/v1beta1/source_chains/{source_chain}/dest_chains/"
+        "{dest_chain}/clean_packet_commitments";
   }
 }
 
@@ -79,7 +101,7 @@ message QueryPacketCommitmentResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryPacketCommitmentsRequest is the request type for the
@@ -100,7 +122,7 @@ message QueryPacketCommitmentsResponse {
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
   // query block height
-  tibc.core.client.v1.Height height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryPacketReceiptRequest is the request type for the
@@ -114,8 +136,8 @@ message QueryPacketReceiptRequest {
   uint64 sequence = 3;
 }
 
-// QueryPacketReceiptResponse defines the client query response for a packet receipt
-// which also includes a proof, and the height from which the proof was
+// QueryPacketReceiptResponse defines the client query response for a packet
+// receipt which also includes a proof, and the height from which the proof was
 // retrieved
 message QueryPacketReceiptResponse {
   // success flag for if receipt exists
@@ -123,7 +145,7 @@ message QueryPacketReceiptResponse {
   // merkle proof of existence
   bytes proof = 3;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 4 [ (gogoproto.nullable) = false ];
 }
 
 // QueryPacketAcknowledgementRequest is the request type for the
@@ -146,7 +168,7 @@ message QueryPacketAcknowledgementResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryPacketAcknowledgementsRequest is the request type for the
@@ -167,7 +189,7 @@ message QueryPacketAcknowledgementsResponse {
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
   // query block height
-  tibc.core.client.v1.Height height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height height = 3 [ (gogoproto.nullable) = false ];
 }
 
 // QueryUnreceivedPacketsRequest is the request type for the
@@ -187,7 +209,7 @@ message QueryUnreceivedPacketsResponse {
   // list of unreceived packet sequences
   repeated uint64 sequences = 1;
   // query block height
-  tibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height height = 2 [ (gogoproto.nullable) = false ];
 }
 
 // QueryUnreceivedAcks is the request type for the
@@ -207,7 +229,7 @@ message QueryUnreceivedAcksResponse {
   // list of unreceived acknowledgement sequences
   repeated uint64 sequences = 1;
   // query block height
-  tibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height height = 2 [ (gogoproto.nullable) = false ];
 }
 
 // QueryCleanPacketCommitmentRequest is the request type for the
@@ -219,8 +241,8 @@ message QueryCleanPacketCommitmentRequest {
   string source_chain = 2;
 }
 
-// QueryCleanPacketCommitmentResponse defines the client query response for a packet
-// which also includes a proof and the height from which the proof was
+// QueryCleanPacketCommitmentResponse defines the client query response for a
+// packet which also includes a proof and the height from which the proof was
 // retrieved
 message QueryCleanPacketCommitmentResponse {
   // packet associated with the request fields
@@ -228,5 +250,5 @@ message QueryCleanPacketCommitmentResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
 }

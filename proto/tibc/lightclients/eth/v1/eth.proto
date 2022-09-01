@@ -25,7 +25,7 @@ message Header {
   bytes extra = 13;
   bytes mix_digest = 14;
   uint64 nonce = 15;
-  string baseFee=16;
+  string baseFee = 16;
 }
 
 // ClientState from eth tracks the current validator set, latest height,
@@ -40,7 +40,6 @@ message ClientState {
   uint64 timeDelay = 5;
   uint64 blockDelay = 6;
 }
-
 
 // ConsensusState defines the consensus state from eth.
 message ConsensusState {

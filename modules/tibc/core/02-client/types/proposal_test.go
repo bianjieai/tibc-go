@@ -3,7 +3,7 @@ package types_test
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	tibctmtypes "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-tendermint/types"
@@ -35,7 +35,7 @@ func (suite *TypesTestSuite) TestMarshalCreateClientProposalProposal() {
 	// create codec
 	ir := codectypes.NewInterfaceRegistry()
 	types.RegisterInterfaces(ir)
-	govtypes.RegisterInterfaces(ir)
+	govv1beta1.RegisterInterfaces(ir)
 	tibctmtypes.RegisterInterfaces(ir)
 	cdc := codec.NewProtoCodec(ir)
 
