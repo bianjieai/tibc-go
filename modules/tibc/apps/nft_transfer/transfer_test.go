@@ -59,7 +59,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-	dd, _ := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
+	dd, _ := suite.chainA.App.NftKeeper.GetDenomInfo(suite.chainA.GetContext(), "mobile")
 
 	// send nft from A To B
 	msg := types.NewMsgNftTransfer(
@@ -223,8 +223,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	*/
 	// query A
-	denomInA, exists := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
-	if exists {
+	denomInA, err := suite.chainA.App.NftKeeper.GetDenomInfo(suite.chainA.GetContext(), "mobile")
+	if err != nil {
 		fmt.Println("denom found in A:", denomInA.Id)
 	} else {
 		fmt.Println("denom not found in A:", denomInA.Id)
@@ -238,8 +238,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query B
-	denomInB, exists := suite.chainB.App.NftKeeper.GetDenom(suite.chainB.GetContext(), classInchainB)
-	if exists {
+	denomInB, err := suite.chainB.App.NftKeeper.GetDenomInfo(suite.chainB.GetContext(), classInchainB)
+	if err != nil {
 		fmt.Println("denom found in B:", denomInB.Id)
 	} else {
 		fmt.Println("denom not found in B:", denomInB.Id)
@@ -252,8 +252,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query C
-	denomInC, exists := suite.chainC.App.NftKeeper.GetDenom(suite.chainC.GetContext(), classInchainC)
-	if exists {
+	denomInC, err := suite.chainC.App.NftKeeper.GetDenomInfo(suite.chainC.GetContext(), classInchainC)
+	if err != nil {
 		fmt.Println("denom found in C:", denomInC.Id)
 	} else {
 		fmt.Println("denom not found in C:", denomInC.Id)
