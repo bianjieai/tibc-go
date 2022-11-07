@@ -74,7 +74,8 @@ func (m *Packet) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Packet proto.InternalMessageInfo
 
-// CleanPacket defines a type that carries data across different chains through TIBC
+// CleanPacket defines a type that carries data across different chains through
+// TIBC
 type CleanPacket struct {
 	// number corresponds to the order of sends and receives, where a Packet
 	// with an earlier sequence number must be sent and received before a Packet

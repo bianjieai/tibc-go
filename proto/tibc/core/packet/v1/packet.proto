@@ -16,16 +16,18 @@ message Packet {
   // identifies the port on the sending chain and destination chain.
   string port = 2;
   // identifies the chain id of the sending chain.
-  string source_chain = 3 [(gogoproto.moretags) = "yaml:\"source_chain\""];
+  string source_chain = 3 [ (gogoproto.moretags) = "yaml:\"source_chain\"" ];
   // identifies the chain id of the receiving chain.
-  string destination_chain = 4 [(gogoproto.moretags) = "yaml:\"destination_port\""];
+  string destination_chain = 4
+      [ (gogoproto.moretags) = "yaml:\"destination_port\"" ];
   // identifies the chain id of the relay chain.
-  string relay_chain = 5 [(gogoproto.moretags) = "yaml:\"relay_chain\""];
+  string relay_chain = 5 [ (gogoproto.moretags) = "yaml:\"relay_chain\"" ];
   // actual opaque bytes transferred directly to the application module
   bytes data = 6;
 }
 
-// CleanPacket defines a type that carries data across different chains through TIBC
+// CleanPacket defines a type that carries data across different chains through
+// TIBC
 message CleanPacket {
   option (gogoproto.goproto_getters) = false;
 
@@ -34,11 +36,12 @@ message CleanPacket {
   // with a later sequence number.
   uint64 sequence = 1;
   // identifies the chain id of the sending chain.
-  string source_chain = 3 [(gogoproto.moretags) = "yaml:\"source_chain\""];
+  string source_chain = 3 [ (gogoproto.moretags) = "yaml:\"source_chain\"" ];
   // identifies the chain id of the receiving chain.
-  string destination_chain = 4 [(gogoproto.moretags) = "yaml:\"destination_port\""];
+  string destination_chain = 4
+      [ (gogoproto.moretags) = "yaml:\"destination_port\"" ];
   // identifies the chain id of the relay chain.
-  string relay_chain = 5 [(gogoproto.moretags) = "yaml:\"relay_chain\""];
+  string relay_chain = 5 [ (gogoproto.moretags) = "yaml:\"relay_chain\"" ];
 }
 
 // PacketState defines the generic type necessary to retrieve and store
@@ -49,9 +52,10 @@ message PacketState {
   option (gogoproto.goproto_getters) = false;
 
   // the sending chain identifier.
-  string source_chain = 1 [(gogoproto.moretags) = "yaml:\"source_chain\""];
+  string source_chain = 1 [ (gogoproto.moretags) = "yaml:\"source_chain\"" ];
   // the receiving chain identifier.
-  string destination_chain = 2 [(gogoproto.moretags) = "yaml:\"source_chain\""];
+  string destination_chain = 2
+      [ (gogoproto.moretags) = "yaml:\"source_chain\"" ];
   // packet sequence.
   uint64 sequence = 3;
   // embedded data that represents packet state.
@@ -68,7 +72,7 @@ message PacketState {
 message Acknowledgement {
   // response contains either a result or an error and must be non-empty
   oneof response {
-    bytes  result = 21;
-    string error  = 22;
+    bytes result = 21;
+    string error = 22;
   }
 }

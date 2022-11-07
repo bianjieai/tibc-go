@@ -1,11 +1,11 @@
- syntax = "proto3";
+syntax = "proto3";
 
- package tibc.apps.nft_transfer.v1;
- option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types";
+package tibc.apps.nft_transfer.v1;
+option go_package = "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types";
 
- import "gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 
- message NonFungibleTokenPacketData {
+message NonFungibleTokenPacketData {
   // the class to which the NFT to be transferred belongs
   string class = 1;
   // the nft id
@@ -21,12 +21,12 @@
   // the destination contract address to receive the nft
   string dest_contract = 7;
 }
- // ClassTrace contains the base class for TICS30 Non fungible tokens and the
- // source tracing information path.
- message ClassTrace {
+// ClassTrace contains the base class for TICS30 Non fungible tokens and the
+// source tracing information path.
+message ClassTrace {
   // path defines the chain of sourceChain/destChain
   // identifiers used for tracing the source of the Non fungible token.
   string path = 1;
   // base class of the relayed non fungible token.
   string base_class = 2;
- }
+}

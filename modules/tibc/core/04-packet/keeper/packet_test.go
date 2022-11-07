@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 		},
 		true,
 	}, {
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// setup creates an unordered channel
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 5, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 5, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 		},
 		false,
 	}, {
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, tibctesting.InvalidID, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, tibctesting.InvalidID, relayChain, tibctesting.MockPort)
 		},
 		false,
 	}, {
@@ -60,21 +60,21 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 5)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 5)
 		},
 		false,
 	},
 	// {"packet basic validation failed, empty packet data", func() {
 	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	// 	suite.coordinator.SetupClients(path)
-	// 	packet = types.NewPacket([]byte{}, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.MockPort)
+	// 	packet = types.NewPacket([]byte{}, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, ibctesting.MockPort)
 	// }, false},
 	// {"port not found", func() {
 	// 	// use wrong port
 	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	// 	suite.coordinator.SetupClients(path)
-	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
+	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, ibctesting.InvalidID)
 	// }, false},
 	}
 
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		},
@@ -122,13 +122,13 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// setup uses an UNORDERED channel
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 
 			// send 2 packets
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 			// set sequence to 2
-			packet = types.NewPacket(validPacketData, 2, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 2, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			err = path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
 		},
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// use wrong port
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.InvalidID)
 		},
 		false,
 	}, {
@@ -147,10 +147,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
-			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1)
 		},
 		false,
 	}, {
@@ -159,7 +159,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			// packet commitment not set resulting in invalid proof
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.InvalidID)
 		},
 		false,
 	}}
@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			ack = tibctesting.TestHash
 		},
 		true,
@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			ack = tibctesting.TestHash
 			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), ack)
 		},
@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 			ack = nil
 		},
 		false,
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	// 	// use wrong port naming
 	// 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	// 	suite.coordinator.SetupClients(path)
-	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, ibctesting.InvalidID)
+	// 	packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, ibctesting.InvalidID)
 	// 	ack = ibctesting.TestHash
 	// }, false},
 	}
@@ -267,7 +267,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			// setup
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 
 			// create packet commitment
 			err := path.EndpointA.SendPacket(packet)
@@ -284,7 +284,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			// use wrong port naming
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.InvalidID)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.InvalidID)
 		},
 		false,
 	}, {
@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			// packet commitment never written
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
-			packet = types.NewPacket(validPacketData, 1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain, tibctesting.MockPort)
+			packet = types.NewPacket(validPacketData, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain, tibctesting.MockPort)
 		},
 		false,
 	}}
@@ -331,40 +331,40 @@ func (suite *KeeperTestSuite) TestCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
-			preCleanPacket := types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 10)
+			preCleanPacket := types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 			path.EndpointA.CleanPacket(preCleanPacket)
-			cleanPacket = types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			cleanPacket = types.NewCleanPacket(10, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 		}, true},
 		{"client state not found", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
-			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, tibctesting.InvalidID, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 10)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, tibctesting.InvalidID, relayChain)
 		}, false},
 		{"clean sequence illegal", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
-			preCleanPacket := types.NewCleanPacket(10, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 10)
+			preCleanPacket := types.NewCleanPacket(10, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 			path.EndpointA.CleanPacket(preCleanPacket)
-			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 		}, false},
 		{"clean sequence too big", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 		}, false},
 		{"commitment haven't been acked", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 			commitment = tibctesting.TestHash
 
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 10)
-			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 10)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 			suite.chainA.App.TIBCKeeper.PacketKeeper.SetPacketCommitment(suite.chainA.GetContext(), cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence(), commitment)
 		}, false},
 	}
@@ -396,21 +396,21 @@ func (suite *KeeperTestSuite) TestRecvCleanPacket() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
-			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
-			cleanPacket = types.NewCleanPacket(1, path.EndpointA.ChainName, path.EndpointB.ChainName, relayChain)
+			suite.chainA.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainA.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1)
+			cleanPacket = types.NewCleanPacket(1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, relayChain)
 			err := path.EndpointA.CleanPacket(cleanPacket)
 			suite.Require().NoError(err)
-			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketReceipt(suite.chainB.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1)
 			ack = tibcmock.MockAcknowledgement
-			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1, ack)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1, ack)
 		}, true},
 		{"client state not found", func() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.ChainName, path.EndpointB.ChainName, 1)
-			cleanPacket = types.NewCleanPacket(1, tibctesting.InvalidID, path.EndpointB.ChainName, relayChain)
+			suite.chainB.App.TIBCKeeper.PacketKeeper.SetMaxAckSequence(suite.chainB.GetContext(), path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, 1)
+			cleanPacket = types.NewCleanPacket(1, tibctesting.InvalidID, path.EndpointB.Chain.ChainName, relayChain)
 		}, false},
 	}
 	for i, tc := range testCases {

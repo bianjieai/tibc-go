@@ -51,7 +51,7 @@ func (suite *TIBCTestSuite) TestValidateGenesis() {
 	header := suite.chainA.CreateTMClientHeader(
 		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
 		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Signers,
 	)
 
@@ -149,7 +149,7 @@ func (suite *TIBCTestSuite) TestInitGenesis() {
 	header := suite.chainA.CreateTMClientHeader(
 		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
 		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals,
+		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Vals, suite.chainA.Signers,
 	)
 

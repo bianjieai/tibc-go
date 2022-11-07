@@ -356,8 +356,8 @@ func (m *QueryPacketReceiptRequest) GetSequence() uint64 {
 	return 0
 }
 
-// QueryPacketReceiptResponse defines the client query response for a packet receipt
-// which also includes a proof, and the height from which the proof was
+// QueryPacketReceiptResponse defines the client query response for a packet
+// receipt which also includes a proof, and the height from which the proof was
 // retrieved
 type QueryPacketReceiptResponse struct {
 	// success flag for if receipt exists
@@ -980,8 +980,8 @@ func (m *QueryCleanPacketCommitmentRequest) GetSourceChain() string {
 	return ""
 }
 
-// QueryCleanPacketCommitmentResponse defines the client query response for a packet
-// which also includes a proof and the height from which the proof was
+// QueryCleanPacketCommitmentResponse defines the client query response for a
+// packet which also includes a proof and the height from which the proof was
 // retrieved
 type QueryCleanPacketCommitmentResponse struct {
 	// packet associated with the request fields
@@ -1153,15 +1153,18 @@ type QueryClient interface {
 	PacketCommitment(ctx context.Context, in *QueryPacketCommitmentRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentResponse, error)
 	// PacketCommitments returns all the packet commitments hashes associated
 	PacketCommitments(ctx context.Context, in *QueryPacketCommitmentsRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentsResponse, error)
-	// PacketReceipt queries if a given packet sequence has been received on the queried chain
+	// PacketReceipt queries if a given packet sequence has been received on the
+	// queried chain
 	PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error)
 	// PacketAcknowledgements returns all the packet acknowledgements associated
 	PacketAcknowledgements(ctx context.Context, in *QueryPacketAcknowledgementsRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementsResponse, error)
-	// UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
+	// UnreceivedPackets returns all the unreceived TIBC packets associated with
+	// sequences.
 	UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
+	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated
+	// with sequences.
 	UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error)
 	// CleanPacketCommitment queries a stored packet commitment hash.
 	CleanPacketCommitment(ctx context.Context, in *QueryCleanPacketCommitmentRequest, opts ...grpc.CallOption) (*QueryCleanPacketCommitmentResponse, error)
@@ -1253,15 +1256,18 @@ type QueryServer interface {
 	PacketCommitment(context.Context, *QueryPacketCommitmentRequest) (*QueryPacketCommitmentResponse, error)
 	// PacketCommitments returns all the packet commitments hashes associated
 	PacketCommitments(context.Context, *QueryPacketCommitmentsRequest) (*QueryPacketCommitmentsResponse, error)
-	// PacketReceipt queries if a given packet sequence has been received on the queried chain
+	// PacketReceipt queries if a given packet sequence has been received on the
+	// queried chain
 	PacketReceipt(context.Context, *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error)
 	// PacketAcknowledgement queries a stored packet acknowledgement hash.
 	PacketAcknowledgement(context.Context, *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error)
 	// PacketAcknowledgements returns all the packet acknowledgements associated
 	PacketAcknowledgements(context.Context, *QueryPacketAcknowledgementsRequest) (*QueryPacketAcknowledgementsResponse, error)
-	// UnreceivedPackets returns all the unreceived TIBC packets associated with sequences.
+	// UnreceivedPackets returns all the unreceived TIBC packets associated with
+	// sequences.
 	UnreceivedPackets(context.Context, *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error)
-	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated with sequences.
+	// UnreceivedAcks returns all the unreceived TIBC acknowledgements associated
+	// with sequences.
 	UnreceivedAcks(context.Context, *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error)
 	// CleanPacketCommitment queries a stored packet commitment hash.
 	CleanPacketCommitment(context.Context, *QueryCleanPacketCommitmentRequest) (*QueryCleanPacketCommitmentResponse, error)

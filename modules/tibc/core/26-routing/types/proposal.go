@@ -1,7 +1,7 @@
 package types
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 )
@@ -11,11 +11,11 @@ const (
 )
 
 var (
-	_ govtypes.Content = &SetRoutingRulesProposal{}
+	_ govv1beta1.Content = &SetRoutingRulesProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeSetRoutingRules)
+	govv1beta1.RegisterProposalType(ProposalTypeSetRoutingRules)
 }
 
 // NewSetRoutingRulesProposal creates a new setting rules proposal.
@@ -41,7 +41,7 @@ func (cup *SetRoutingRulesProposal) ProposalType() string { return ProposalTypeS
 
 // ValidateBasic runs basic stateless validity checks
 func (cup *SetRoutingRulesProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cup)
+	err := govv1beta1.ValidateAbstract(cup)
 	if err != nil {
 		return err
 	}

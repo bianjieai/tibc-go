@@ -2,18 +2,13 @@ package tibctesting
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,6 +20,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -65,7 +65,13 @@ var (
 	MockAcknowledgement = mock.MockAcknowledgement
 	MockCommitment      = mock.MockCommitment
 	Prefix              = commitmenttypes.MerklePrefix{KeyPrefix: []byte("tibc")}
+	MaxAccounts         = 10
 )
+
+type SenderAccount struct {
+	SenderPrivKey cryptotypes.PrivKey
+	SenderAccount authtypes.AccountI
+}
 
 // TestChain is a testing struct that wraps a simapp with the last TM Header, the current ABCI
 // header and the validators of the TestChain. It also contains a field called ChainID. This
@@ -73,52 +79,78 @@ var (
 // is used for delivering transactions through the application state.
 // NOTE: the actual application uses an empty chain-id for ease of testing.
 type TestChain struct {
-	t *testing.T
+	*testing.T
 
-	Coordinator   *Coordinator
-	App           *simapp.SimApp
-	ChainID       string
-	LastHeader    *ibctmtypes.Header // header for last block height committed
-	CurrentHeader tmproto.Header     // header for current block height
-	QueryServer   types.QueryServer
-	TxConfig      client.TxConfig
-	Codec         codec.BinaryCodec
+	Coordinator        *Coordinator
+	App                *simapp.SimApp
+	ChainID, ChainName string
+	LastHeader         *ibctmtypes.Header // header for last block height committed
+	CurrentHeader      tmproto.Header     // header for current block height
+	QueryServer        types.QueryServer
+	TxConfig           client.TxConfig
+	Codec              codec.BinaryCodec
 
-	Vals    *tmtypes.ValidatorSet
-	Signers []tmtypes.PrivValidator
+	Vals     *tmtypes.ValidatorSet
+	NextVals *tmtypes.ValidatorSet
 
-	senderPrivKey cryptotypes.PrivKey
+	// Signers is a map from validator address to the PrivValidator
+	// The map is converted into an array that is the same order as the validators right before signing commit
+	// This ensures that signers will always be in correct order even as validator powers change.
+	// If a test adds a new validator after chain creation, then the signer map must be updated to include
+	// the new PrivValidator entry.
+	Signers map[string]tmtypes.PrivValidator
+
+	SenderPrivKey cryptotypes.PrivKey
 	SenderAccount authtypes.AccountI
+
+	SenderAccounts []SenderAccount
 }
 
-// NewTestChain initializes a new TestChain instance with a single validator set using a
-// generated private key. It also creates a sender account to be used for delivering transactions.
+// NewTestChainWithValSet initializes a new TestChain instance with the given validator set
+// and signer array. It also initializes 10 Sender accounts with a balance of 10000000000000000000 coins of
+// bond denom to use for tests.
 //
 // The first block height is committed to state in order to allow for client creations on
 // counterparty chains. The TestChain will return with a block height starting at 2.
 //
 // Time management is handled by the Coordinator in order to ensure synchrony between chains.
 // Each update of any chain increments the block header time for all chains by 5 seconds.
-func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
-	// generate validator private/public key
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
+//
+// NOTE: to use a custom sender privkey and account for testing purposes, replace and modify this
+// constructor function.
+//
+// CONTRACT: Validator array must be provided in the order expected by Tendermint.
+// i.e. sorted first by power and then lexicographically by address.
+func NewTestChainWithValSet(t *testing.T,
+	coord *Coordinator, chainID string, valSet *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *TestChain {
+	genAccs := []authtypes.GenesisAccount{}
+	genBals := []banktypes.Balance{}
+	senderAccs := []SenderAccount{}
 
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-	signers := []tmtypes.PrivValidator{privVal}
+	// generate genesis accounts
+	for i := 0; i < MaxAccounts; i++ {
+		senderPrivKey := secp256k1.GenPrivKey()
+		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
+		amount, ok := sdk.NewIntFromString("10000000000000000000")
+		require.True(t, ok)
 
-	// generate genesis account
-	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		balance := banktypes.Balance{
+			Address: acc.GetAddress().String(),
+			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+		}
+
+		genAccs = append(genAccs, acc)
+		genBals = append(genBals, balance)
+
+		senderAcc := SenderAccount{
+			SenderAccount: acc,
+			SenderPrivKey: senderPrivKey,
+		}
+
+		senderAccs = append(senderAccs, senderAcc)
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -131,23 +163,52 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 	// create an account to send transactions from
 	chain := &TestChain{
-		t:             t,
-		Coordinator:   coord,
-		ChainID:       chainID,
-		App:           app,
-		CurrentHeader: header,
-		QueryServer:   app.TIBCKeeper,
-		TxConfig:      txConfig,
-		Codec:         app.AppCodec(),
-		Vals:          valSet,
-		Signers:       signers,
-		senderPrivKey: senderPrivKey,
-		SenderAccount: acc,
+		T:              t,
+		Coordinator:    coord,
+		ChainID:        chainID,
+		ChainName:      chainID,
+		App:            app,
+		CurrentHeader:  header,
+		QueryServer:    app.TIBCKeeper,
+		TxConfig:       txConfig,
+		Codec:          app.AppCodec(),
+		Vals:           valSet,
+		NextVals:       valSet,
+		Signers:        signers,
+		SenderPrivKey:  senderAccs[0].SenderPrivKey,
+		SenderAccount:  senderAccs[0].SenderAccount,
+		SenderAccounts: senderAccs,
 	}
 
 	coord.CommitBlock(chain)
 
 	return chain
+}
+
+// NewTestChain initializes a new test chain with a default of 4 validators
+// Use this function if the tests do not need custom control over the validator set
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+	// generate validators private/public key
+	var (
+		validatorsPerChain = 4
+		validators         []*tmtypes.Validator
+		signersByAddress   = make(map[string]tmtypes.PrivValidator, validatorsPerChain)
+	)
+
+	for i := 0; i < validatorsPerChain; i++ {
+		privVal := mock.NewPV()
+		pubKey, err := privVal.GetPubKey()
+		require.NoError(t, err)
+		validators = append(validators, tmtypes.NewValidator(pubKey, 1))
+		signersByAddress[pubKey.Address().String()] = privVal
+	}
+
+	// construct validator set;
+	// Note that the validators are sorted by voting power
+	// or, if equal, by address lexical order
+	valSet := tmtypes.NewValidatorSet(validators)
+
+	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
 }
 
 // GetContext returns the current context for the application.
@@ -172,10 +233,10 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 	})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
 
@@ -196,10 +257,10 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 	})
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	proof, err := chain.App.AppCodec().Marshal(&merkleProof)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	revision := clienttypes.ParseChainID(chain.ChainID)
 
@@ -214,7 +275,7 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 func (chain *TestChain) QueryClientStateProof(chainName string) (exported.ClientState, []byte) {
 	// retrieve client state to provide proof for
 	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
-	require.True(chain.t, found)
+	require.True(chain.T, found)
 
 	clientKey := host.FullClientStateKey(chainName)
 	proofClient, _ := chain.QueryProof(clientKey)
@@ -239,9 +300,18 @@ func (chain *TestChain) QueryConsensusStateProof(chainName string) ([]byte, clie
 //
 // CONTRACT: this function must only be called after app.Commit() occurs
 func (chain *TestChain) NextBlock() {
+	res := chain.App.EndBlock(abci.RequestEndBlock{Height: chain.CurrentHeader.Height})
+
+	chain.App.Commit()
+
 	// set the last header to the current header
 	// use nil trusted fields
 	chain.LastHeader = chain.CurrentTMClientHeader()
+
+	// val set changes returned from previous block get applied to the next validators
+	// of this block. See tendermint spec for details.
+	chain.Vals = chain.NextVals
+	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
 	chain.CurrentHeader = tmproto.Header{
@@ -252,9 +322,8 @@ func (chain *TestChain) NextBlock() {
 		// chains.
 		Time:               chain.CurrentHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
-		NextValidatorsHash: chain.Vals.Hash(),
+		NextValidatorsHash: chain.NextVals.Hash(),
 	}
-
 	chain.App.BeginBlock(abci.RequestBeginBlock{Header: chain.CurrentHeader})
 }
 
@@ -272,7 +341,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 	chain.Coordinator.UpdateTimeForChain(chain)
 
 	_, r, err := simapp.SignAndDeliver(
-		chain.t,
+		chain.T,
 		chain.TxConfig,
 		chain.App.BaseApp,
 		chain.GetContext().BlockHeader(),
@@ -280,17 +349,17 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 		chain.ChainID,
 		[]uint64{chain.SenderAccount.GetAccountNumber()},
 		[]uint64{chain.SenderAccount.GetSequence()},
-		true, true, chain.senderPrivKey,
+		true, true, chain.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// SignAndDeliver calls app.Commit()
+	// NextBlock calls app.Commit()
 	chain.NextBlock()
 
 	// increment sequence for successful transaction execution
-	_ = chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
 
 	chain.Coordinator.IncrementTime()
 
@@ -301,7 +370,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
 	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
-	require.True(chain.t, found)
+	require.True(chain.T, found)
 
 	return clientState
 }
@@ -338,7 +407,7 @@ func (chain *TestChain) GetAcknowledgement(packet exported.PacketI) []byte {
 		packet.GetDestChain(),
 		packet.GetSequence(),
 	)
-	require.True(chain.t, found)
+	require.True(chain.T, found)
 
 	return ack
 }
@@ -366,7 +435,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainN
 		)
 		consensusState = counterparty.LastHeader.ConsensusState()
 	default:
-		chain.t.Fatalf("unsupported client state type %s", clientType)
+		chain.T.Fatalf("unsupported client state type %s", clientType)
 	}
 
 	err := chain.App.TIBCKeeper.ClientKeeper.CreateClient(
@@ -375,7 +444,7 @@ func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainN
 		clientState, consensusState,
 	)
 
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 	return err
 }
 
@@ -391,13 +460,13 @@ func (chain *TestChain) CreateTMClient(counterparty *TestChain, chainName string
 // necessary for updating a Tendermint client.
 func (chain *TestChain) UpdateTMClient(counterparty *TestChain, chainName string) error {
 	header, err := chain.ConstructUpdateTMClientHeader(counterparty, chainName)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
 		chainName, header,
 		chain.SenderAccount.GetAddress(),
 	)
-	require.NoError(chain.t, err)
+	require.NoError(chain.T, err)
 
 	return chain.sendMsgs(msg)
 }
@@ -444,7 +513,6 @@ func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterpa
 		return nil, err
 	}
 	header.TrustedValidators = trustedVals
-
 	return header, nil
 
 }
@@ -458,7 +526,16 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 // CurrentTMClientHeader creates a TM header using the current header parameters
 // on the chain. The trusted fields in the header are set to nil.
 func (chain *TestChain) CurrentTMClientHeader() *ibctmtypes.Header {
-	return chain.CreateTMClientHeader(chain.ChainID, chain.CurrentHeader.Height, clienttypes.Height{}, chain.CurrentHeader.Time, chain.Vals, nil, chain.Signers)
+	return chain.CreateTMClientHeader(
+		chain.ChainID,
+		chain.CurrentHeader.Height,
+		clienttypes.Height{},
+		chain.CurrentHeader.Time,
+		chain.Vals,
+		chain.NextVals,
+		nil,
+		chain.Signers,
+	)
 }
 
 // CreateTMClientHeader creates a TM header to update the TM client. Args are passed in to allow
@@ -468,17 +545,19 @@ func (chain *TestChain) CreateTMClientHeader(
 	blockHeight int64,
 	trustedHeight clienttypes.Height,
 	timestamp time.Time,
-	tmValSet *tmtypes.ValidatorSet,
+	tmValSet,
+	nextVals,
 	tmTrustedVals *tmtypes.ValidatorSet,
-	signers []tmtypes.PrivValidator,
+	signers map[string]tmtypes.PrivValidator,
 ) *ibctmtypes.Header {
 	var (
 		valSet      *tmproto.ValidatorSet
 		trustedVals *tmproto.ValidatorSet
 	)
-	require.NotNil(chain.t, tmValSet)
+	require.NotNil(chain.T, tmValSet)
 
 	vsetHash := tmValSet.Hash()
+	nextValHash := nextVals.Hash()
 
 	tmHeader := tmtypes.Header{
 		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
@@ -489,19 +568,28 @@ func (chain *TestChain) CreateTMClientHeader(
 		LastCommitHash:     chain.App.LastCommitID().Hash,
 		DataHash:           tmhash.Sum([]byte("data_hash")),
 		ValidatorsHash:     vsetHash,
-		NextValidatorsHash: vsetHash,
+		NextValidatorsHash: nextValHash,
 		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
 		AppHash:            chain.CurrentHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
 	}
+
 	hhash := tmHeader.Hash()
 	blockID := MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
 	voteSet := tmtypes.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
 
-	commit, err := tmtypes.MakeCommit(blockID, blockHeight, 1, voteSet, signers, timestamp)
-	require.NoError(chain.t, err)
+	// MakeCommit expects a signer array in the same order as the validator array.
+	// Thus we iterate over the ordered validator set and construct a signer array
+	// from the signer map in the same order.
+	var signerArr []tmtypes.PrivValidator
+	for _, v := range tmValSet.Validators {
+		signerArr = append(signerArr, signers[v.Address.String()])
+	}
+
+	commit, err := MakeCommit(context.Background(), blockID, blockHeight, 1, voteSet, signerArr, timestamp)
+	require.NoError(chain.T, err)
 
 	signedHeader := &tmproto.SignedHeader{
 		Header: tmHeader.ToProto(),
@@ -510,16 +598,12 @@ func (chain *TestChain) CreateTMClientHeader(
 
 	if tmValSet != nil {
 		valSet, err = tmValSet.ToProto()
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(chain.T, err)
 	}
 
 	if tmTrustedVals != nil {
 		trustedVals, err = tmTrustedVals.ToProto()
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(chain.T, err)
 	}
 
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
