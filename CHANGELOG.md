@@ -37,6 +37,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.4.1] - 2022-11-18
+
+## Improvements
+* [\#118](https://github.com/bianjieai/tibc-go/pull/118) Bump up cosmos-sdk to v0.46.5
+* [\#118](https://github.com/bianjieai/tibc-go/pull/118) Bump up irismod to v1.7.1
+
 ## [v0.4.0] - 2022-11-15
 
 
