@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.4.2] - 2022-11-28
+
+* [\#119](https://github.com/bianjieai/tibc-go/pull/119) Bump up irismod to v1.7.2
+
 ## [v0.4.1] - 2022-11-18
 
 ## Improvements
