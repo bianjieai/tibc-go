@@ -20,8 +20,8 @@ var GovHandlers = []govclient.ProposalHandler{
 	govclient.NewProposalHandler(routingcli.NewSetRoutingRulesProposalCmd),
 }
 
-// NewClientProposalHandler defines the client manager proposal handler
-func NewClientProposalHandler(k *keeper.Keeper) govv1beta1.Handler {
+// NewProposalHandler defines the client manager proposal handler
+func NewProposalHandler(k *keeper.Keeper) govv1beta1.Handler {
 	return func(ctx sdk.Context, content govv1beta1.Content) error {
 		switch c := content.(type) {
 		case *clienttypes.CreateClientProposal:
