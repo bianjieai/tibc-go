@@ -101,11 +101,9 @@ import (
 	mttypes "github.com/irisnet/irismod/modules/mt/types"
 
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
-	tibcclient "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
-	tibcclienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	tibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
-	tibcrouting "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing"
 	tibcroutingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	corecli "github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	tibckeeper "github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 	tibcmock "github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 	simappparams "github.com/bianjieai/tibc-go/simapp/params"
@@ -116,6 +114,13 @@ const appName = "SimApp"
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
+
+	legacyProposalHandlers = []govclient.ProposalHandler{
+		paramsclient.ProposalHandler,
+		distrclient.ProposalHandler,
+		upgradeclient.LegacyProposalHandler,
+		upgradeclient.LegacyCancelProposalHandler,
+	}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -129,16 +134,7 @@ var (
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			[]govclient.ProposalHandler{
-				paramsclient.ProposalHandler,
-				distrclient.ProposalHandler,
-				upgradeclient.LegacyProposalHandler,
-				upgradeclient.LegacyCancelProposalHandler,
-				tibcclient.CreateClientProposalHandler,
-				tibcclient.UpgradeClientProposalHandler,
-				tibcclient.RegisterRelayerProposalHandler,
-				tibcrouting.SetRoutingRulesProposalHandler,
-			},
+			append(legacyProposalHandlers, corecli.GovHandlers...),
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -345,8 +341,7 @@ func NewSimApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(tibcclienttypes.RouterKey, tibcclient.NewClientProposalHandler(app.TIBCKeeper.ClientKeeper)).
-		AddRoute(tibcroutingtypes.RouterKey, tibcrouting.NewSetRoutingProposalHandler(app.TIBCKeeper.RoutingKeeper))
+		AddRoute(tibchost.RouterKey, corecli.NewProposalHandler(app.TIBCKeeper))
 	govConfig := govtypes.DefaultConfig()
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.AccountKeeper, app.BankKeeper,

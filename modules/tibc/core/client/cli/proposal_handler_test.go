@@ -1,4 +1,4 @@
-package client_test
+package cli_test
 
 import (
 	"testing"
@@ -9,8 +9,9 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
+	clientcli "github.com/bianjieai/tibc-go/modules/tibc/core/client/cli"
 	ibctesting "github.com/bianjieai/tibc-go/modules/tibc/testing"
 )
 
@@ -107,7 +108,7 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 
 			tc.malleate()
 
-			proposalHandler := client.NewClientProposalHandler(suite.chainA.App.TIBCKeeper.ClientKeeper)
+			proposalHandler := clientcli.NewProposalHandler(suite.chainA.App.TIBCKeeper)
 
 			err = proposalHandler(suite.chainA.GetContext(), content)
 
@@ -118,4 +119,58 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			}
 		})
 	}
+}
+
+func (suite *ClientTestSuite) TestNewSetRoutingRulesProposalHandler() {
+	var (
+		content govv1beta1.Content
+		err     error
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"valid routing rules proposal",
+			func() {
+				content, err = routingtypes.NewSetRoutingRulesProposal(ibctesting.Title, ibctesting.Description, []string{"source,dest,dgsbl"})
+				suite.Require().NoError(err)
+			}, true,
+		},
+		{
+			"nil proposal",
+			func() {
+				content = nil
+			}, false,
+		},
+		{
+			"unsupported proposal type",
+			func() {
+				content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
+			}, false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			proposalHandler := clientcli.NewProposalHandler(suite.chainA.App.TIBCKeeper)
+
+			err = proposalHandler(suite.chainA.GetContext(), content)
+
+			if tc.expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+
 }

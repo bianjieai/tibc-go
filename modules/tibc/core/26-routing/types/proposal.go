@@ -34,7 +34,7 @@ func (cup *SetRoutingRulesProposal) GetTitle() string { return cup.Title }
 func (cup *SetRoutingRulesProposal) GetDescription() string { return cup.Description }
 
 // ProposalRoute returns the routing key of a setting rules proposal.
-func (cup *SetRoutingRulesProposal) ProposalRoute() string { return RouterKey }
+func (cup *SetRoutingRulesProposal) ProposalRoute() string { return host.RouterKey }
 
 // ProposalType returns the type of a setting rules proposal.
 func (cup *SetRoutingRulesProposal) ProposalType() string { return ProposalTypeSetRoutingRules }
