@@ -37,6 +37,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.4.3]
+
+### Improvements
+
+* [\#121](https://github.com/bianjieai/tibc-go/pull/121) Bump cosmos version to v0.46.9
+
+### Bug Fixes
+
+* [\#122](https://github.com/bianjieai/tibc-go/pull/122) Fix: solve proposal handler route conflict
+
 ## [v0.4.2] - 2022-11-28
 
 * [\#119](https://github.com/bianjieai/tibc-go/pull/119) Bump up irismod to v1.7.2
@@ -44,14 +54,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.4.1] - 2022-11-18
 
 ## Improvements
+
 * [\#118](https://github.com/bianjieai/tibc-go/pull/118) Bump up cosmos-sdk to v0.46.5
 * [\#118](https://github.com/bianjieai/tibc-go/pull/118) Bump up irismod to v1.7.1
 
 ## [v0.4.0] - 2022-11-15
 
-
 ### Improvements
 
 * [\#114](https://github.com/bianjieai/tibc-go/pull/114) Bump up cosmos-sdk to v0.46.4.
 * [\#116](https://github.com/bianjieai/tibc-go/pull/116) Bump up irismod to v1.7.0
-
