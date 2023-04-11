@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* [\#124](https://github.com/bianjieai/tibc-go/pull/124) Bump irismod version to v1.7.3
 * [\#121](https://github.com/bianjieai/tibc-go/pull/121) Bump cosmos version to v0.46.9
 
 ### Bug Fixes
