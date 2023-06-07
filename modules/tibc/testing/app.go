@@ -15,6 +15,7 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,9 +26,9 @@ import (
 	"github.com/bianjieai/tibc-go/simapp"
 )
 
-var DefaultTestingAppInit func() (*simapp.SimApp, map[string]json.RawMessage) = SetupTestingApp
+var DefaultTestingAppInit func(chainID string) (*simapp.SimApp, map[string]json.RawMessage) = SetupTestingApp
 
-func SetupTestingApp() (*simapp.SimApp, map[string]json.RawMessage) {
+func SetupTestingApp(chainID string) (*simapp.SimApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
 	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(
@@ -40,6 +41,7 @@ func SetupTestingApp() (*simapp.SimApp, map[string]json.RawMessage) {
 		5,
 		encCdc,
 		simapp.EmptyAppOptions{},
+		baseapp.SetChainID(chainID),
 	)
 	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
 }
@@ -56,7 +58,7 @@ func SetupWithGenesisValSet(
 	powerReduction sdkmath.Int,
 	balances ...banktypes.Balance,
 ) *simapp.SimApp {
-	app, genesisState := DefaultTestingAppInit()
+	app, genesisState := DefaultTestingAppInit(chainID)
 
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
