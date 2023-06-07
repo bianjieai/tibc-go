@@ -33,11 +33,11 @@ message ClientState {
   tibc.core.client.v1.Height latest_height = 6 [ (gogoproto.nullable) = false ];
   // proof specifications used in verifying counterparty state
   repeated cosmos.ics23.v1.ProofSpec proof_specs = 7;
-  // commitment merkle prefix of the counterparty chain.
-  tibc.core.commitment.v1.MerklePrefix MerklePrefix = 8
+  // merkle_prefix merkle prefix of the counterparty chain.
+  tibc.core.commitment.v1.MerklePrefix merkle_prefix = 8
       [ (gogoproto.nullable) = false ];
   // period of transaction confirmation delay
-  uint64 timeDelay = 9;
+  uint64 time_delay = 9;
 }
 
 // ConsensusState defines the consensus state from Tendermint.
