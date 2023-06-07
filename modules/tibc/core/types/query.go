@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"

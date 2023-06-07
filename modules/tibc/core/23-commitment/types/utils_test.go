@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	abci "github.com/cometbft/cometbft/abci/types"
+	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 )
@@ -30,7 +30,10 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		"success for ExistenceProof",
 		func() {
 			res := suite.store.Query(abci.RequestQuery{
-				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Path: fmt.Sprintf(
+					"/%s/key",
+					suite.storeKey.Name(),
+				), // required path to get key/value+proof
 				Data:  []byte("MYKEY"),
 				Prove: true,
 			})
@@ -43,7 +46,10 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		"success for NonexistenceProof",
 		func() {
 			res := suite.store.Query(abci.RequestQuery{
-				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Path: fmt.Sprintf(
+					"/%s/key",
+					suite.storeKey.Name(),
+				), // required path to get key/value+proof
 				Data:  []byte("NOTMYKEY"),
 				Prove: true,
 			})
@@ -62,7 +68,10 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		"proof op data is nil",
 		func() {
 			res := suite.store.Query(abci.RequestQuery{
-				Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				Path: fmt.Sprintf(
+					"/%s/key",
+					suite.storeKey.Name(),
+				), // required path to get key/value+proof
 				Data:  []byte("MYKEY"),
 				Prove: true,
 			})
@@ -79,10 +88,12 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 
 		proof, err := types.ConvertProofs(proofOps)
 		if tc.expPass {
-			suite.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
+			suite.Require().
+				NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
 			if tc.keyExists {
 				err := proof.VerifyMembership(types.GetSDKSpecs(), &root, existsPath, value)
-				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
+				suite.Require().
+					NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
 			} else {
 				err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, nonexistPath)
 				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)

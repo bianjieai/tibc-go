@@ -2,12 +2,13 @@ package mock
 
 import (
 	"encoding/json"
+
 	tibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -47,7 +48,11 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis implements the AppModuleBasic interface.
-func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(
+	codec.JSONCodec,
+	client.TxEncodingConfig,
+	json.RawMessage,
+) error {
 	return nil
 }
 
@@ -77,26 +82,15 @@ func NewAppModule() AppModule {
 // RegisterInvariants implements the AppModule interface.
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// Route implements the AppModule interface.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(ModuleName, nil)
-}
-
-// QuerierRoute implements the AppModule interface.
-func (AppModule) QuerierRoute() string {
-	return ""
-}
-
-// LegacyQuerierHandler implements the AppModule interface.
-func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices implements the AppModule interface.
 func (am AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(
+	ctx sdk.Context,
+	cdc codec.JSONCodec,
+	data json.RawMessage,
+) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
@@ -122,7 +116,11 @@ func (am AppModule) OnRecvPacket(sdk.Context, packettypes.Packet) (*sdk.Result, 
 }
 
 // OnAcknowledgementPacket implements the TIBCModule interface.
-func (am AppModule) OnAcknowledgementPacket(sdk.Context, packettypes.Packet, []byte) (*sdk.Result, error) {
+func (am AppModule) OnAcknowledgementPacket(
+	sdk.Context,
+	packettypes.Packet,
+	[]byte,
+) (*sdk.Result, error) {
 	return nil, nil
 }
 

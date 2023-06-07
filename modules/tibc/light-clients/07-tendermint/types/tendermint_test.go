@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -102,11 +102,18 @@ func (suite *TendermintTestSuite) SetupTest() {
 	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now})
 }
 
-func getAltSigners(altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) map[string]tmtypes.PrivValidator {
+func getAltSigners(
+	altVal *tmtypes.Validator,
+	altPrivVal tmtypes.PrivValidator,
+) map[string]tmtypes.PrivValidator {
 	return map[string]tmtypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
 
-func getBothSigners(suite *TendermintTestSuite, altVal *tmtypes.Validator, altPrivVal tmtypes.PrivValidator) (*tmtypes.ValidatorSet, map[string]tmtypes.PrivValidator) {
+func getBothSigners(
+	suite *TendermintTestSuite,
+	altVal *tmtypes.Validator,
+	altPrivVal tmtypes.PrivValidator,
+) (*tmtypes.ValidatorSet, map[string]tmtypes.PrivValidator) {
 	// Create bothValSet with both suite validator and altVal. Would be valid update
 	bothValSet := tmtypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
 	// Create signer array and ensure it is in same order as bothValSet

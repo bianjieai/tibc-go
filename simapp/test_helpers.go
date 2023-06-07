@@ -11,12 +11,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -38,8 +37,8 @@ import (
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // SimApp testing.
-var DefaultConsensusParams = &abcitypes.ConsensusParams{
-	Block: &abcitypes.BlockParams{
+var DefaultConsensusParams = &tmproto.ConsensusParams{
+	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   2000000,
 	},
@@ -58,7 +57,17 @@ var DefaultConsensusParams = &abcitypes.ConsensusParams{
 func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeTestEncodingConfig()
-	app := NewSimApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
+	app := NewSimApp(
+		log.NewNopLogger(),
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		invCheckPeriod,
+		encCdc,
+		EmptyAppOptions{},
+	)
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Codec)
 	}
@@ -76,7 +85,12 @@ func Setup(isCheckTx bool) *SimApp {
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
+	acc := authtypes.NewBaseAccount(
+		senderPrivKey.PubKey().Address().Bytes(),
+		senderPrivKey.PubKey(),
+		0,
+		0,
+	)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
@@ -91,7 +105,11 @@ func Setup(isCheckTx bool) *SimApp {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
+func SetupWithGenesisValSet(
+	valSet *tmtypes.ValidatorSet,
+	genAccs []authtypes.GenesisAccount,
+	balances ...banktypes.Balance,
+) *SimApp {
 
 	app, genesisState := setup(true, 5)
 	genesisState = genesisStateWithValSet(app, genesisState, valSet, genAccs, balances...)
@@ -135,24 +153,35 @@ func genesisStateWithValSet(app *SimApp, genesisState GenesisState,
 		pk, _ := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		pkAny, _ := codectypes.NewAnyWithValue(pk)
 		validator := stakingtypes.Validator{
-			OperatorAddress:   sdk.ValAddress(val.Address).String(),
-			ConsensusPubkey:   pkAny,
-			Jailed:            false,
-			Status:            stakingtypes.Bonded,
-			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
-			Description:       stakingtypes.Description{},
-			UnbondingHeight:   int64(0),
-			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+			OperatorAddress: sdk.ValAddress(val.Address).String(),
+			ConsensusPubkey: pkAny,
+			Jailed:          false,
+			Status:          stakingtypes.Bonded,
+			Tokens:          bondAmt,
+			DelegatorShares: sdk.OneDec(),
+			Description:     stakingtypes.Description{},
+			UnbondingHeight: int64(0),
+			UnbondingTime:   time.Unix(0, 0).UTC(),
+			Commission: stakingtypes.NewCommission(
+				sdk.ZeroDec(),
+				sdk.ZeroDec(),
+				sdk.ZeroDec(),
+			),
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(
+			delegations,
+			stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()),
+		)
 
 	}
 	// set validators and delegations
-	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
+	stakingGenesis := stakingtypes.NewGenesisState(
+		stakingtypes.DefaultParams(),
+		validators,
+		delegations,
+	)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
@@ -173,7 +202,13 @@ func genesisStateWithValSet(app *SimApp, genesisState GenesisState,
 	})
 
 	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
+	bankGenesis := banktypes.NewGenesisState(
+		banktypes.DefaultGenesisState().Params,
+		balances,
+		totalSupply,
+		[]banktypes.Metadata{},
+		[]banktypes.SendEnabled{},
+	)
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
@@ -222,11 +257,22 @@ func AddTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sd
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
-func AddTestAddrsIncremental(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int) []sdk.AccAddress {
+func AddTestAddrsIncremental(
+	app *SimApp,
+	ctx sdk.Context,
+	accNum int,
+	accAmt sdk.Int,
+) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createIncrementalAccounts)
 }
 
-func addTestAddrs(app *SimApp, ctx sdk.Context, accNum int, accAmt sdk.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
+func addTestAddrs(
+	app *SimApp,
+	ctx sdk.Context,
+	accNum int,
+	accAmt sdk.Int,
+	strategy GenerateAccountStrategy,
+) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
 	initCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, accAmt))
@@ -291,8 +337,15 @@ func CheckBalance(t *testing.T, app *SimApp, addr sdk.AccAddress, balances sdk.C
 //
 // CONTRACT: BeginBlock must be called before this function.
 func SignAndDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+	t *testing.T,
+	txCfg client.TxConfig,
+	app *bam.BaseApp,
+	header tmproto.Header,
+	msgs []sdk.Msg,
+	chainID string,
+	accNums, accSeqs []uint64,
+	expSimPass, expPass bool,
+	priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 
 	tx, err := helpers.GenTx(
@@ -324,7 +377,14 @@ func SignAndDeliver(
 // GenSequenceOfTxs generates a set of signed transactions of messages, such
 // that they differ only by having the sequence numbers incremented between
 // every transaction.
-func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
+func GenSequenceOfTxs(
+	txGen client.TxConfig,
+	msgs []sdk.Msg,
+	accNums []uint64,
+	initSeqNums []uint64,
+	numToGenerate int,
+	priv ...cryptotypes.PrivKey,
+) ([]sdk.Tx, error) {
 	txs := make([]sdk.Tx, numToGenerate)
 	var err error
 	for i := 0; i < numToGenerate; i++ {
@@ -361,8 +421,12 @@ func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
 	// start at 10 to avoid changing 1 to 01, 2 to 02, etc
 	for i := 100; i < (numPubKeys + 100); i++ {
 		numString := strconv.Itoa(i)
-		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
-		buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
+		buffer.WriteString(
+			"0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF",
+		) // base pubkey string
+		buffer.WriteString(
+			numString,
+		) // adding on final two digits to make pubkeys unique
 		publicKeys = append(publicKeys, NewPubKeyFromHex(buffer.String()))
 		buffer.Reset()
 	}

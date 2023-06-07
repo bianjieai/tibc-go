@@ -5,8 +5,8 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -181,6 +181,7 @@ type Acknowledgement struct {
 	// response contains either a result or an error and must be non-empty
 	//
 	// Types that are valid to be assigned to Response:
+	//
 	//	*Acknowledgement_Result
 	//	*Acknowledgement_Error
 	Response isAcknowledgement_Response `protobuf_oneof:"response"`

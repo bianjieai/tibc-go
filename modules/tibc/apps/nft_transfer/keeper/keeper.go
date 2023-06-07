@@ -1,14 +1,14 @@
 package keeper
 
 import (
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -74,7 +74,10 @@ func (k Keeper) SetClassTrace(ctx sdk.Context, classTrace types.ClassTrace) {
 }
 
 // GetClassTrace retreives the full identifiers trace and base class from the store.
-func (k Keeper) GetClassTrace(ctx sdk.Context, classTraceHash tmbytes.HexBytes) (types.ClassTrace, bool) {
+func (k Keeper) GetClassTrace(
+	ctx sdk.Context,
+	classTraceHash tmbytes.HexBytes,
+) (types.ClassTrace, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ClassTraceKey)
 	bz := store.Get(classTraceHash)
 	if bz == nil {

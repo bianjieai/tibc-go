@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/url"
 
-	ics23 "github.com/confio/ics23/go"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
+	ics23 "github.com/cosmos/ics23/go"
 
-	tmcrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -131,7 +131,12 @@ func ApplyPrefix(prefix exported.Prefix, path MerklePath) (MerklePath, error) {
 var _ exported.Proof = (*MerkleProof)(nil)
 
 // VerifyMembership verifies the membership pf a merkle proof against the given root, path, and value.
-func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, value []byte) error {
+func (proof MerkleProof) VerifyMembership(
+	specs []*ics23.ProofSpec,
+	root exported.Root,
+	path exported.Path,
+	value []byte,
+) error {
 	if err := proof.validateVerificationArgs(specs, root); err != nil {
 		return err
 	}
@@ -163,7 +168,11 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 // VerifyNonMembership verifies the absence of a merkle proof against the given root and path.
 // VerifyNonMembership verifies a chained proof where the absence of a given path is proven
 // at the lowest subtree and then each subtree's inclusion is proved up to the final root.
-func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path) error {
+func (proof MerkleProof) VerifyNonMembership(
+	specs []*ics23.ProofSpec,
+	root exported.Root,
+	path exported.Path,
+) error {
 	if err := proof.validateVerificationArgs(specs, root); err != nil {
 		return err
 	}
@@ -217,13 +226,23 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 
 // BatchVerifyMembership verifies a group of key value pairs against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (proof MerkleProof) BatchVerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items map[string][]byte) error {
+func (proof MerkleProof) BatchVerifyMembership(
+	specs []*ics23.ProofSpec,
+	root exported.Root,
+	path exported.Path,
+	items map[string][]byte,
+) error {
 	return sdkerrors.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
 // BatchVerifyNonMembership verifies absence of a group of keys against the given root
 // NOTE: Currently left unimplemented as it is unused
-func (proof MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items [][]byte) error {
+func (proof MerkleProof) BatchVerifyNonMembership(
+	specs []*ics23.ProofSpec,
+	root exported.Root,
+	path exported.Path,
+	items [][]byte,
+) error {
 	return sdkerrors.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
@@ -232,7 +251,14 @@ func (proof MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root
 // The proofs and specs are passed in from lowest subtree to the highest subtree, but the keys are passed in from highest subtree to lowest.
 // The index specifies what index to start chaining the membership proofs, this is useful since the lowest proof may not be a membership proof, thus we
 // will want to start the membership proof chaining from index 1 with value being the lowest subroot
-func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs []*ics23.CommitmentProof, keys MerklePath, value []byte, index int) error {
+func verifyChainedMembershipProof(
+	root []byte,
+	specs []*ics23.ProofSpec,
+	proofs []*ics23.CommitmentProof,
+	keys MerklePath,
+	value []byte,
+	index int,
+) error {
 	var (
 		subroot []byte
 		err     error
@@ -284,7 +310,8 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 		return sdkerrors.Wrapf(
 			ErrInvalidProof,
 			"proof did not commit to expected root: %X, got: %X. Please ensure proof was submitted with correct proofHeight and to the correct chain.",
-			root, subroot,
+			root,
+			subroot,
 		)
 	}
 	return nil
@@ -309,7 +336,10 @@ func (proof MerkleProof) ValidateBasic() error {
 }
 
 // validateVerificationArgs verifies the proof arguments are valid
-func (proof MerkleProof) validateVerificationArgs(specs []*ics23.ProofSpec, root exported.Root) error {
+func (proof MerkleProof) validateVerificationArgs(
+	specs []*ics23.ProofSpec,
+	root exported.Root,
+) error {
 	if proof.Empty() {
 		return sdkerrors.Wrap(ErrInvalidMerkleProof, "proof cannot be empty")
 	}

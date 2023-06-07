@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	ics23 "github.com/confio/ics23/go"
+	ics23 "github.com/cosmos/ics23/go"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
@@ -24,41 +24,131 @@ func (suite *TendermintTestSuite) TestValidate() {
 		clientState *types.ClientState
 		expPass     bool
 	}{{
-		name:        "invalid chainID",
-		clientState: types.NewClientState("  ", types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid chainID",
+		clientState: types.NewClientState(
+			"  ",
+			types.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "invalid trust level",
-		clientState: types.NewClientState(chainID, types.Fraction{Numerator: 0, Denominator: 1}, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid trust level",
+		clientState: types.NewClientState(
+			chainID,
+			types.Fraction{Numerator: 0, Denominator: 1},
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "invalid trusting period",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, 0, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid trusting period",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			0,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "invalid unbonding period",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, 0, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid unbonding period",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			trustingPeriod,
+			0,
+			maxClockDrift,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "invalid max clock drift",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, 0, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid max clock drift",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			0,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "invalid height",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, clienttypes.ZeroHeight(), commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "invalid height",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			clienttypes.ZeroHeight(),
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "trusting period not less than unbonding period",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), prefix, 0),
-		expPass:     false,
+		name: "trusting period not less than unbonding period",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			ubdPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			commitmenttypes.GetSDKSpecs(),
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "proof specs is nil",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, nil, prefix, 0),
-		expPass:     false,
+		name: "proof specs is nil",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			ubdPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			nil,
+			prefix,
+			0,
+		),
+		expPass: false,
 	}, {
-		name:        "proof specs contains nil",
-		clientState: types.NewClientState(chainID, types.DefaultTrustLevel, ubdPeriod, ubdPeriod, maxClockDrift, height, []*ics23.ProofSpec{ics23.TendermintSpec, nil}, prefix, 0),
-		expPass:     false,
+		name: "proof specs contains nil",
+		clientState: types.NewClientState(
+			chainID,
+			types.DefaultTrustLevel,
+			ubdPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			height,
+			[]*ics23.ProofSpec{ics23.TendermintSpec, nil},
+			prefix,
+			0,
+		),
+		expPass: false,
 	}}
 
 	for _, tc := range testCases {
@@ -87,12 +177,21 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	suite.Require().NoError(err)
 
 	clientState := path.EndpointA.GetClientState()
-	relayers := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.Chain.ChainName)
-	suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
+	relayers := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(
+		path.EndpointA.Chain.GetContext(),
+		path.EndpointA.Counterparty.Chain.ChainName,
+	)
+	suite.Require().
+		Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayers[0], "relayer does not match")
 	store := path.EndpointA.ClientStore()
 
 	for _, tc := range testCases {
-		err := clientState.Initialize(suite.chainA.GetContext(), suite.chainA.Codec, store, tc.consensusState)
+		err := clientState.Initialize(
+			suite.chainA.GetContext(),
+			suite.chainA.Codec,
+			store,
+			tc.consensusState,
+		)
 		if tc.expPass {
 			suite.Require().NoError(err, "valid case returned an error")
 		} else {
@@ -143,14 +242,29 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 
 			suite.coordinator.SetupClients(path)
 
-			relayerAs := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointA.Chain.GetContext(), path.EndpointA.Counterparty.Chain.ChainName)
-			suite.Require().Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
+			relayerAs := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(
+				path.EndpointA.Chain.GetContext(),
+				path.EndpointA.Counterparty.Chain.ChainName,
+			)
+			suite.Require().
+				Equal(path.EndpointA.Chain.SenderAccount.GetAddress().String(), relayerAs[0], "relayer does not match")
 
-			relayerBs := path.EndpointB.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(path.EndpointB.Chain.GetContext(), path.EndpointB.Counterparty.Chain.ChainName)
-			suite.Require().Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
+			relayerBs := path.EndpointB.Chain.App.TIBCKeeper.ClientKeeper.GetRelayers(
+				path.EndpointB.Chain.GetContext(),
+				path.EndpointB.Counterparty.Chain.ChainName,
+			)
+			suite.Require().
+				Equal(path.EndpointB.Chain.SenderAccount.GetAddress().String(), relayerBs[0], "relayer does not match")
 
 			// setup testing conditions
-			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, "", tibctesting.MockPort)
+			packet := packettypes.NewPacket(
+				tibctesting.TestHash,
+				1,
+				path.EndpointA.Chain.ChainName,
+				path.EndpointB.Chain.ChainName,
+				"",
+				tibctesting.MockPort,
+			)
 
 			err := path.EndpointA.SendPacket(packet)
 			suite.Require().NoError(err)
@@ -161,7 +275,11 @@ func (suite *TendermintTestSuite) TestVerifyPacketCommitment() {
 			suite.Require().True(ok)
 
 			// make packet commitment proof
-			packetKey := host.PacketCommitmentKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+			packetKey := host.PacketCommitmentKey(
+				packet.GetSourceChain(),
+				packet.GetDestChain(),
+				packet.GetSequence(),
+			)
 			proof, proofHeight = suite.chainA.QueryProof(packetKey)
 
 			tc.malleate() // make changes as necessary
@@ -225,7 +343,14 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			path := tibctesting.NewPath(suite.chainA, suite.chainB)
 			suite.coordinator.SetupClients(path)
 
-			packet := packettypes.NewPacket(tibctesting.TestHash, 1, path.EndpointA.Chain.ChainName, path.EndpointB.Chain.ChainName, "", tibctesting.MockPort)
+			packet := packettypes.NewPacket(
+				tibctesting.TestHash,
+				1,
+				path.EndpointA.Chain.ChainName,
+				path.EndpointB.Chain.ChainName,
+				"",
+				tibctesting.MockPort,
+			)
 
 			// send packet
 			err := path.EndpointA.SendPacket(packet)
@@ -243,7 +368,11 @@ func (suite *TendermintTestSuite) TestVerifyPacketAcknowledgement() {
 			prefix = suite.chainB.GetPrefix()
 
 			// make packet acknowledgement proof
-			acknowledgementKey := host.PacketAcknowledgementKey(packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
+			acknowledgementKey := host.PacketAcknowledgementKey(
+				packet.GetSourceChain(),
+				packet.GetDestChain(),
+				packet.GetSequence(),
+			)
 			proof, proofHeight = suite.chainB.QueryProof(acknowledgementKey)
 
 			// reset time and block delays to 0, malleate may change to a specific non-zero value.

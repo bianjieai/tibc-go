@@ -4,7 +4,7 @@ package tibc.core.commitment.v1;
 option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types";
 
 import "gogoproto/gogo.proto";
-import "confio/proofs.proto";
+import "cosmos/ics23/v1/proofs.proto";
 
 // MerkleRoot defines a merkle root hash.
 // In the Cosmos SDK, the AppHash of a block header becomes the root.
@@ -35,4 +35,4 @@ message MerklePath {
 // elements, verifiable in conjunction with a known commitment root. Proofs
 // should be succinct.
 // MerkleProofs are ordered from leaf-to-root
-message MerkleProof { repeated ics23.CommitmentProof proofs = 1; }
+message MerkleProof { repeated cosmos.ics23.v1.CommitmentProof proofs = 1; }

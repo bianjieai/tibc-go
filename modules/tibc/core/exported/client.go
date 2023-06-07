@@ -1,7 +1,7 @@
 package exported
 
 import (
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,7 +60,12 @@ type ClientState interface {
 	ExportMetadata(sdk.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
-	CheckHeaderAndUpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, Header) (ClientState, ConsensusState, error)
+	CheckHeaderAndUpdateState(
+		sdk.Context,
+		codec.BinaryCodec,
+		sdk.KVStore,
+		Header,
+	) (ClientState, ConsensusState, error)
 
 	// State verification functions
 	// Verify the commitment of the cross-chain data package

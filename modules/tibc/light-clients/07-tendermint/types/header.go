@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -50,7 +50,10 @@ func (h Header) GetTime() time.Time {
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
 	if h.SignedHeader == nil {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "tendermint signed header cannot be nil")
+		return sdkerrors.Wrap(
+			clienttypes.ErrInvalidHeader,
+			"tendermint signed header cannot be nil",
+		)
 	}
 	if h.Header == nil {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "tendermint header cannot be nil")
@@ -66,8 +69,12 @@ func (h Header) ValidateBasic() error {
 	// TrustedHeight is less than Header for updates
 	// and less than or equal to Header for misbehaviour
 	if h.TrustedHeight.GT(h.GetHeight()) {
-		return sdkerrors.Wrapf(ErrInvalidHeaderHeight, "TrustedHeight %d must be less than or equal to header height %d",
-			h.TrustedHeight, h.GetHeight())
+		return sdkerrors.Wrapf(
+			ErrInvalidHeaderHeight,
+			"TrustedHeight %d must be less than or equal to header height %d",
+			h.TrustedHeight,
+			h.GetHeight(),
+		)
 	}
 
 	if h.ValidatorSet == nil {

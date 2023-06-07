@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/testing/mock"
 )

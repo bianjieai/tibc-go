@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -20,7 +20,10 @@ var (
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
-func NewIdentifiedClientState(chainName string, clientState exported.ClientState) IdentifiedClientState {
+func NewIdentifiedClientState(
+	chainName string,
+	clientState exported.ClientState,
+) IdentifiedClientState {
 	msg, ok := clientState.(proto.Message)
 	if !ok {
 		panic(fmt.Errorf("cannot proto marshal %T", clientState))
@@ -63,7 +66,10 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 }
 
 // NewConsensusStateWithHeight creates a new ConsensusStateWithHeight instance
-func NewConsensusStateWithHeight(height Height, consensusState exported.ConsensusState) ConsensusStateWithHeight {
+func NewConsensusStateWithHeight(
+	height Height,
+	consensusState exported.ConsensusState,
+) ConsensusStateWithHeight {
 	msg, ok := consensusState.(proto.Message)
 	if !ok {
 		panic(fmt.Errorf("cannot proto marshal %T", consensusState))

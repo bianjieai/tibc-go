@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -84,7 +84,9 @@ func (suite *TIBCTestSuite) TestValidateGenesis() {
 							clienttypes.NewConsensusStateWithHeight(
 								header.GetHeight().(clienttypes.Height),
 								tibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+									header.GetTime(),
+									commitmenttypes.NewMerkleRoot(header.Header.AppHash),
+									header.Header.NextValidatorsHash,
 								),
 							),
 						},
@@ -180,7 +182,9 @@ func (suite *TIBCTestSuite) TestInitGenesis() {
 							clienttypes.NewConsensusStateWithHeight(
 								header.GetHeight().(clienttypes.Height),
 								tibctmtypes.NewConsensusState(
-									header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.AppHash), header.Header.NextValidatorsHash,
+									header.GetTime(),
+									commitmenttypes.NewMerkleRoot(header.Header.AppHash),
+									header.Header.NextValidatorsHash,
 								),
 							),
 						},
@@ -204,7 +208,12 @@ func (suite *TIBCTestSuite) TestInitGenesis() {
 		app := simapp.Setup(false)
 
 		suite.NotPanics(func() {
-			tibc.InitGenesis(app.BaseApp.NewContext(false, tmproto.Header{Height: 1}), *app.TIBCKeeper, true, tc.genState)
+			tibc.InitGenesis(
+				app.BaseApp.NewContext(false, tmproto.Header{Height: 1}),
+				*app.TIBCKeeper,
+				true,
+				tc.genState,
+			)
 		})
 	}
 }

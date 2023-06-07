@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,7 +53,11 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	}
 	routingBz, err := json.Marshal(rules)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrFailMarshalRules, "failed to marshal rules: %s", err.Error())
+		return sdkerrors.Wrapf(
+			types.ErrFailMarshalRules,
+			"failed to marshal rules: %s",
+			err.Error(),
+		)
 	}
 	store := ctx.KVStore(k.storeKey)
 	store.Set(host.RoutingRulesKey(), routingBz)
@@ -80,7 +84,10 @@ func (k Keeper) Authenticate(ctx sdk.Context, sourceChain, destinationChain, por
 	}
 	flag := false
 	for _, rule := range rules {
-		flag, _ = regexp.MatchString(ConvWildcardToRegular(rule), sourceChain+","+destinationChain+","+port)
+		flag, _ = regexp.MatchString(
+			ConvWildcardToRegular(rule),
+			sourceChain+","+destinationChain+","+port,
+		)
 		if flag {
 			break
 		}

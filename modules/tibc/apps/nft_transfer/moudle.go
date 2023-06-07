@@ -4,12 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/client/cli"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
@@ -40,7 +38,11 @@ func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
-func (a AppModuleBasic) ValidateGenesis(jsonCodec codec.JSONCodec, config client.TxEncodingConfig, message json.RawMessage) error {
+func (a AppModuleBasic) ValidateGenesis(
+	jsonCodec codec.JSONCodec,
+	config client.TxEncodingConfig,
+	message json.RawMessage,
+) error {
 	return nil
 }
 
@@ -82,20 +84,6 @@ func (a AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-func (a AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-func (a AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return nil
-}
-
-func (a AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {}
-
-func (a AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	panic("implement me")
-}
-
 // NewAppModule creates a new tibc-nft-transfer module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
@@ -103,7 +91,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (a AppModule) InitGenesis(
+	ctx sdk.Context,
+	cdc codec.JSONCodec,
+	data json.RawMessage,
+) []abci.ValidatorUpdate {
 	return nil
 }
 
@@ -111,21 +103,7 @@ func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONCodec)
 	return nil
 }
 
-func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {
-	// TODO
-}
-
-func (a AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(a.keeper))
-}
-
-func (a AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-func (a AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
+func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
@@ -145,11 +123,18 @@ func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.V
 	return []abci.ValidatorUpdate{}
 }
 
-func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sdk.Result, []byte, error) {
+func (a AppModule) OnRecvPacket(
+	ctx sdk.Context,
+	packet packettypes.Packet,
+) (*sdk.Result, []byte, error) {
 
 	var data types.NonFungibleTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 nft-transfer packet data: %s", err.Error())
+		return nil, nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal TICS-30 nft-transfer packet data: %s",
+			err.Error(),
+		)
 	}
 
 	acknowledgement := packettypes.NewResultAcknowledgement([]byte{byte(1)})
@@ -177,14 +162,26 @@ func (a AppModule) OnRecvPacket(ctx sdk.Context, packet packettypes.Packet) (*sd
 	}, acknowledgement.GetBytes(), nil
 }
 
-func (a AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet packettypes.Packet, acknowledgement []byte) (*sdk.Result, error) {
+func (a AppModule) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet packettypes.Packet,
+	acknowledgement []byte,
+) (*sdk.Result, error) {
 	var ack packettypes.Acknowledgement
 	if err := ack.Unmarshal(acknowledgement); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet acknowledgement: %v", err)
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal TICS-30 transfer packet acknowledgement: %v",
+			err,
+		)
 	}
 	var data types.NonFungibleTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal TICS-30 transfer packet data: %s", err.Error())
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnknownRequest,
+			"cannot unmarshal TICS-30 transfer packet data: %s",
+			err.Error(),
+		)
 	}
 
 	if err := a.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {

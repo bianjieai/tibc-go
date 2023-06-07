@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/tendermint/tendermint/crypto"
+	"github.com/cometbft/cometbft/crypto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -33,7 +33,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainB = suite.coordinator.GetChain(tibctesting.GetChainID(1))
 	suite.chainC = suite.coordinator.GetChain(tibctesting.GetChainID(2))
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.App.InterfaceRegistry())
+	queryHelper := baseapp.NewQueryServerTestHelper(
+		suite.chainA.GetContext(),
+		suite.chainA.App.InterfaceRegistry(),
+	)
 	types.RegisterQueryServer(queryHelper, suite.chainA.App.MtTransferKeeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }

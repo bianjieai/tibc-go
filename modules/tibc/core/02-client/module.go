@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/gogo/protobuf/grpc"
+	"github.com/cosmos/gogoproto/grpc"
 	"github.com/spf13/cobra"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/client/cli"
