@@ -75,7 +75,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*SimApp, GenesisState) {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool) *SimApp {
+func Setup(_ bool) *SimApp {
 	privVal := mock.NewPV()
 	pubKey, _ := privVal.GetPubKey()
 
@@ -340,11 +340,11 @@ func SignAndDeliver(
 	t *testing.T,
 	txCfg client.TxConfig,
 	app *bam.BaseApp,
-	header tmproto.Header,
+	_ tmproto.Header,
 	msgs []sdk.Msg,
 	chainID string,
 	accNums, accSeqs []uint64,
-	expSimPass, expPass bool,
+	_, expPass bool,
 	priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 
