@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -70,7 +70,18 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewSimApp(
+		logger,
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		FlagPeriodValue,
+		MakeTestEncodingConfig(),
+		EmptyAppOptions{},
+		fauxMerkleModeOpt,
+	)
 	require.Equal(t, "SimApp", app.Name())
 
 	// run randomized simulation
@@ -108,7 +119,18 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewSimApp(
+		logger,
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		FlagPeriodValue,
+		MakeTestEncodingConfig(),
+		EmptyAppOptions{},
+		fauxMerkleModeOpt,
+	)
 	require.Equal(t, "SimApp", app.Name())
 
 	// Run randomized simulation
@@ -148,7 +170,18 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewSimApp(
+		log.NewNopLogger(),
+		newDB,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		FlagPeriodValue,
+		MakeTestEncodingConfig(),
+		EmptyAppOptions{},
+		fauxMerkleModeOpt,
+	)
 	require.Equal(t, "SimApp", newApp.Name())
 
 	var genesisState GenesisState
@@ -172,7 +205,11 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[slashingtypes.StoreKey], newApp.keys[slashingtypes.StoreKey], [][]byte{}},
 		{app.keys[minttypes.StoreKey], newApp.keys[minttypes.StoreKey], [][]byte{}},
 		{app.keys[distrtypes.StoreKey], newApp.keys[distrtypes.StoreKey], [][]byte{}},
-		{app.keys[banktypes.StoreKey], newApp.keys[banktypes.StoreKey], [][]byte{banktypes.BalancesPrefix}},
+		{
+			app.keys[banktypes.StoreKey],
+			newApp.keys[banktypes.StoreKey],
+			[][]byte{banktypes.BalancesPrefix},
+		},
 		{app.keys[paramtypes.StoreKey], newApp.keys[paramtypes.StoreKey], [][]byte{}},
 		{app.keys[govtypes.StoreKey], newApp.keys[govtypes.StoreKey], [][]byte{}},
 		{app.keys[evidencetypes.StoreKey], newApp.keys[evidencetypes.StoreKey], [][]byte{}},
@@ -187,8 +224,23 @@ func TestAppImportExport(t *testing.T) {
 		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
 		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
 
-		fmt.Printf("compared %d different key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
-		require.Equal(t, len(failedKVAs), 0, GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
+		fmt.Printf(
+			"compared %d different key/value pairs between %s and %s\n",
+			len(failedKVAs),
+			skp.A,
+			skp.B,
+		)
+		require.Equal(
+			t,
+			len(failedKVAs),
+			0,
+			GetSimulationLog(
+				skp.A.Name(),
+				app.SimulationManager().StoreDecoders,
+				failedKVAs,
+				failedKVBs,
+			),
+		)
 	}
 }
 
@@ -204,7 +256,18 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewSimApp(
+		logger,
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		FlagPeriodValue,
+		MakeTestEncodingConfig(),
+		EmptyAppOptions{},
+		fauxMerkleModeOpt,
+	)
 	require.Equal(t, "SimApp", app.Name())
 
 	// Run randomized simulation
@@ -249,7 +312,18 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewSimApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewSimApp(
+		log.NewNopLogger(),
+		newDB,
+		nil,
+		true,
+		map[int64]bool{},
+		DefaultNodeHome,
+		FlagPeriodValue,
+		MakeTestEncodingConfig(),
+		EmptyAppOptions{},
+		fauxMerkleModeOpt,
+	)
 	require.Equal(t, "SimApp", newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -300,7 +374,18 @@ func TestAppStateDeterminism(t *testing.T) {
 			}
 
 			db := dbm.NewMemDB()
-			app := NewSimApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, FlagPeriodValue, MakeTestEncodingConfig(), EmptyAppOptions{}, interBlockCacheOpt())
+			app := NewSimApp(
+				logger,
+				db,
+				nil,
+				true,
+				map[int64]bool{},
+				DefaultNodeHome,
+				FlagPeriodValue,
+				MakeTestEncodingConfig(),
+				EmptyAppOptions{},
+				interBlockCacheOpt(),
+			)
 
 			fmt.Printf(
 				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
@@ -329,8 +414,15 @@ func TestAppStateDeterminism(t *testing.T) {
 
 			if j != 0 {
 				require.Equal(
-					t, string(appHashList[0]), string(appHashList[j]),
-					"non-determinism in seed %d: %d/%d, attempt: %d/%d\n", config.Seed, i+1, numSeeds, j+1, numTimesToRunPerSeed,
+					t,
+					string(appHashList[0]),
+					string(appHashList[j]),
+					"non-determinism in seed %d: %d/%d, attempt: %d/%d\n",
+					config.Seed,
+					i+1,
+					numSeeds,
+					j+1,
+					numTimesToRunPerSeed,
 				)
 			}
 		}

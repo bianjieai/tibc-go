@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -54,7 +52,13 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			clientState := path.EndpointA.GetClientState()
 			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
-			content, err = clienttypes.NewCreateClientProposal(ibctesting.Title, ibctesting.Description, "test-chain-name", clientState, consensusState)
+			content, err = clienttypes.NewCreateClientProposal(
+				ibctesting.Title,
+				ibctesting.Description,
+				"test-chain-name",
+				clientState,
+				consensusState,
+			)
 			suite.Require().NoError(err)
 		},
 		true,
@@ -67,7 +71,13 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 			clientState := path.EndpointA.GetClientState()
 			consensusState := path.EndpointA.GetConsensusState(clientState.GetLatestHeight())
 
-			content, err = clienttypes.NewUpgradeClientProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.Chain.ChainName, clientState, consensusState)
+			content, err = clienttypes.NewUpgradeClientProposal(
+				ibctesting.Title,
+				ibctesting.Description,
+				path.EndpointB.Chain.ChainName,
+				clientState,
+				consensusState,
+			)
 			suite.Require().NoError(err)
 		},
 		true,
@@ -83,7 +93,12 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 				suite.chainB.SenderAccount.GetAddress().String(),
 			}
 
-			content = clienttypes.NewRegisterRelayerProposal(ibctesting.Title, ibctesting.Description, path.EndpointB.Chain.ChainName, relayers)
+			content = clienttypes.NewRegisterRelayerProposal(
+				ibctesting.Title,
+				ibctesting.Description,
+				path.EndpointB.Chain.ChainName,
+				relayers,
+			)
 			suite.Require().NoError(err)
 		},
 		true,
@@ -91,12 +106,6 @@ func (suite *ClientTestSuite) TestNewClientUpdateProposalHandler() {
 		"nil proposal",
 		func() {
 			content = nil
-		},
-		false,
-	}, {
-		"unsupported proposal type",
-		func() {
-			content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
 		},
 		false,
 	}}
@@ -135,7 +144,11 @@ func (suite *ClientTestSuite) TestNewSetRoutingRulesProposalHandler() {
 		{
 			"valid routing rules proposal",
 			func() {
-				content, err = routingtypes.NewSetRoutingRulesProposal(ibctesting.Title, ibctesting.Description, []string{"source,dest,dgsbl"})
+				content, err = routingtypes.NewSetRoutingRulesProposal(
+					ibctesting.Title,
+					ibctesting.Description,
+					[]string{"source,dest,dgsbl"},
+				)
 				suite.Require().NoError(err)
 			}, true,
 		},
@@ -143,12 +156,6 @@ func (suite *ClientTestSuite) TestNewSetRoutingRulesProposalHandler() {
 			"nil proposal",
 			func() {
 				content = nil
-			}, false,
-		},
-		{
-			"unsupported proposal type",
-			func() {
-				content = distributiontypes.NewCommunityPoolSpendProposal(ibctesting.Title, ibctesting.Description, suite.chainA.SenderAccount.GetAddress(), sdk.NewCoins(sdk.NewCoin("communityfunds", sdk.NewInt(10))))
 			}, false,
 		},
 	}

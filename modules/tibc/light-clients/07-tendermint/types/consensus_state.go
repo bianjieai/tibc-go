@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -50,7 +50,10 @@ func (cs ConsensusState) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "next validators hash is invalid")
 	}
 	if cs.Timestamp.Unix() <= 0 {
-		return sdkerrors.Wrap(clienttypes.ErrInvalidConsensus, "timestamp must be a positive Unix time")
+		return sdkerrors.Wrap(
+			clienttypes.ErrInvalidConsensus,
+			"timestamp must be a positive Unix time",
+		)
 	}
 	return nil
 }

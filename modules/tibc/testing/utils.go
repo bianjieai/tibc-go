@@ -5,16 +5,20 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmprotostate "github.com/cometbft/cometbft/proto/tendermint/state"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmprotostate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // ApplyValSetChanges takes in tmtypes.ValidatorSet and []abci.ValidatorUpdate and will return a new tmtypes.ValidatorSet which has the
 // provided validator updates applied to the provided validator set.
-func ApplyValSetChanges(t *testing.T, valSet *tmtypes.ValidatorSet, valUpdates []abci.ValidatorUpdate) *tmtypes.ValidatorSet {
+func ApplyValSetChanges(
+	t *testing.T,
+	valSet *tmtypes.ValidatorSet,
+	valUpdates []abci.ValidatorUpdate,
+) *tmtypes.ValidatorSet {
 	updates, err := tmtypes.PB2TM.ValidatorUpdates(valUpdates)
 	require.NoError(t, err)
 
@@ -34,7 +38,15 @@ func ABCIResponsesResultsHash(ar *tmprotostate.ABCIResponses) []byte {
 // MakeCommit iterates over the provided validator set, creating a Precommit vote for each
 // participant at the provided height and round. Each vote is signed and added to the VoteSet.
 // Finally, the VoteSet is committed finalizing the block.
-func MakeCommit(ctx context.Context, blockID tmtypes.BlockID, height int64, round int32, voteSet *tmtypes.VoteSet, validators []tmtypes.PrivValidator, now time.Time) (*tmtypes.Commit, error) {
+func MakeCommit(
+	ctx context.Context,
+	blockID tmtypes.BlockID,
+	height int64,
+	round int32,
+	voteSet *tmtypes.VoteSet,
+	validators []tmtypes.PrivValidator,
+	now time.Time,
+) (*tmtypes.Commit, error) {
 	// all sign
 	for i := 0; i < len(validators); i++ {
 		pubKey, err := validators[i].GetPubKey()

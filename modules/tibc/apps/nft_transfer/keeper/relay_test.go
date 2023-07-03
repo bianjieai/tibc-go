@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			// mint nft
 			mintNftMsg := nfttypes.NewMsgMintNFT(
-				"taidy", "dog", "taidy", "", "www.test.com", "none",
+				"taidy", "dog", "taidy", "", "www.test.com", "",
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainA.SenderAccount.GetAddress().String(),
 			)
@@ -76,8 +76,19 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				"0xabcsda",
 			)
 
-			packet := packettypes.NewPacket(data.GetBytes(), uint64(1), suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
-			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			packet := packettypes.NewPacket(
+				data.GetBytes(),
+				uint64(1),
+				suite.chainA.ChainID,
+				suite.chainB.ChainID,
+				"",
+				string(routingtypes.NFT),
+			)
+			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(
+				suite.chainB.GetContext(),
+				packet,
+				data,
+			)
 		},
 		false, true,
 	}}
@@ -178,8 +189,19 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					"0xabcsda",
 				)
 
-				packet := packettypes.NewPacket(data.GetBytes(), seq, suite.chainA.ChainID, suite.chainB.ChainID, "", string(routingtypes.NFT))
-				err := suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+				packet := packettypes.NewPacket(
+					data.GetBytes(),
+					seq,
+					suite.chainA.ChainID,
+					suite.chainB.ChainID,
+					"",
+					string(routingtypes.NFT),
+				)
+				err := suite.chainB.App.NftTransferKeeper.OnRecvPacket(
+					suite.chainB.GetContext(),
+					packet,
+					data,
+				)
 				if tc.expPass {
 					suite.Require().NoError(err)
 				} else {
@@ -270,7 +292,11 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainB.ChainID,
 				"",
 				string(routingtypes.NFT))
-			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+			_ = suite.chainB.App.NftTransferKeeper.OnRecvPacket(
+				suite.chainB.GetContext(),
+				packet,
+				data,
+			)
 
 		}, true, false, true},
 	}
@@ -294,14 +320,23 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 					"0xabcsda",
 				)
 
-				err := suite.chainA.App.NftTransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), data, tc.ack)
+				err := suite.chainA.App.NftTransferKeeper.OnAcknowledgementPacket(
+					suite.chainA.GetContext(),
+					data,
+					tc.ack,
+				)
 				if tc.expPass {
 					suite.Require().NoError(err)
 					if tc.success {
-						nft, err := suite.chainA.App.NftKeeper.GetNFT(suite.chainA.GetContext(), "dog", "taidy")
+						nft, err := suite.chainA.App.NftKeeper.GetNFT(
+							suite.chainA.GetContext(),
+							"dog",
+							"taidy",
+						)
 						if err == nil {
 							// The nft owner before sending and the nft owner after ACK must be the same
-							suite.Require().Equal(suite.chainA.SenderAccount.GetAddress().String(), nft.GetOwner().String())
+							suite.Require().
+								Equal(suite.chainA.SenderAccount.GetAddress().String(), nft.GetOwner().String())
 						} else {
 							fmt.Println("not found nft")
 						}

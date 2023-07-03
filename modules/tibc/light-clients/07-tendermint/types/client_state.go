@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	ics23 "github.com/confio/ics23/go"
+	ics23 "github.com/cosmos/ics23/go"
 
-	"github.com/tendermint/tendermint/light"
+	"github.com/cometbft/cometbft/light"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -129,7 +129,12 @@ func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 
 // Initialize will check that initial consensus state is a Tendermint consensus state
 // and will store ProcessedTime for initial consensus state as ctx.BlockTime()
-func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientStore sdk.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) Initialize(
+	ctx sdk.Context,
+	_ codec.BinaryCodec,
+	clientStore sdk.KVStore,
+	consState exported.ConsensusState,
+) error {
 	if _, ok := consState.(*ConsensusState); !ok {
 		return sdkerrors.Wrapf(
 			clienttypes.ErrInvalidConsensus,
@@ -144,7 +149,11 @@ func (cs ClientState) Initialize(ctx sdk.Context, _ codec.BinaryCodec, clientSto
 
 // Status function
 // Clients must return their status. Only Active clients are allowed to process packets.
-func (cs ClientState) Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) exported.Status {
+func (cs ClientState) Status(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	cdc codec.BinaryCodec,
+) exported.Status {
 	// get latest consensus state from clientStore to check for expiry
 	consState, err := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
 	if err != nil {
@@ -171,7 +180,14 @@ func (cs ClientState) VerifyPacketCommitment(
 	sequence uint64,
 	commitmentBytes []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
+	merkleProof, consensusState, err := produceVerificationArgs(
+		store,
+		cdc,
+		cs,
+		height,
+		cs.GetPrefix(),
+		proof,
+	)
 	if err != nil {
 		return err
 	}
@@ -181,7 +197,9 @@ func (cs ClientState) VerifyPacketCommitment(
 		return err
 	}
 
-	commitmentPath := commitmenttypes.NewMerklePath(host.PacketCommitmentPath(sourceChain, destChain, sequence))
+	commitmentPath := commitmenttypes.NewMerklePath(
+		host.PacketCommitmentPath(sourceChain, destChain, sequence),
+	)
 	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), commitmentPath)
 	if err != nil {
 		return err
@@ -207,7 +225,14 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 	sequence uint64,
 	ackBytes []byte,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
+	merkleProof, consensusState, err := produceVerificationArgs(
+		store,
+		cdc,
+		cs,
+		height,
+		cs.GetPrefix(),
+		proof,
+	)
 	if err != nil {
 		return err
 	}
@@ -217,7 +242,9 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 		return err
 	}
 
-	ackPath := commitmenttypes.NewMerklePath(host.PacketAcknowledgementPath(sourceChain, destChain, sequence))
+	ackPath := commitmenttypes.NewMerklePath(
+		host.PacketAcknowledgementPath(sourceChain, destChain, sequence),
+	)
 	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), ackPath)
 	if err != nil {
 		return err
@@ -242,7 +269,14 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 	destChain string,
 	sequence uint64,
 ) error {
-	merkleProof, consensusState, err := produceVerificationArgs(store, cdc, cs, height, cs.GetPrefix(), proof)
+	merkleProof, consensusState, err := produceVerificationArgs(
+		store,
+		cdc,
+		cs,
+		height,
+		cs.GetPrefix(),
+		proof,
+	)
 	if err != nil {
 		return err
 	}
@@ -252,7 +286,9 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 		return err
 	}
 
-	cleanCommitmentPath := commitmenttypes.NewMerklePath(host.CleanPacketCommitmentPath(sourceChain, destChain))
+	cleanCommitmentPath := commitmenttypes.NewMerklePath(
+		host.CleanPacketCommitmentPath(sourceChain, destChain),
+	)
 	path, err := commitmenttypes.ApplyPrefix(cs.GetPrefix(), cleanCommitmentPath)
 	if err != nil {
 		return err
@@ -267,11 +303,20 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 
 // verifyDelayPeriodPassed will ensure that at least delayPeriod amount of time has passed since consensus state was submitted
 // before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx sdk.Context, store sdk.KVStore, proofHeight exported.Height, delayPeriod uint64) error {
+func verifyDelayPeriodPassed(
+	ctx sdk.Context,
+	store sdk.KVStore,
+	proofHeight exported.Height,
+	delayPeriod uint64,
+) error {
 	// check that executing chain's timestamp has passed consensusState's processed time + delay period
 	processedTime, ok := GetProcessedTime(store, proofHeight)
 	if !ok {
-		return sdkerrors.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
+		return sdkerrors.Wrapf(
+			ErrProcessedTimeNotFound,
+			"processed time not found for height: %s",
+			proofHeight,
+		)
 	}
 	currentTimestamp := uint64(ctx.BlockTime().UnixNano())
 	validTime := processedTime + delayPeriod
@@ -306,20 +351,33 @@ func produceVerificationArgs(
 	}
 
 	if prefix == nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidPrefix, "prefix cannot be empty")
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+			commitmenttypes.ErrInvalidPrefix,
+			"prefix cannot be empty",
+		)
 	}
 
 	_, ok := prefix.(*commitmenttypes.MerklePrefix)
 	if !ok {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(commitmenttypes.ErrInvalidPrefix, "invalid prefix type %T, expected *MerklePrefix", prefix)
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(
+			commitmenttypes.ErrInvalidPrefix,
+			"invalid prefix type %T, expected *MerklePrefix",
+			prefix,
+		)
 	}
 
 	if proof == nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "proof cannot be empty")
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+			commitmenttypes.ErrInvalidProof,
+			"proof cannot be empty",
+		)
 	}
 
 	if err = cdc.Unmarshal(proof, &merkleProof); err != nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into commitment merkle proof")
+		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+			commitmenttypes.ErrInvalidProof,
+			"failed to unmarshal proof into commitment merkle proof",
+		)
 	}
 
 	consensusState, err = GetConsensusState(store, cdc, height)

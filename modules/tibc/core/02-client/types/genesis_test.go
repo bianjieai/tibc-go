@@ -3,7 +3,7 @@ package types_test
 import (
 	"time"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	client "github.com/bianjieai/tibc-go/modules/tibc/core/02-client"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -32,7 +32,10 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	genesis := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.TIBCKeeper.ClientKeeper)
+	genesis := client.ExportGenesis(
+		suite.chainA.GetContext(),
+		suite.chainA.App.TIBCKeeper.ClientKeeper,
+	)
 
 	bz, err := cdc.MarshalJSON(&genesis)
 	suite.Require().NoError(err)
@@ -57,7 +60,16 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	signers[val.Address.String()] = privVal
 
 	heightMinus1 := types.NewHeight(0, height-1)
-	header := suite.chainA.CreateTMClientHeader(chainID, int64(clientHeight.RevisionHeight), heightMinus1, now, valSet, valSet, valSet, signers)
+	header := suite.chainA.CreateTMClientHeader(
+		chainID,
+		int64(clientHeight.RevisionHeight),
+		heightMinus1,
+		now,
+		valSet,
+		valSet,
+		valSet,
+		signers,
+	)
 
 	testCases := []struct {
 		name     string
@@ -86,7 +98,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							header.GetHeight().(types.Height),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -123,7 +137,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							header.GetHeight().(types.Height),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -152,7 +168,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							types.NewHeight(0, 1),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -181,7 +199,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							types.ZeroHeight(),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -210,7 +230,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							types.NewHeight(0, 1),
 							ibctmtypes.NewConsensusState(
-								time.Time{}, commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								time.Time{},
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -239,7 +261,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							header.GetHeight().(types.Height),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -276,7 +300,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							header.GetHeight().(types.Height),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},
@@ -312,7 +338,9 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 						types.NewConsensusStateWithHeight(
 							header.GetHeight().(types.Height),
 							ibctmtypes.NewConsensusState(
-								header.GetTime(), commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()), header.Header.NextValidatorsHash,
+								header.GetTime(),
+								commitmenttypes.NewMerkleRoot(header.Header.GetAppHash()),
+								header.Header.NextValidatorsHash,
 							),
 						),
 					},

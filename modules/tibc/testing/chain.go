@@ -4,12 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"testing"
 	"time"
 
+	tmprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
+
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+	tmversion "github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -18,13 +24,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/teststaking"
+	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/version"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -121,8 +122,13 @@ type TestChain struct {
 //
 // CONTRACT: Validator array must be provided in the order expected by Tendermint.
 // i.e. sorted first by power and then lexicographically by address.
-func NewTestChainWithValSet(t *testing.T,
-	coord *Coordinator, chainID string, valSet *tmtypes.ValidatorSet, signers map[string]tmtypes.PrivValidator) *TestChain {
+func NewTestChainWithValSet(
+	t *testing.T,
+	coord *Coordinator,
+	chainID string,
+	valSet *tmtypes.ValidatorSet,
+	signers map[string]tmtypes.PrivValidator,
+) *TestChain {
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []SenderAccount{}
@@ -130,7 +136,12 @@ func NewTestChainWithValSet(t *testing.T,
 	// generate genesis accounts
 	for i := 0; i < MaxAccounts; i++ {
 		senderPrivKey := secp256k1.GenPrivKey()
-		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
+		acc := authtypes.NewBaseAccount(
+			senderPrivKey.PubKey().Address().Bytes(),
+			senderPrivKey.PubKey(),
+			uint64(i),
+			0,
+		)
 		amount, ok := sdk.NewIntFromString("10000000000000000000")
 		require.True(t, ok)
 
@@ -150,7 +161,13 @@ func NewTestChainWithValSet(t *testing.T,
 		senderAccs = append(senderAccs, senderAcc)
 	}
 
-	app := SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
+	app := SetupWithGenesisValSet(
+		t,
+		valSet,
+		genAccs,
+		chainID,
+		sdk.DefaultPowerReduction,
+		genBals...)
 
 	// create current header and call begin block
 	header := tmproto.Header{
@@ -274,7 +291,10 @@ func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, cl
 // stored with a given chainName and returns the ClientState along with the proof
 func (chain *TestChain) QueryClientStateProof(chainName string) (exported.ClientState, []byte) {
 	// retrieve client state to provide proof for
-	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
+	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(
+		chain.GetContext(),
+		chainName,
+	)
 	require.True(chain.T, found)
 
 	clientKey := host.FullClientStateKey(chainName)
@@ -369,7 +389,10 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
 // GetClientState retrieves the client state for the provided chainName. The client is
 // expected to exist otherwise testing will fail.
 func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
-	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(chain.GetContext(), chainName)
+	clientState, found := chain.App.TIBCKeeper.ClientKeeper.GetClientState(
+		chain.GetContext(),
+		chainName,
+	)
 	require.True(chain.T, found)
 
 	return clientState
@@ -377,8 +400,15 @@ func (chain *TestChain) GetClientState(chainName string) exported.ClientState {
 
 // GetConsensusState retrieves the consensus state for the provided chainName and height.
 // It will return a success boolean depending on if consensus state exists or not.
-func (chain *TestChain) GetConsensusState(chainName string, height exported.Height) (exported.ConsensusState, bool) {
-	return chain.App.TIBCKeeper.ClientKeeper.GetClientConsensusState(chain.GetContext(), chainName, height)
+func (chain *TestChain) GetConsensusState(
+	chainName string,
+	height exported.Height,
+) (exported.ConsensusState, bool) {
+	return chain.App.TIBCKeeper.ClientKeeper.GetClientConsensusState(
+		chain.GetContext(),
+		chainName,
+		height,
+	)
 }
 
 // GetValsAtHeight will return the validator set of the chain at a given height. It will return
@@ -391,7 +421,7 @@ func (chain *TestChain) GetValsAtHeight(height int64) (*tmtypes.ValidatorSet, bo
 
 	valSet := stakingtypes.Validators(histInfo.Valset)
 
-	tmValidators, err := teststaking.ToTmValidators(valSet, sdk.DefaultPowerReduction)
+	tmValidators, err := testutil.ToTmValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
 		panic(err)
 	}
@@ -419,7 +449,11 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 
 // ConstructMsgCreateClient constructs a message to create a new client state (tendermint or solomachine).
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (chain *TestChain) ConstructMsgCreateClient(counterparty *TestChain, chainName string, clientType string) error {
+func (chain *TestChain) ConstructMsgCreateClient(
+	counterparty *TestChain,
+	chainName string,
+	clientType string,
+) error {
 	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -473,13 +507,24 @@ func (chain *TestChain) UpdateTMClient(counterparty *TestChain, chainName string
 
 // ConstructUpdateTMClientHeader will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, chainName string) (*ibctmtypes.Header, error) {
-	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty, chainName, clienttypes.ZeroHeight())
+func (chain *TestChain) ConstructUpdateTMClientHeader(
+	counterparty *TestChain,
+	chainName string,
+) (*ibctmtypes.Header, error) {
+	return chain.ConstructUpdateTMClientHeaderWithTrustedHeight(
+		counterparty,
+		chainName,
+		clienttypes.ZeroHeight(),
+	)
 }
 
 // ConstructUpdateTMClientHeaderWithTrustedHeight will construct a valid 07-tendermint Header to update the
 // light client on the source chain.
-func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(counterparty *TestChain, chainName string, trustedHeight clienttypes.Height) (*ibctmtypes.Header, error) {
+func (chain *TestChain) ConstructUpdateTMClientHeaderWithTrustedHeight(
+	counterparty *TestChain,
+	chainName string,
+	trustedHeight clienttypes.Height,
+) (*ibctmtypes.Header, error) {
 	header := counterparty.LastHeader
 	// Relayer must query for LatestHeight on client to get TrustedHeight if the trusted height is not set
 	if trustedHeight.IsZero() {
@@ -560,11 +605,15 @@ func (chain *TestChain) CreateTMClientHeader(
 	nextValHash := nextVals.Hash()
 
 	tmHeader := tmtypes.Header{
-		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
-		ChainID:            chainID,
-		Height:             blockHeight,
-		Time:               timestamp,
-		LastBlockID:        MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		Version: tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+		ChainID: chainID,
+		Height:  blockHeight,
+		Time:    timestamp,
+		LastBlockID: MakeBlockID(
+			make([]byte, tmhash.Size),
+			10_000,
+			make([]byte, tmhash.Size),
+		),
 		LastCommitHash:     chain.App.LastCommitID().Hash,
 		DataHash:           tmhash.Sum([]byte("data_hash")),
 		ValidatorsHash:     vsetHash,
@@ -588,7 +637,15 @@ func (chain *TestChain) CreateTMClientHeader(
 		signerArr = append(signerArr, signers[v.Address.String()])
 	}
 
-	commit, err := MakeCommit(context.Background(), blockID, blockHeight, 1, voteSet, signerArr, timestamp)
+	commit, err := MakeCommit(
+		context.Background(),
+		blockID,
+		blockHeight,
+		1,
+		voteSet,
+		signerArr,
+		timestamp,
+	)
 	require.NoError(chain.T, err)
 
 	signedHeader := &tmproto.SignedHeader{

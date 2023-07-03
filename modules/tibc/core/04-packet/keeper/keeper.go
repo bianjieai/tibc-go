@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/log"
-	db "github.com/tendermint/tm-db"
+	db "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -56,14 +56,22 @@ func (k Keeper) GetNextSequenceSend(ctx sdk.Context, sourceChain, destChain stri
 }
 
 // SetNextSequenceSend sets a channel's next send sequence to the store
-func (k Keeper) SetNextSequenceSend(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) SetNextSequenceSend(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
 	store := ctx.KVStore(k.storeKey)
 	bz := sdk.Uint64ToBigEndian(sequence)
 	store.Set(host.NextSequenceSendKey(sourceChain, destChain), bz)
 }
 
 // GetPacketReceipt gets a packet receipt from the store
-func (k Keeper) GetPacketReceipt(ctx sdk.Context, sourceChain, destChain string, sequence uint64) (string, bool) {
+func (k Keeper) GetPacketReceipt(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketReceiptKey(sourceChain, destChain, sequence))
 	if bz == nil {
@@ -79,37 +87,62 @@ func (k Keeper) SetPacketReceipt(ctx sdk.Context, sourceChain, destChain string,
 	store.Set(host.PacketReceiptKey(sourceChain, destChain, sequence), []byte{byte(1)})
 }
 
-func (k Keeper) deletePacketReceipt(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) deletePacketReceipt(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketReceiptKey(sourceChain, destChain, sequence))
 }
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store
-func (k Keeper) HasPacketReceipt(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
+func (k Keeper) HasPacketReceipt(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.PacketReceiptKey(sourceChain, destChain, sequence))
 }
 
 // GetPacketCommitment gets the packet commitment hash from the store
-func (k Keeper) GetPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) []byte {
+func (k Keeper) GetPacketCommitment(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) []byte {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketCommitmentKey(sourceChain, destChain, sequence))
 	return bz
 }
 
 // HasPacketCommitment returns true if the packet commitment exists
-func (k Keeper) HasPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
+func (k Keeper) HasPacketCommitment(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.PacketCommitmentKey(sourceChain, destChain, sequence))
 }
 
 // SetPacketCommitment sets the packet commitment hash to the store
-func (k Keeper) SetPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64, commitmentHash []byte) {
+func (k Keeper) SetPacketCommitment(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+	commitmentHash []byte,
+) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(host.PacketCommitmentKey(sourceChain, destChain, sequence), commitmentHash)
 }
 
-func (k Keeper) deletePacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) deletePacketCommitment(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketCommitmentKey(sourceChain, destChain, sequence))
 }
@@ -122,9 +155,16 @@ func (k Keeper) GetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain
 }
 
 // SetCleanPacketCommitment sets the packet commitment hash to the store
-func (k Keeper) SetCleanPacketCommitment(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) SetCleanPacketCommitment(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(host.CleanPacketCommitmentKey(sourceChain, destChain), sdk.Uint64ToBigEndian(sequence))
+	store.Set(
+		host.CleanPacketCommitmentKey(sourceChain, destChain),
+		sdk.Uint64ToBigEndian(sequence),
+	)
 }
 
 // SetMaxAckSequence sets the max ack height to the store
@@ -144,18 +184,31 @@ func (k Keeper) GetMaxAckSequence(ctx sdk.Context, sourceChain, destChain string
 }
 
 // SetPacketAcknowledgement sets the packet ack hash to the store
-func (k Keeper) SetPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64, ackHash []byte) {
+func (k Keeper) SetPacketAcknowledgement(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+	ackHash []byte,
+) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(host.PacketAcknowledgementKey(sourceChain, destChain, sequence), ackHash)
 }
 
-func (k Keeper) deletePacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
+func (k Keeper) deletePacketAcknowledgement(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(host.PacketAcknowledgementKey(sourceChain, destChain, sequence))
 }
 
 // GetPacketAcknowledgement gets the packet ack hash from the store
-func (k Keeper) GetPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64) ([]byte, bool) {
+func (k Keeper) GetPacketAcknowledgement(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) ([]byte, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(host.PacketAcknowledgementKey(sourceChain, destChain, sequence))
 	if bz == nil {
@@ -165,7 +218,11 @@ func (k Keeper) GetPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain
 }
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store
-func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain string, sequence uint64) bool {
+func (k Keeper) HasPacketAcknowledgement(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(host.PacketAcknowledgementKey(sourceChain, destChain, sequence))
 }
@@ -173,7 +230,11 @@ func (k Keeper) HasPacketAcknowledgement(ctx sdk.Context, sourceChain, destChain
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
-func (k Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb func(sourceChain, destChain string, sequence uint64) bool) {
+func (k Keeper) IteratePacketSequence(
+	ctx sdk.Context,
+	iterator db.Iterator,
+	cb func(sourceChain, destChain string, sequence uint64) bool,
+) {
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		sourceChain, destChain, err := host.ParseChannelPath(string(iterator.Key()))
@@ -194,11 +255,15 @@ func (k Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb 
 func (k Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
-	k.IteratePacketSequence(ctx, iterator, func(sourceChain, destChain string, nextSendSeq uint64) bool {
-		ps := types.NewPacketSequence(sourceChain, destChain, nextSendSeq)
-		seqs = append(seqs, ps)
-		return false
-	})
+	k.IteratePacketSequence(
+		ctx,
+		iterator,
+		func(sourceChain, destChain string, nextSendSeq uint64) bool {
+			ps := types.NewPacketSequence(sourceChain, destChain, nextSendSeq)
+			seqs = append(seqs, ps)
+			return false
+		},
+	)
 	return seqs
 }
 
@@ -206,11 +271,15 @@ func (k Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequen
 func (k Keeper) GetAllPacketRecvSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqRecvPrefix))
-	k.IteratePacketSequence(ctx, iterator, func(sourceChain, destChain string, nextRecvSeq uint64) bool {
-		ps := types.NewPacketSequence(sourceChain, destChain, nextRecvSeq)
-		seqs = append(seqs, ps)
-		return false
-	})
+	k.IteratePacketSequence(
+		ctx,
+		iterator,
+		func(sourceChain, destChain string, nextRecvSeq uint64) bool {
+			ps := types.NewPacketSequence(sourceChain, destChain, nextRecvSeq)
+			seqs = append(seqs, ps)
+			return false
+		},
+	)
 	return seqs
 }
 
@@ -218,18 +287,25 @@ func (k Keeper) GetAllPacketRecvSeqs(ctx sdk.Context) (seqs []types.PacketSequen
 func (k Keeper) GetAllPacketAckSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqAckPrefix))
-	k.IteratePacketSequence(ctx, iterator, func(sourceChain, destChain string, nextAckSeq uint64) bool {
-		ps := types.NewPacketSequence(sourceChain, destChain, nextAckSeq)
-		seqs = append(seqs, ps)
-		return false
-	})
+	k.IteratePacketSequence(
+		ctx,
+		iterator,
+		func(sourceChain, destChain string, nextAckSeq uint64) bool {
+			ps := types.NewPacketSequence(sourceChain, destChain, nextAckSeq)
+			seqs = append(seqs, ps)
+			return false
+		},
+	)
 	return seqs
 }
 
 // IteratePacketCommitment provides an iterator over all PacketCommitment objects. For each
 // packet commitment, cb will be called. If the cb returns true, the iterator will close
 // and stop.
-func (k Keeper) IteratePacketCommitment(ctx sdk.Context, cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool) {
+func (k Keeper) IteratePacketCommitment(
+	ctx sdk.Context,
+	cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool,
+) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketCommitmentPrefix))
 	k.iterateHashes(ctx, iterator, cb)
@@ -237,38 +313,59 @@ func (k Keeper) IteratePacketCommitment(ctx sdk.Context, cb func(sourceChain, de
 
 // GetAllPacketCommitments returns all stored PacketCommitments objects.
 func (k Keeper) GetAllPacketCommitments(ctx sdk.Context) (commitments []types.PacketState) {
-	k.IteratePacketCommitment(ctx, func(sourceChain, destChain string, sequence uint64, hash []byte) bool {
-		pc := types.NewPacketState(sourceChain, destChain, sequence, hash)
-		commitments = append(commitments, pc)
-		return false
-	})
+	k.IteratePacketCommitment(
+		ctx,
+		func(sourceChain, destChain string, sequence uint64, hash []byte) bool {
+			pc := types.NewPacketState(sourceChain, destChain, sequence, hash)
+			commitments = append(commitments, pc)
+			return false
+		},
+	)
 	return commitments
 }
 
 // IteratePacketCommitmentAtChannel provides an iterator over all PacketCommmitment objects
 // at a specified channel. For each packet commitment, cb will be called. If the cb returns
 // true, the iterator will close and stop.
-func (k Keeper) IteratePacketCommitmentAtChannel(ctx sdk.Context, sourceChain, destChain string, cb func(_, _ string, sequence uint64, hash []byte) bool) {
+func (k Keeper) IteratePacketCommitmentAtChannel(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	cb func(_, _ string, sequence uint64, hash []byte) bool,
+) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)))
+	iterator := sdk.KVStorePrefixIterator(
+		store,
+		[]byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)),
+	)
 	k.iterateHashes(ctx, iterator, cb)
 }
 
 // GetAllPacketCommitmentsAtChannel returns all stored PacketCommitments objects for a specified
 // port ID and channel ID.
-func (k Keeper) GetAllPacketCommitmentsAtChannel(ctx sdk.Context, sourceChain, destChain string) (commitments []types.PacketState) {
-	k.IteratePacketCommitmentAtChannel(ctx, sourceChain, destChain, func(_, _ string, sequence uint64, hash []byte) bool {
-		pc := types.NewPacketState(sourceChain, destChain, sequence, hash)
-		commitments = append(commitments, pc)
-		return false
-	})
+func (k Keeper) GetAllPacketCommitmentsAtChannel(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+) (commitments []types.PacketState) {
+	k.IteratePacketCommitmentAtChannel(
+		ctx,
+		sourceChain,
+		destChain,
+		func(_, _ string, sequence uint64, hash []byte) bool {
+			pc := types.NewPacketState(sourceChain, destChain, sequence, hash)
+			commitments = append(commitments, pc)
+			return false
+		},
+	)
 	return commitments
 }
 
 // IteratePacketReceipt provides an iterator over all PacketReceipt objects. For each
 // receipt, cb will be called. If the cb returns true, the iterator will close
 // and stop.
-func (k Keeper) IteratePacketReceipt(ctx sdk.Context, cb func(sourceChain, destChain string, sequence uint64, receipt []byte) bool) {
+func (k Keeper) IteratePacketReceipt(
+	ctx sdk.Context,
+	cb func(sourceChain, destChain string, sequence uint64, receipt []byte) bool,
+) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketReceiptPrefix))
 	k.iterateHashes(ctx, iterator, cb)
@@ -276,18 +373,24 @@ func (k Keeper) IteratePacketReceipt(ctx sdk.Context, cb func(sourceChain, destC
 
 // GetAllPacketReceipts returns all stored PacketReceipt objects.
 func (k Keeper) GetAllPacketReceipts(ctx sdk.Context) (receipts []types.PacketState) {
-	k.IteratePacketReceipt(ctx, func(sourceChain, destChain string, sequence uint64, receipt []byte) bool {
-		packetReceipt := types.NewPacketState(sourceChain, destChain, sequence, receipt)
-		receipts = append(receipts, packetReceipt)
-		return false
-	})
+	k.IteratePacketReceipt(
+		ctx,
+		func(sourceChain, destChain string, sequence uint64, receipt []byte) bool {
+			packetReceipt := types.NewPacketState(sourceChain, destChain, sequence, receipt)
+			receipts = append(receipts, packetReceipt)
+			return false
+		},
+	)
 	return receipts
 }
 
 // IteratePacketAcknowledgement provides an iterator over all PacketAcknowledgement objects. For each
 // acknowledgement, cb will be called. If the cb returns true, the iterator will close
 // and stop.
-func (k Keeper) IteratePacketAcknowledgement(ctx sdk.Context, cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool) {
+func (k Keeper) IteratePacketAcknowledgement(
+	ctx sdk.Context,
+	cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool,
+) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketAckPrefix))
 	k.iterateHashes(ctx, iterator, cb)
@@ -295,16 +398,23 @@ func (k Keeper) IteratePacketAcknowledgement(ctx sdk.Context, cb func(sourceChai
 
 // GetAllPacketAcks returns all stored PacketAcknowledgements objects.
 func (k Keeper) GetAllPacketAcks(ctx sdk.Context) (acks []types.PacketState) {
-	k.IteratePacketAcknowledgement(ctx, func(sourceChain, destChain string, sequence uint64, ack []byte) bool {
-		packetAck := types.NewPacketState(sourceChain, destChain, sequence, ack)
-		acks = append(acks, packetAck)
-		return false
-	})
+	k.IteratePacketAcknowledgement(
+		ctx,
+		func(sourceChain, destChain string, sequence uint64, ack []byte) bool {
+			packetAck := types.NewPacketState(sourceChain, destChain, sequence, ack)
+			acks = append(acks, packetAck)
+			return false
+		},
+	)
 	return acks
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
-func (k Keeper) iterateHashes(_ sdk.Context, iterator db.Iterator, cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool) {
+func (k Keeper) iterateHashes(
+	_ sdk.Context,
+	iterator db.Iterator,
+	cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool,
+) {
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -329,10 +439,13 @@ func (k Keeper) ValidatePacket(ctx sdk.Context, packet exported.PacketI) error {
 		return err
 	}
 	chainName := k.clientKeeper.GetChainName(ctx)
-	if packet.GetRelayChain() != chainName && packet.GetDestChain() != chainName && packet.GetSourceChain() != chainName {
+	if packet.GetRelayChain() != chainName && packet.GetDestChain() != chainName &&
+		packet.GetSourceChain() != chainName {
 		return sdkerrors.Wrap(types.ErrInvalidPacket, "packet/ack illegal!")
 	}
-	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()))
+	currentCleanSeq := sdk.BigEndianToUint64(
+		k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()),
+	)
 	if packet.GetSequence() <= currentCleanSeq {
 		return sdkerrors.Wrap(types.ErrInvalidPacket, "sequence illegal!")
 	}
@@ -344,22 +457,34 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanP
 	packetSeq := cleanPacket.GetSequence()
 	sourceChain := cleanPacket.GetSourceChain()
 	destChain := cleanPacket.GetDestChain()
-	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	currentCleanSeq := sdk.BigEndianToUint64(
+		k.GetCleanPacketCommitment(ctx, sourceChain, destChain),
+	)
 	currentMaxAckSeq := k.GetMaxAckSequence(ctx, sourceChain, destChain)
 	if packetSeq <= currentCleanSeq || packetSeq > currentMaxAckSeq {
 		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
 	for seq := currentCleanSeq; seq <= packetSeq; seq++ {
 		if k.HasPacketCommitment(ctx, sourceChain, destChain, seq) {
-			return sdkerrors.Wrapf(types.ErrInvalidCleanPacket, "packet with sequence %d has not been ack", seq)
+			return sdkerrors.Wrapf(
+				types.ErrInvalidCleanPacket,
+				"packet with sequence %d has not been ack",
+				seq,
+			)
 		}
 	}
 	return nil
 }
 
 // cleanAcknowledgementBySeq clean acknowledgement by sequence
-func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+func (k Keeper) cleanAcknowledgementBySeq(
+	ctx sdk.Context,
+	sourceChain, destChain string,
+	sequence uint64,
+) {
+	currentCleanSeq := sdk.BigEndianToUint64(
+		k.GetCleanPacketCommitment(ctx, sourceChain, destChain),
+	)
 	for seq := currentCleanSeq + 1; seq <= sequence; seq++ {
 		if k.HasPacketAcknowledgement(ctx, sourceChain, destChain, seq) {
 			k.deletePacketAcknowledgement(ctx, sourceChain, destChain, seq)
@@ -369,7 +494,9 @@ func (k Keeper) cleanAcknowledgementBySeq(ctx sdk.Context, sourceChain, destChai
 
 // cleanReceiptBySeq clean receipt by sequence
 func (k Keeper) cleanReceiptBySeq(ctx sdk.Context, sourceChain, destChain string, sequence uint64) {
-	currentCleanSeq := sdk.BigEndianToUint64(k.GetCleanPacketCommitment(ctx, sourceChain, destChain))
+	currentCleanSeq := sdk.BigEndianToUint64(
+		k.GetCleanPacketCommitment(ctx, sourceChain, destChain),
+	)
 	for seq := currentCleanSeq + 1; seq <= sequence; seq++ {
 		if k.HasPacketReceipt(ctx, sourceChain, destChain, seq) {
 			k.deletePacketReceipt(ctx, sourceChain, destChain, seq)

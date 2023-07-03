@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/tendermint/tendermint/light"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/light"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,13 +45,22 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 ) {
 	tmHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
+		return nil, nil, sdkerrors.Wrapf(
+			clienttypes.ErrInvalidHeader,
+			"expected type %T, got %T",
+			&Header{},
+			header,
+		)
 	}
 
 	// get consensus state from clientStore
 	tmConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight)
+		return nil, nil, sdkerrors.Wrapf(
+			err,
+			"could not get consensus state from clientstore at TrustedHeight: %s",
+			tmHeader.TrustedHeight,
+		)
 	}
 
 	if err := checkValidity(&cs, tmConsState, tmHeader, ctx.BlockTime()); err != nil {
@@ -104,7 +113,9 @@ func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 		return sdkerrors.Wrapf(
 			ErrInvalidValidatorSet,
 			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
-			header.TrustedValidators, consState.NextValidatorsHash, tvalHash,
+			header.TrustedValidators,
+			consState.NextValidatorsHash,
+			tvalHash,
 		)
 	}
 	return nil
@@ -192,7 +203,12 @@ func checkValidity(
 }
 
 // update the consensus state from a new header and set processed time metadata
-func update(ctx sdk.Context, clientStore sdk.KVStore, clientState *ClientState, header *Header) (*ClientState, *ConsensusState) {
+func update(
+	ctx sdk.Context,
+	clientStore sdk.KVStore,
+	clientState *ClientState,
+	header *Header,
+) (*ClientState, *ConsensusState) {
 	height := header.GetHeight().(clienttypes.Height)
 	if height.GT(clientState.LatestHeight) {
 		clientState.LatestHeight = height

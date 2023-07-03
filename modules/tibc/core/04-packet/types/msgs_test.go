@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
@@ -91,9 +91,21 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		expPass bool
 	}{
 		{"success", types.NewMsgRecvPacket(packet, suite.proof, height, addr), true},
-		{"proof height is zero", types.NewMsgRecvPacket(packet, suite.proof, clienttypes.ZeroHeight(), addr), false},
-		{"proof contain empty proof", types.NewMsgRecvPacket(packet, emptyProof, height, addr), false},
-		{"missing signer address", types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr), false},
+		{
+			"proof height is zero",
+			types.NewMsgRecvPacket(packet, suite.proof, clienttypes.ZeroHeight(), addr),
+			false,
+		},
+		{
+			"proof contain empty proof",
+			types.NewMsgRecvPacket(packet, emptyProof, height, addr),
+			false,
+		},
+		{
+			"missing signer address",
+			types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr),
+			false,
+		},
 		{"invalid packet", types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr), false},
 	}
 
@@ -126,12 +138,38 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 		msg     *types.MsgAcknowledgement
 		expPass bool
 	}{
-		{"success", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr), true},
-		{"proof height must be > 0", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, clienttypes.ZeroHeight(), addr), false},
+		{
+			"success",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr),
+			true,
+		},
+		{
+			"proof height must be > 0",
+			types.NewMsgAcknowledgement(
+				packet,
+				packet.GetData(),
+				suite.proof,
+				clienttypes.ZeroHeight(),
+				addr,
+			),
+			false,
+		},
 		{"empty ack", types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr), false},
-		{"missing signer address", types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr), false},
-		{"cannot submit an empty proof", types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr), false},
-		{"invalid packet", types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr), false},
+		{
+			"missing signer address",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr),
+			false,
+		},
+		{
+			"cannot submit an empty proof",
+			types.NewMsgAcknowledgement(packet, packet.GetData(), emptyProof, height, addr),
+			false,
+		},
+		{
+			"invalid packet",
+			types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr),
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

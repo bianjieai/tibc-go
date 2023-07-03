@@ -5,7 +5,7 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/light-clients/07-
 
 import "tendermint/types/validator.proto";
 import "tendermint/types/types.proto";
-import "confio/proofs.proto";
+import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "tibc/core/client/v1/client.proto";
@@ -32,12 +32,12 @@ message ClientState {
   // latest height the client was updated to
   tibc.core.client.v1.Height latest_height = 6 [ (gogoproto.nullable) = false ];
   // proof specifications used in verifying counterparty state
-  repeated ics23.ProofSpec proof_specs = 7;
-  // commitment merkle prefix of the counterparty chain.
-  tibc.core.commitment.v1.MerklePrefix MerklePrefix = 8
+  repeated cosmos.ics23.v1.ProofSpec proof_specs = 7;
+  // merkle_prefix merkle prefix of the counterparty chain.
+  tibc.core.commitment.v1.MerklePrefix merkle_prefix = 8
       [ (gogoproto.nullable) = false ];
   // period of transaction confirmation delay
-  uint64 timeDelay = 9;
+  uint64 time_delay = 9;
 }
 
 // ConsensusState defines the consensus state from Tendermint.
@@ -52,7 +52,7 @@ message ConsensusState {
   tibc.core.commitment.v1.MerkleRoot root = 2 [ (gogoproto.nullable) = false ];
   bytes next_validators_hash = 3
       [ (gogoproto.casttype) =
-            "github.com/tendermint/tendermint/libs/bytes.HexBytes" ];
+            "github.com/cometbft/cometbft/libs/bytes.HexBytes" ];
 }
 
 // Header defines the Tendermint client consensus Header.

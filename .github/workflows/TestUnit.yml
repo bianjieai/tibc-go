@@ -4,7 +4,7 @@ on: [pull_request]
 jobs:
   test-unit:
     name: Test Units
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
        - name: Checkout source code
          uses: actions/checkout@v3

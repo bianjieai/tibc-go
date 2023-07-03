@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,7 +71,11 @@ func UnpackClientState(any *codectypes.Any) (exported.ClientState, error) {
 
 	clientState, ok := any.GetCachedValue().(exported.ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", any)
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnpackAny,
+			"cannot unpack Any into ClientState %T",
+			any,
+		)
 	}
 
 	return clientState, nil
@@ -113,7 +117,11 @@ func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) 
 
 	consensusState, ok := any.GetCachedValue().(exported.ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into ConsensusState %T", any)
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnpackAny,
+			"cannot unpack Any into ConsensusState %T",
+			any,
+		)
 	}
 
 	return consensusState, nil

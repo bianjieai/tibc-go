@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -80,7 +80,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testChainName, Time: now2})
+	suite.ctx = app.BaseApp.NewContext(
+		isCheckTx,
+		tmproto.Header{Height: height, ChainID: testChainName, Time: now2},
+	)
 	suite.keeper = &app.TIBCKeeper.ClientKeeper
 
 	suite.privVal = ibctestingmock.NewPV()
@@ -97,9 +100,20 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.signers = make(map[string]tmtypes.PrivValidator, 1)
 	suite.signers[validator.Address.String()] = suite.privVal
 	suite.header = suite.chainA.CreateTMClientHeader(
-		testChainID, int64(testClientHeight.RevisionHeight), testClientHeightMinus1, now2, suite.valSet, suite.valSet, suite.valSet, suite.signers,
+		testChainID,
+		int64(testClientHeight.RevisionHeight),
+		testClientHeightMinus1,
+		now2,
+		suite.valSet,
+		suite.valSet,
+		suite.valSet,
+		suite.signers,
 	)
-	suite.consensusState = ibctmtypes.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("hash")), suite.valSetHash)
+	suite.consensusState = ibctmtypes.NewConsensusState(
+		suite.now,
+		commitmenttypes.NewMerkleRoot([]byte("hash")),
+		suite.valSetHash,
+	)
 
 	var validators stakingtypes.Validators
 	for i := 1; i < 11; i++ {
@@ -108,14 +122,22 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.Require().NoError(err)
 		pk, err := cryptocodec.FromTmPubKeyInterface(tmPk)
 		suite.Require().NoError(err)
-		val, err := stakingtypes.NewValidator(sdk.ValAddress(pk.Address()), pk, stakingtypes.Description{})
+		val, err := stakingtypes.NewValidator(
+			sdk.ValAddress(pk.Address()),
+			pk,
+			stakingtypes.Description{},
+		)
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
 		val.Tokens = sdk.NewInt(rand.Int63())
 		validators = append(validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
+		hi := stakingtypes.NewHistoricalInfo(
+			suite.ctx.BlockHeader(),
+			validators,
+			sdk.DefaultPowerReduction,
+		)
 		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
 
@@ -143,9 +165,18 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
-	suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight, suite.consensusState)
+	suite.keeper.SetClientConsensusState(
+		suite.ctx,
+		testChainName,
+		testClientHeight,
+		suite.consensusState,
+	)
 
-	retrievedConsState, found := suite.keeper.GetClientConsensusState(suite.ctx, testChainName, testClientHeight)
+	retrievedConsState, found := suite.keeper.GetClientConsensusState(
+		suite.ctx,
+		testChainName,
+		testClientHeight,
+	)
 	suite.Require().True(found, "GetConsensusState failed")
 
 	tmConsState, ok := retrievedConsState.(*ibctmtypes.ConsensusState)
@@ -158,19 +189,55 @@ func (suite KeeperTestSuite) TestGetAllGenesisClients() {
 		testChainName2, testChainName3, testChainName,
 	}
 	expClients := []exported.ClientState{
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
-		ibctmtypes.NewClientState(testChainID, ibctmtypes.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.Prefix, 0),
+		ibctmtypes.NewClientState(
+			testChainID,
+			ibctmtypes.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			types.ZeroHeight(),
+			commitmenttypes.GetSDKSpecs(),
+			ibctesting.Prefix,
+			0,
+		),
+		ibctmtypes.NewClientState(
+			testChainID,
+			ibctmtypes.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			types.ZeroHeight(),
+			commitmenttypes.GetSDKSpecs(),
+			ibctesting.Prefix,
+			0,
+		),
+		ibctmtypes.NewClientState(
+			testChainID,
+			ibctmtypes.DefaultTrustLevel,
+			trustingPeriod,
+			ubdPeriod,
+			maxClockDrift,
+			types.ZeroHeight(),
+			commitmenttypes.GetSDKSpecs(),
+			ibctesting.Prefix,
+			0,
+		),
 	}
 
 	expGenClients := make(types.IdentifiedClientStates, len(expClients))
 
 	for i := range expClients {
-		suite.chainA.App.TIBCKeeper.ClientKeeper.SetClientState(suite.chainA.GetContext(), chainNames[i], expClients[i])
+		suite.chainA.App.TIBCKeeper.ClientKeeper.SetClientState(
+			suite.chainA.GetContext(),
+			chainNames[i],
+			expClients[i],
+		)
 		expGenClients[i] = types.NewIdentifiedClientState(chainNames[i], expClients[i])
 	}
 
-	genClients := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
+	genClients := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllGenesisClients(
+		suite.chainA.GetContext(),
+	)
 	suite.Require().Equal(expGenClients.Sort(), genClients)
 }
 
@@ -179,29 +246,54 @@ func (suite KeeperTestSuite) TestGetAllGenesisMetadata() {
 		types.NewIdentifiedGenesisMetadata(
 			"clientA",
 			[]types.GenesisMetadata{
-				types.NewGenesisMetadata(ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 1)), []byte("foo")),
-				types.NewGenesisMetadata(ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 2)), []byte("bar")),
-				types.NewGenesisMetadata(ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 3)), []byte("baz")),
+				types.NewGenesisMetadata(
+					ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 1)),
+					[]byte("foo"),
+				),
+				types.NewGenesisMetadata(
+					ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 2)),
+					[]byte("bar"),
+				),
+				types.NewGenesisMetadata(
+					ibctmtypes.ProcessedTimeKey(types.NewHeight(0, 3)),
+					[]byte("baz"),
+				),
 			},
 		),
 		types.NewIdentifiedGenesisMetadata(
 			"clientB",
 			[]types.GenesisMetadata{
-				types.NewGenesisMetadata(ibctmtypes.ProcessedTimeKey(types.NewHeight(1, 100)), []byte("val1")),
-				types.NewGenesisMetadata(ibctmtypes.ProcessedTimeKey(types.NewHeight(2, 300)), []byte("val2")),
+				types.NewGenesisMetadata(
+					ibctmtypes.ProcessedTimeKey(types.NewHeight(1, 100)),
+					[]byte("val1"),
+				),
+				types.NewGenesisMetadata(
+					ibctmtypes.ProcessedTimeKey(types.NewHeight(2, 300)),
+					[]byte("val2"),
+				),
 			},
 		),
 	}
 
 	genClients := []types.IdentifiedClientState{
-		types.NewIdentifiedClientState("clientA", &ibctmtypes.ClientState{}), types.NewIdentifiedClientState("clientB", &ibctmtypes.ClientState{}),
+		types.NewIdentifiedClientState(
+			"clientA",
+			&ibctmtypes.ClientState{},
+		), types.NewIdentifiedClientState("clientB", &ibctmtypes.ClientState{}),
 	}
 
-	suite.chainA.App.TIBCKeeper.ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
+	suite.chainA.App.TIBCKeeper.ClientKeeper.SetAllClientMetadata(
+		suite.chainA.GetContext(),
+		expectedGenMetadata,
+	)
 
-	actualGenMetadata, err := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllClientMetadata(suite.chainA.GetContext(), genClients)
+	actualGenMetadata, err := suite.chainA.App.TIBCKeeper.ClientKeeper.GetAllClientMetadata(
+		suite.chainA.GetContext(),
+		genClients,
+	)
 	suite.Require().NoError(err, "get client metadata returned error unexpectedly")
-	suite.Require().Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
+	suite.Require().
+		Equal(expectedGenMetadata, actualGenMetadata, "retrieved metadata is unexpected")
 }
 
 func (suite KeeperTestSuite) TestConsensusStateHelpers() {
@@ -214,9 +306,18 @@ func (suite KeeperTestSuite) TestConsensusStateHelpers() {
 	)
 
 	suite.keeper.SetClientState(suite.ctx, testChainName, clientState)
-	suite.keeper.SetClientConsensusState(suite.ctx, testChainName, testClientHeight, suite.consensusState)
+	suite.keeper.SetClientConsensusState(
+		suite.ctx,
+		testChainName,
+		testClientHeight,
+		suite.consensusState,
+	)
 
-	nextState := ibctmtypes.NewConsensusState(suite.now, commitmenttypes.NewMerkleRoot([]byte("next")), suite.valSetHash)
+	nextState := ibctmtypes.NewConsensusState(
+		suite.now,
+		commitmenttypes.NewMerkleRoot([]byte("next")),
+		suite.valSetHash,
+	)
 
 	testClientHeightPlus5 := types.NewHeight(0, height+5)
 
@@ -245,7 +346,10 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 
 	clientState := suite.chainA.GetClientState(path.EndpointB.Chain.ChainName)
 	expConsensusHeight0 := clientState.GetLatestHeight()
-	consensusState0, ok := suite.chainA.GetConsensusState(path.EndpointB.Chain.ChainName, expConsensusHeight0)
+	consensusState0, ok := suite.chainA.GetConsensusState(
+		path.EndpointB.Chain.ChainName,
+		expConsensusHeight0,
+	)
 	suite.Require().True(ok)
 
 	// update client to create a second consensus state
@@ -255,7 +359,10 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 	clientState = suite.chainA.GetClientState(path.EndpointB.Chain.ChainName)
 	expConsensusHeight1 := clientState.GetLatestHeight()
 	suite.Require().True(expConsensusHeight1.GT(expConsensusHeight0))
-	consensusState1, ok := suite.chainA.GetConsensusState(path.EndpointB.Chain.ChainName, expConsensusHeight1)
+	consensusState1, ok := suite.chainA.GetConsensusState(
+		path.EndpointB.Chain.ChainName,
+		expConsensusHeight1,
+	)
 	suite.Require().True(ok)
 
 	consensusStateAny0, err := types.PackConsensusState(consensusState0)
@@ -268,7 +375,9 @@ func (suite KeeperTestSuite) TestGetAllConsensusStates() {
 		{Height: expConsensusHeight1.(types.Height), ConsensusState: consensusStateAny1},
 	}
 
-	consStates := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetAllConsensusStates(suite.chainA.GetContext())
+	consStates := path.EndpointA.Chain.App.TIBCKeeper.ClientKeeper.GetAllConsensusStates(
+		suite.chainA.GetContext(),
+	)
 	suite.Require().Len(consStates, 1)
 	suite.Require().Equal(path.EndpointB.Chain.ChainName, consStates[0].ChainName)
 	suite.Require().Equal(expConsensus, consStates[0].ConsensusStates)

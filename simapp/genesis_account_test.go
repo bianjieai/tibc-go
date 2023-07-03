@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto"
+	"github.com/cometbft/cometbft/crypto"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,8 +46,13 @@ func TestSimGenesisAccountValidate(t *testing.T) {
 		{
 			"valid basic account with module name",
 			simapp.SimGenesisAccount{
-				BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(crypto.AddressHash([]byte("testmod"))), nil, 0, 0),
-				ModuleName:  "testmod",
+				BaseAccount: authtypes.NewBaseAccount(
+					sdk.AccAddress(crypto.AddressHash([]byte("testmod"))),
+					nil,
+					0,
+					0,
+				),
+				ModuleName: "testmod",
 			},
 			false,
 		},

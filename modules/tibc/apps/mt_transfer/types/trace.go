@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	tmtypes "github.com/cometbft/cometbft/types"
 )
 
 // Traces defines a wrapper type for a slice of ClassTrace.
@@ -36,8 +36,8 @@ func (t Traces) Sort() Traces {
 //
 // Examples:
 //
-// 	- "mt/A/B/dog" => ClassTrace{Path: "mt/A/B", BaseClass: "dog"}
-// 	- "dog" => ClassTrace{Path: "", BaseClass: "dog"}
+//   - "mt/A/B/dog" => ClassTrace{Path: "mt/A/B", BaseClass: "dog"}
+//   - "dog" => ClassTrace{Path: "", BaseClass: "dog"}
 func ParseClassTrace(rawClass string) ClassTrace {
 	classSplit := strings.Split(rawClass, "/")
 
