@@ -3,7 +3,6 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	clientkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -31,10 +30,12 @@ type Keeper struct {
 
 // NewKeeper creates a new tibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	stakingKeeper clienttypes.StakingKeeper, authority string,
+	cdc codec.BinaryCodec,
+	key storetypes.StoreKey,
+	stakingKeeper clienttypes.StakingKeeper,
+	authority string,
 ) *Keeper {
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, key, stakingKeeper)
 	routingKeeper := routingkeeper.NewKeeper(key)
 	packetkeeper := packetkeeper.NewKeeper(cdc, key, clientKeeper, routingKeeper)
 
