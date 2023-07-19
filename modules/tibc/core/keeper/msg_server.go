@@ -15,11 +15,90 @@ import (
 	coretypes "github.com/bianjieai/tibc-go/modules/tibc/core/types"
 )
 
-var _ clienttypes.MsgServer = Keeper{}
-var _ packettypes.MsgServer = Keeper{}
+var (
+	_ clienttypes.MsgServer  = msgServer{}
+	_ packettypes.MsgServer  = msgServer{}
+	_ routingtypes.MsgServer = msgServer{}
+)
+
+type msgServer struct {
+	k Keeper
+}
+
+// NewMsgServerImpl returns an implementation of the mint MsgServer interface
+// for the provided Keeper.
+func NewMsgServerImpl(keeper Keeper) coretypes.MsgServer {
+	return &msgServer{k: keeper}
+}
+
+// CreateClient defines a rpc handler method for MsgCreateClient.
+func (m msgServer) CreateClient(
+	goCtx context.Context,
+	msg *clienttypes.MsgCreateClient,
+) (*clienttypes.MsgCreateClientResponse, error) {
+	if m.k.authority != msg.Authority {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"invalid authority; expected %s, got %s",
+			m.k.authority,
+			msg.Authority,
+		)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_, has := m.k.ClientKeeper.GetClientState(ctx, msg.ChainName)
+	if has {
+		return &clienttypes.MsgCreateClientResponse{}, sdkerrors.Wrapf(
+			clienttypes.ErrClientExists,
+			"chain-name: %s",
+			msg.ChainName,
+		)
+	}
+
+	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
+	if err != nil {
+		return nil, err
+	}
+
+	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		telemetry.IncrCounterWithLabels(
+			[]string{"tibc", "client", "create"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(clienttypes.LabelClientType, clientState.ClientType()),
+				telemetry.NewLabel(clienttypes.LabelChainName, msg.ChainName),
+			},
+		)
+	}()
+
+	// emitting events in the keeper for proposal updates to clients
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			clienttypes.EventTypeCreateClientProposal,
+			sdk.NewAttribute(clienttypes.AttributeKeyChainName, msg.ChainName),
+			sdk.NewAttribute(clienttypes.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(
+				clienttypes.AttributeKeyConsensusHeight,
+				clientState.GetLatestHeight().String(),
+			),
+		),
+	)
+	if err := m.k.ClientKeeper.CreateClient(ctx, msg.ChainName, clientState, consensusState); err != nil {
+		return &clienttypes.MsgCreateClientResponse{}, err
+	}
+	return &clienttypes.MsgCreateClientResponse{}, nil
+}
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
-func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
+func (m msgServer) UpdateClient(
+	goCtx context.Context,
+	msg *clienttypes.MsgUpdateClient,
+) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	header, err := clienttypes.UnpackHeader(msg.Header)
@@ -28,11 +107,11 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 	}
 
 	// Verify that the account has permission to update the client
-	if !k.ClientKeeper.AuthRelayer(ctx, msg.ChainName, msg.Signer) {
+	if !m.k.ClientKeeper.AuthRelayer(ctx, msg.ChainName, msg.Signer) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "relayer: %s", msg.Signer)
 	}
 
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ChainName, header); err != nil {
+	if err = m.k.ClientKeeper.UpdateClient(ctx, msg.ChainName, header); err != nil {
 		return nil, err
 	}
 
@@ -46,15 +125,89 @@ func (k Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateCl
 	return &clienttypes.MsgUpdateClientResponse{}, nil
 }
 
+// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
+func (m msgServer) UpgradeClient(
+	goCtx context.Context,
+	msg *clienttypes.MsgUpgradeClient,
+) (*clienttypes.MsgUpgradeClientResponse, error) {
+	if m.k.authority != msg.Authority {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"invalid authority; expected %s, got %s",
+			m.k.authority,
+			msg.Authority,
+		)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
+	if err != nil {
+		return &clienttypes.MsgUpgradeClientResponse{}, err
+	}
+
+	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
+	if err != nil {
+		return &clienttypes.MsgUpgradeClientResponse{}, err
+	}
+
+	if err := m.k.ClientKeeper.UpgradeClient(ctx, msg.ChainName, clientState, consensusState); err != nil {
+		return &clienttypes.MsgUpgradeClientResponse{}, err
+	}
+	return &clienttypes.MsgUpgradeClientResponse{}, nil
+}
+
+// RegisterRelayer defines a rpc handler method for MsgRegisterRelayer.
+func (m msgServer) RegisterRelayer(
+	goCtx context.Context,
+	msg *clienttypes.MsgRegisterRelayer,
+) (*clienttypes.MsgRegisterRelayerResponse, error) {
+	if m.k.authority != msg.Authority {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"invalid authority; expected %s, got %s",
+			m.k.authority,
+			msg.Authority,
+		)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.k.ClientKeeper.RegisterRelayers(ctx, msg.ChainName, msg.Relayers)
+	return &clienttypes.MsgRegisterRelayerResponse{}, nil
+}
+
+// SetRoutingRules defines a rpc handler method for MsgSetRoutingRules.
+func (m msgServer) SetRoutingRules(
+	goCtx context.Context,
+	msg *routingtypes.MsgSetRoutingRules,
+) (*routingtypes.MsgSetRoutingRulesResponse, error) {
+	if m.k.authority != msg.Authority {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"invalid authority; expected %s, got %s",
+			m.k.authority,
+			msg.Authority,
+		)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := m.k.RoutingKeeper.SetRoutingRules(ctx, msg.Rules); err != nil {
+		return &routingtypes.MsgSetRoutingRulesResponse{}, err
+	}
+	return &routingtypes.MsgSetRoutingRulesResponse{}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
-func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket) (*packettypes.MsgRecvPacketResponse, error) {
+func (m msgServer) RecvPacket(
+	goCtx context.Context,
+	msg *packettypes.MsgRecvPacket,
+) (*packettypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Perform TAO verification
-	if err := k.PacketKeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
+	if err := m.k.PacketKeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		switch err {
 		case sdkerrors.ErrUnauthorized:
-			if err2 := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
+			if err2 := m.k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
 				return nil, err2
 			}
 			return &packettypes.MsgRecvPacketResponse{}, nil
@@ -63,11 +216,15 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 		}
 	}
 
-	if msg.Packet.GetDestChain() == k.ClientKeeper.GetChainName(ctx) {
+	if msg.Packet.GetDestChain() == m.k.ClientKeeper.GetChainName(ctx) {
 		// Retrieve callbacks from router
-		cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
+		cbs, ok := m.k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 		if !ok {
-			return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
+			return nil, sdkerrors.Wrapf(
+				routingtypes.ErrInvalidRoute,
+				"route not found to module: %s",
+				msg.Packet.Port,
+			)
 		}
 
 		// Perform application logic callback
@@ -80,7 +237,7 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 		// NOTE: TIBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is nil.
 		if ack != nil {
-			if err := k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+			if err := m.k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
 				return nil, err
 			}
 		}
@@ -103,17 +260,24 @@ func (k Keeper) RecvPacket(goCtx context.Context, msg *packettypes.MsgRecvPacket
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAcknowledgement) (*packettypes.MsgAcknowledgementResponse, error) {
+func (m msgServer) Acknowledgement(
+	goCtx context.Context,
+	msg *packettypes.MsgAcknowledgement,
+) (*packettypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve callbacks from router
-	cbs, ok := k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
+	cbs, ok := m.k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 	if !ok {
-		return nil, sdkerrors.Wrapf(routingtypes.ErrInvalidRoute, "route not found to module: %s", msg.Packet.Port)
+		return nil, sdkerrors.Wrapf(
+			routingtypes.ErrInvalidRoute,
+			"route not found to module: %s",
+			msg.Packet.Port,
+		)
 	}
 
 	// Perform TAO verification
-	if err := k.PacketKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
+	if err := m.k.PacketKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
 	}
 
@@ -140,9 +304,12 @@ func (k Keeper) Acknowledgement(goCtx context.Context, msg *packettypes.MsgAckno
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPacket) (*packettypes.MsgCleanPacketResponse, error) {
+func (m msgServer) CleanPacket(
+	goCtx context.Context,
+	msg *packettypes.MsgCleanPacket,
+) (*packettypes.MsgCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := k.PacketKeeper.CleanPacket(ctx, msg.CleanPacket); err != nil {
+	if err := m.k.PacketKeeper.CleanPacket(ctx, msg.CleanPacket); err != nil {
 		return nil, sdkerrors.Wrap(err, "send clean packet failed")
 	}
 
@@ -152,7 +319,10 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
-				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.CleanPacket.DestinationChain),
+				telemetry.NewLabel(
+					coretypes.LabelDestinationChain,
+					msg.CleanPacket.DestinationChain,
+				),
 				telemetry.NewLabel(coretypes.LabelRelayChain, msg.CleanPacket.RelayChain),
 			},
 		)
@@ -162,9 +332,12 @@ func (k Keeper) CleanPacket(goCtx context.Context, msg *packettypes.MsgCleanPack
 }
 
 // RecvCleanPacket defines a rpc handler method for MsgAcknowledgement.
-func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvCleanPacket) (*packettypes.MsgRecvCleanPacketResponse, error) {
+func (m msgServer) RecvCleanPacket(
+	goCtx context.Context,
+	msg *packettypes.MsgRecvCleanPacket,
+) (*packettypes.MsgRecvCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := k.PacketKeeper.RecvCleanPacket(ctx, msg.CleanPacket, msg.ProofCommitment, msg.ProofHeight); err != nil {
+	if err := m.k.PacketKeeper.RecvCleanPacket(ctx, msg.CleanPacket, msg.ProofCommitment, msg.ProofHeight); err != nil {
 		return nil, sdkerrors.Wrap(err, "receive clean packet failed")
 	}
 
@@ -174,7 +347,10 @@ func (k Keeper) RecvCleanPacket(goCtx context.Context, msg *packettypes.MsgRecvC
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(coretypes.LabelSourceChain, msg.CleanPacket.SourceChain),
-				telemetry.NewLabel(coretypes.LabelDestinationChain, msg.CleanPacket.DestinationChain),
+				telemetry.NewLabel(
+					coretypes.LabelDestinationChain,
+					msg.CleanPacket.DestinationChain,
+				),
 				telemetry.NewLabel(coretypes.LabelRelayChain, msg.CleanPacket.RelayChain),
 			},
 		)
