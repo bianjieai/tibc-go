@@ -37,7 +37,7 @@ func (m msgServer) CreateClient(
 	msg *clienttypes.MsgCreateClient,
 ) (*clienttypes.MsgCreateClientResponse, error) {
 	if m.k.authority != msg.Authority {
-		return nil, sdkerrors.Wrapf(
+		return &clienttypes.MsgCreateClientResponse{}, sdkerrors.Wrapf(
 			sdkerrors.ErrUnauthorized,
 			"invalid authority; expected %s, got %s",
 			m.k.authority,
@@ -57,12 +57,12 @@ func (m msgServer) CreateClient(
 
 	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
-		return nil, err
+		return &clienttypes.MsgCreateClientResponse{}, err
 	}
 
 	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
-		return nil, err
+		return &clienttypes.MsgCreateClientResponse{}, err
 	}
 
 	defer func() {
@@ -103,16 +103,20 @@ func (m msgServer) UpdateClient(
 
 	header, err := clienttypes.UnpackHeader(msg.Header)
 	if err != nil {
-		return nil, err
+		return &clienttypes.MsgUpdateClientResponse{}, err
 	}
 
 	// Verify that the account has permission to update the client
 	if !m.k.ClientKeeper.AuthRelayer(ctx, msg.ChainName, msg.Signer) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "relayer: %s", msg.Signer)
+		return &clienttypes.MsgUpdateClientResponse{}, sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"relayer: %s",
+			msg.Signer,
+		)
 	}
 
 	if err = m.k.ClientKeeper.UpdateClient(ctx, msg.ChainName, header); err != nil {
-		return nil, err
+		return &clienttypes.MsgUpdateClientResponse{}, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -131,7 +135,7 @@ func (m msgServer) UpgradeClient(
 	msg *clienttypes.MsgUpgradeClient,
 ) (*clienttypes.MsgUpgradeClientResponse, error) {
 	if m.k.authority != msg.Authority {
-		return nil, sdkerrors.Wrapf(
+		return &clienttypes.MsgUpgradeClientResponse{}, sdkerrors.Wrapf(
 			sdkerrors.ErrUnauthorized,
 			"invalid authority; expected %s, got %s",
 			m.k.authority,
@@ -162,7 +166,7 @@ func (m msgServer) RegisterRelayer(
 	msg *clienttypes.MsgRegisterRelayer,
 ) (*clienttypes.MsgRegisterRelayerResponse, error) {
 	if m.k.authority != msg.Authority {
-		return nil, sdkerrors.Wrapf(
+		return &clienttypes.MsgRegisterRelayerResponse{}, sdkerrors.Wrapf(
 			sdkerrors.ErrUnauthorized,
 			"invalid authority; expected %s, got %s",
 			m.k.authority,
@@ -181,7 +185,7 @@ func (m msgServer) SetRoutingRules(
 	msg *routingtypes.MsgSetRoutingRules,
 ) (*routingtypes.MsgSetRoutingRulesResponse, error) {
 	if m.k.authority != msg.Authority {
-		return nil, sdkerrors.Wrapf(
+		return &routingtypes.MsgSetRoutingRulesResponse{}, sdkerrors.Wrapf(
 			sdkerrors.ErrUnauthorized,
 			"invalid authority; expected %s, got %s",
 			m.k.authority,
@@ -208,11 +212,14 @@ func (m msgServer) RecvPacket(
 		switch err {
 		case sdkerrors.ErrUnauthorized:
 			if err2 := m.k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, packettypes.NewErrorAcknowledgement(err.Error()).GetBytes()); err2 != nil {
-				return nil, err2
+				return &packettypes.MsgRecvPacketResponse{}, err2
 			}
 			return &packettypes.MsgRecvPacketResponse{}, nil
 		default:
-			return nil, sdkerrors.Wrap(err, "receive packet verification failed")
+			return &packettypes.MsgRecvPacketResponse{}, sdkerrors.Wrap(
+				err,
+				"receive packet verification failed",
+			)
 		}
 	}
 
@@ -220,7 +227,7 @@ func (m msgServer) RecvPacket(
 		// Retrieve callbacks from router
 		cbs, ok := m.k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 		if !ok {
-			return nil, sdkerrors.Wrapf(
+			return &packettypes.MsgRecvPacketResponse{}, sdkerrors.Wrapf(
 				routingtypes.ErrInvalidRoute,
 				"route not found to module: %s",
 				msg.Packet.Port,
@@ -230,7 +237,10 @@ func (m msgServer) RecvPacket(
 		// Perform application logic callback
 		_, ack, err := cbs.OnRecvPacket(ctx, msg.Packet)
 		if err != nil {
-			return nil, sdkerrors.Wrap(err, "receive packet callback failed")
+			return &packettypes.MsgRecvPacketResponse{}, sdkerrors.Wrap(
+				err,
+				"receive packet callback failed",
+			)
 		}
 
 		// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -238,7 +248,7 @@ func (m msgServer) RecvPacket(
 		// acknowledgement is nil.
 		if ack != nil {
 			if err := m.k.PacketKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
-				return nil, err
+				return &packettypes.MsgRecvPacketResponse{}, err
 			}
 		}
 	}
@@ -269,7 +279,7 @@ func (m msgServer) Acknowledgement(
 	// Retrieve callbacks from router
 	cbs, ok := m.k.RoutingKeeper.Router.GetRoute(routingtypes.Port(msg.Packet.Port))
 	if !ok {
-		return nil, sdkerrors.Wrapf(
+		return &packettypes.MsgAcknowledgementResponse{}, sdkerrors.Wrapf(
 			routingtypes.ErrInvalidRoute,
 			"route not found to module: %s",
 			msg.Packet.Port,
@@ -278,13 +288,19 @@ func (m msgServer) Acknowledgement(
 
 	// Perform TAO verification
 	if err := m.k.PacketKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight); err != nil {
-		return nil, sdkerrors.Wrap(err, "acknowledge packet verification failed")
+		return &packettypes.MsgAcknowledgementResponse{}, sdkerrors.Wrap(
+			err,
+			"acknowledge packet verification failed",
+		)
 	}
 
 	// Perform application logic callback
 	_, err := cbs.OnAcknowledgementPacket(ctx, msg.Packet, msg.Acknowledgement)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "acknowledge packet callback failed")
+		return &packettypes.MsgAcknowledgementResponse{}, sdkerrors.Wrap(
+			err,
+			"acknowledge packet callback failed",
+		)
 	}
 
 	defer func() {
@@ -310,7 +326,10 @@ func (m msgServer) CleanPacket(
 ) (*packettypes.MsgCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := m.k.PacketKeeper.CleanPacket(ctx, msg.CleanPacket); err != nil {
-		return nil, sdkerrors.Wrap(err, "send clean packet failed")
+		return &packettypes.MsgCleanPacketResponse{}, sdkerrors.Wrap(
+			err,
+			"send clean packet failed",
+		)
 	}
 
 	defer func() {
@@ -338,7 +357,10 @@ func (m msgServer) RecvCleanPacket(
 ) (*packettypes.MsgRecvCleanPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := m.k.PacketKeeper.RecvCleanPacket(ctx, msg.CleanPacket, msg.ProofCommitment, msg.ProofHeight); err != nil {
-		return nil, sdkerrors.Wrap(err, "receive clean packet failed")
+		return &packettypes.MsgRecvCleanPacketResponse{}, sdkerrors.Wrap(
+			err,
+			"receive clean packet failed",
+		)
 	}
 
 	defer func() {
