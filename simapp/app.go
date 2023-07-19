@@ -408,7 +408,11 @@ func NewSimApp(
 
 	// Create TIBC Keeper
 	app.TIBCKeeper = tibckeeper.NewKeeper(
-		appCodec, keys[tibchost.StoreKey], app.GetSubspace(tibchost.ModuleName), app.StakingKeeper,
+		appCodec,
+		keys[tibchost.StoreKey],
+		app.GetSubspace(tibchost.ModuleName),
+		app.StakingKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	app.NftKeeper = nftkeeper.NewKeeper(

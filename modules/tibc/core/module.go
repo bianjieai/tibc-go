@@ -126,8 +126,10 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	packettypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	msgServer := keeper.NewMsgServerImpl(*am.keeper)
+	clienttypes.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	packettypes.RegisterMsgServer(cfg.MsgServer(), msgServer)
+	routingtypes.RegisterMsgServer(cfg.MsgServer(), msgServer)
 	types.RegisterQueryService(cfg.QueryServer(), am.keeper)
 }
 

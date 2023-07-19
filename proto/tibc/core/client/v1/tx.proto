@@ -5,11 +5,22 @@ option go_package = "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/ty
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 
 // Msg defines the tibc/client Msg service.
 service Msg {
-  // UpdateClient defines a rpc handler method for MsgUpdateClient.
+  // CreateClient defines a rpc handler method for MsgCreateClient.
+  rpc CreateClient(MsgCreateClient) returns (MsgCreateClientResponse);
+
+   // UpdateClient defines a rpc handler method for MsgUpdateClient.
   rpc UpdateClient(MsgUpdateClient) returns (MsgUpdateClientResponse);
+
+  // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
+  rpc UpgradeClient(MsgUpgradeClient) returns (MsgUpgradeClientResponse);
+
+  // RegisterRelayer defines a rpc handler method for MsgRegisterRelayer.
+  rpc RegisterRelayer(MsgRegisterRelayer) returns (MsgRegisterRelayerResponse);
 }
 
 // MsgUpdateClient defines an sdk.Msg to update a TIBC client state using
@@ -17,6 +28,7 @@ service Msg {
 message MsgUpdateClient {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
+  option (cosmos.msg.v1.signer) = "signer";
 
   // client unique identifier
   string chain_name = 1;
@@ -28,3 +40,75 @@ message MsgUpdateClient {
 
 // MsgUpdateClientResponse defines the Msg/UpdateClient response type.
 message MsgUpdateClientResponse {}
+
+// MsgCreateClient defines a overnance proposal to create an TIBC client
+message MsgCreateClient {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.goproto_getters) = false;
+  // the title of the update proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the client identifier for the client to be updated if the proposal passes
+  string chain_name = 3;
+  // light client state
+  google.protobuf.Any client_state = 4;
+  // consensus state associated with the client that corresponds to a given
+  // height.
+  google.protobuf.Any consensus_state = 5;
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten).
+  string authority = 6 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+// MsgCreateClientResponse defines the Msg/UpdateClient response type.
+message MsgCreateClientResponse {}
+
+// MsgUpgradeClient defines a overnance proposal to overide an TIBC client
+// state
+message MsgUpgradeClient {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.goproto_getters) = false;
+  // the title of the update proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the client identifier for the client to be updated if the proposal passes
+  string chain_name = 3;
+  // client state
+  google.protobuf.Any client_state = 4;
+  // consensus state
+  google.protobuf.Any consensus_state = 5;
+
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten).
+  string authority = 6 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+// MsgCreateClientResponse defines the Msg/UpdateClient response type.
+message MsgUpgradeClientResponse {}
+
+
+// MsgRegisterRelayer defines a overnance proposal to register some
+// relayers for updating a client state.
+message MsgRegisterRelayer {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  option (gogoproto.goproto_getters) = false;
+  // the title of the update proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the client identifier for the client to be updated if the proposal passes
+  string chain_name = 3;
+  // relayer address list
+  repeated string relayers = 4;
+  // authority is the address that controls the module (defaults to x/gov unless
+  // overwritten).
+  string authority = 5 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+// MsgRegisterRelayerResponse defines the Msg/UpdateClient response type.
+message MsgRegisterRelayerResponse {}

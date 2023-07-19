@@ -25,12 +25,14 @@ type Keeper struct {
 	ClientKeeper  clientkeeper.Keeper
 	PacketKeeper  packetkeeper.Keeper
 	RoutingKeeper routingkeeper.Keeper
+
+	authority string
 }
 
 // NewKeeper creates a new tibc Keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace,
-	stakingKeeper clienttypes.StakingKeeper,
+	stakingKeeper clienttypes.StakingKeeper, authority string,
 ) *Keeper {
 	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, stakingKeeper)
 	routingKeeper := routingkeeper.NewKeeper(key)
@@ -41,6 +43,7 @@ func NewKeeper(
 		ClientKeeper:  clientKeeper,
 		PacketKeeper:  packetkeeper,
 		RoutingKeeper: routingKeeper,
+		authority:     authority,
 	}
 }
 
