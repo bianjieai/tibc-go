@@ -12,7 +12,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -24,7 +23,6 @@ import (
 type Keeper struct {
 	storeKey      storetypes.StoreKey
 	cdc           codec.BinaryCodec
-	paramSpace    paramtypes.Subspace
 	stakingKeeper types.StakingKeeper
 }
 
@@ -32,13 +30,11 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
-	paramSpace paramtypes.Subspace,
 	sk types.StakingKeeper,
 ) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
-		paramSpace:    paramSpace,
 		stakingKeeper: sk,
 	}
 }
