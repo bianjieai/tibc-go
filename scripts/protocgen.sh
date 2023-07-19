@@ -20,7 +20,7 @@ done
 cd ..
 
 # move proto files to the right places
-cp -r github.com/bianjieai/tibc-go/* ./
+# cp -r github.com/bianjieai/tibc-go/* ./
 rm -rf github.com
 
 ./scripts/protocgen-pulsar.sh

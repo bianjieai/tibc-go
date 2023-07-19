@@ -7,8 +7,9 @@ managed:
       - buf.build/googleapis/googleapis
       - buf.build/cosmos/gogo-proto
       - buf.build/cosmos/cosmos-proto
+      - buf.build/cosmos/ics23
     override:
-      buf.build/bianjieai/tibc-go: github.com/bianjieai/tibc-go/api
+      buf.build/irisnet/tibc-go: github.com/bianjieai/tibc-go/api
 plugins:
   - name: go-pulsar
     out: ../api

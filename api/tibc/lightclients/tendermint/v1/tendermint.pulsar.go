@@ -2,13 +2,13 @@
 package tendermintv1
 
 import (
-	v1 "cosmossdk.io/api/cosmos/ics23/v1"
 	types "cosmossdk.io/api/tendermint/types"
-	v11 "cosmossdk.io/api/tibc/core/client/v1"
-	v12 "cosmossdk.io/api/tibc/core/commitment/v1"
 	fmt "fmt"
+	v1 "github.com/bianjieai/tibc-go/api/tibc/core/client/v1"
+	v11 "github.com/bianjieai/tibc-go/api/tibc/core/commitment/v1"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
+	_go "github.com/cosmos/ics23/go"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -22,7 +22,7 @@ import (
 var _ protoreflect.List = (*_ClientState_7_list)(nil)
 
 type _ClientState_7_list struct {
-	list *[]*v1.ProofSpec
+	list *[]*_go.ProofSpec
 }
 
 func (x *_ClientState_7_list) Len() int {
@@ -38,18 +38,18 @@ func (x *_ClientState_7_list) Get(i int) protoreflect.Value {
 
 func (x *_ClientState_7_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1.ProofSpec)
+	concreteValue := valueUnwrapped.Interface().(*_go.ProofSpec)
 	(*x.list)[i] = concreteValue
 }
 
 func (x *_ClientState_7_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1.ProofSpec)
+	concreteValue := valueUnwrapped.Interface().(*_go.ProofSpec)
 	*x.list = append(*x.list, concreteValue)
 }
 
 func (x *_ClientState_7_list) AppendMutable() protoreflect.Value {
-	v := new(v1.ProofSpec)
+	v := new(_go.ProofSpec)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
@@ -62,7 +62,7 @@ func (x *_ClientState_7_list) Truncate(n int) {
 }
 
 func (x *_ClientState_7_list) NewElement() protoreflect.Value {
-	v := new(v1.ProofSpec)
+	v := new(_go.ProofSpec)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
@@ -360,13 +360,13 @@ func (x *fastReflection_ClientState) Set(fd protoreflect.FieldDescriptor, value 
 	case "tibc.lightclients.tendermint.v1.ClientState.max_clock_drift":
 		x.MaxClockDrift = value.Message().Interface().(*durationpb.Duration)
 	case "tibc.lightclients.tendermint.v1.ClientState.latest_height":
-		x.LatestHeight = value.Message().Interface().(*v11.Height)
+		x.LatestHeight = value.Message().Interface().(*v1.Height)
 	case "tibc.lightclients.tendermint.v1.ClientState.proof_specs":
 		lv := value.List()
 		clv := lv.(*_ClientState_7_list)
 		x.ProofSpecs = *clv.list
 	case "tibc.lightclients.tendermint.v1.ClientState.merkle_prefix":
-		x.MerklePrefix = value.Message().Interface().(*v12.MerklePrefix)
+		x.MerklePrefix = value.Message().Interface().(*v11.MerklePrefix)
 	case "tibc.lightclients.tendermint.v1.ClientState.time_delay":
 		x.TimeDelay = value.Uint()
 	default:
@@ -411,18 +411,18 @@ func (x *fastReflection_ClientState) Mutable(fd protoreflect.FieldDescriptor) pr
 		return protoreflect.ValueOfMessage(x.MaxClockDrift.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.latest_height":
 		if x.LatestHeight == nil {
-			x.LatestHeight = new(v11.Height)
+			x.LatestHeight = new(v1.Height)
 		}
 		return protoreflect.ValueOfMessage(x.LatestHeight.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.proof_specs":
 		if x.ProofSpecs == nil {
-			x.ProofSpecs = []*v1.ProofSpec{}
+			x.ProofSpecs = []*_go.ProofSpec{}
 		}
 		value := &_ClientState_7_list{list: &x.ProofSpecs}
 		return protoreflect.ValueOfList(value)
 	case "tibc.lightclients.tendermint.v1.ClientState.merkle_prefix":
 		if x.MerklePrefix == nil {
-			x.MerklePrefix = new(v12.MerklePrefix)
+			x.MerklePrefix = new(v11.MerklePrefix)
 		}
 		return protoreflect.ValueOfMessage(x.MerklePrefix.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.chain_id":
@@ -457,13 +457,13 @@ func (x *fastReflection_ClientState) NewField(fd protoreflect.FieldDescriptor) p
 		m := new(durationpb.Duration)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.latest_height":
-		m := new(v11.Height)
+		m := new(v1.Height)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.proof_specs":
-		list := []*v1.ProofSpec{}
+		list := []*_go.ProofSpec{}
 		return protoreflect.ValueOfList(&_ClientState_7_list{list: &list})
 	case "tibc.lightclients.tendermint.v1.ClientState.merkle_prefix":
-		m := new(v12.MerklePrefix)
+		m := new(v11.MerklePrefix)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ClientState.time_delay":
 		return protoreflect.ValueOfUint64(uint64(0))
@@ -969,7 +969,7 @@ func (x *fastReflection_ClientState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.LatestHeight == nil {
-					x.LatestHeight = &v11.Height{}
+					x.LatestHeight = &v1.Height{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.LatestHeight); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1004,7 +1004,7 @@ func (x *fastReflection_ClientState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.ProofSpecs = append(x.ProofSpecs, &v1.ProofSpec{})
+				x.ProofSpecs = append(x.ProofSpecs, &_go.ProofSpec{})
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.ProofSpecs[len(x.ProofSpecs)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
@@ -1039,7 +1039,7 @@ func (x *fastReflection_ClientState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.MerklePrefix == nil {
-					x.MerklePrefix = &v12.MerklePrefix{}
+					x.MerklePrefix = &v11.MerklePrefix{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.MerklePrefix); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1288,7 +1288,7 @@ func (x *fastReflection_ConsensusState) Set(fd protoreflect.FieldDescriptor, val
 	case "tibc.lightclients.tendermint.v1.ConsensusState.timestamp":
 		x.Timestamp = value.Message().Interface().(*timestamppb.Timestamp)
 	case "tibc.lightclients.tendermint.v1.ConsensusState.root":
-		x.Root = value.Message().Interface().(*v12.MerkleRoot)
+		x.Root = value.Message().Interface().(*v11.MerkleRoot)
 	case "tibc.lightclients.tendermint.v1.ConsensusState.next_validators_hash":
 		x.NextValidatorsHash = value.Bytes()
 	default:
@@ -1318,7 +1318,7 @@ func (x *fastReflection_ConsensusState) Mutable(fd protoreflect.FieldDescriptor)
 		return protoreflect.ValueOfMessage(x.Timestamp.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ConsensusState.root":
 		if x.Root == nil {
-			x.Root = new(v12.MerkleRoot)
+			x.Root = new(v11.MerkleRoot)
 		}
 		return protoreflect.ValueOfMessage(x.Root.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ConsensusState.next_validators_hash":
@@ -1340,7 +1340,7 @@ func (x *fastReflection_ConsensusState) NewField(fd protoreflect.FieldDescriptor
 		m := new(timestamppb.Timestamp)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ConsensusState.root":
-		m := new(v12.MerkleRoot)
+		m := new(v11.MerkleRoot)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.ConsensusState.next_validators_hash":
 		return protoreflect.ValueOfBytes(nil)
@@ -1604,7 +1604,7 @@ func (x *fastReflection_ConsensusState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Root == nil {
-					x.Root = &v12.MerkleRoot{}
+					x.Root = &v11.MerkleRoot{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Root); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -1885,7 +1885,7 @@ func (x *fastReflection_Header) Set(fd protoreflect.FieldDescriptor, value proto
 	case "tibc.lightclients.tendermint.v1.Header.validator_set":
 		x.ValidatorSet = value.Message().Interface().(*types.ValidatorSet)
 	case "tibc.lightclients.tendermint.v1.Header.trusted_height":
-		x.TrustedHeight = value.Message().Interface().(*v11.Height)
+		x.TrustedHeight = value.Message().Interface().(*v1.Height)
 	case "tibc.lightclients.tendermint.v1.Header.trusted_validators":
 		x.TrustedValidators = value.Message().Interface().(*types.ValidatorSet)
 	default:
@@ -1920,7 +1920,7 @@ func (x *fastReflection_Header) Mutable(fd protoreflect.FieldDescriptor) protore
 		return protoreflect.ValueOfMessage(x.ValidatorSet.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.Header.trusted_height":
 		if x.TrustedHeight == nil {
-			x.TrustedHeight = new(v11.Height)
+			x.TrustedHeight = new(v1.Height)
 		}
 		return protoreflect.ValueOfMessage(x.TrustedHeight.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.Header.trusted_validators":
@@ -1948,7 +1948,7 @@ func (x *fastReflection_Header) NewField(fd protoreflect.FieldDescriptor) protor
 		m := new(types.ValidatorSet)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.Header.trusted_height":
-		m := new(v11.Height)
+		m := new(v1.Height)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "tibc.lightclients.tendermint.v1.Header.trusted_validators":
 		m := new(types.ValidatorSet)
@@ -2274,7 +2274,7 @@ func (x *fastReflection_Header) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.TrustedHeight == nil {
-					x.TrustedHeight = &v11.Height{}
+					x.TrustedHeight = &v1.Height{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.TrustedHeight); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
@@ -2833,11 +2833,11 @@ type ClientState struct {
 	// defines how much new (untrusted) header's Time can drift into the future.
 	MaxClockDrift *durationpb.Duration `protobuf:"bytes,5,opt,name=max_clock_drift,json=maxClockDrift,proto3" json:"max_clock_drift,omitempty"`
 	// latest height the client was updated to
-	LatestHeight *v11.Height `protobuf:"bytes,6,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height,omitempty"`
+	LatestHeight *v1.Height `protobuf:"bytes,6,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height,omitempty"`
 	// proof specifications used in verifying counterparty state
-	ProofSpecs []*v1.ProofSpec `protobuf:"bytes,7,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty"`
+	ProofSpecs []*_go.ProofSpec `protobuf:"bytes,7,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty"`
 	// merkle_prefix merkle prefix of the counterparty chain.
-	MerklePrefix *v12.MerklePrefix `protobuf:"bytes,8,opt,name=merkle_prefix,json=merklePrefix,proto3" json:"merkle_prefix,omitempty"`
+	MerklePrefix *v11.MerklePrefix `protobuf:"bytes,8,opt,name=merkle_prefix,json=merklePrefix,proto3" json:"merkle_prefix,omitempty"`
 	// period of transaction confirmation delay
 	TimeDelay uint64 `protobuf:"varint,9,opt,name=time_delay,json=timeDelay,proto3" json:"time_delay,omitempty"`
 }
@@ -2897,21 +2897,21 @@ func (x *ClientState) GetMaxClockDrift() *durationpb.Duration {
 	return nil
 }
 
-func (x *ClientState) GetLatestHeight() *v11.Height {
+func (x *ClientState) GetLatestHeight() *v1.Height {
 	if x != nil {
 		return x.LatestHeight
 	}
 	return nil
 }
 
-func (x *ClientState) GetProofSpecs() []*v1.ProofSpec {
+func (x *ClientState) GetProofSpecs() []*_go.ProofSpec {
 	if x != nil {
 		return x.ProofSpecs
 	}
 	return nil
 }
 
-func (x *ClientState) GetMerklePrefix() *v12.MerklePrefix {
+func (x *ClientState) GetMerklePrefix() *v11.MerklePrefix {
 	if x != nil {
 		return x.MerklePrefix
 	}
@@ -2935,7 +2935,7 @@ type ConsensusState struct {
 	// was stored.
 	Timestamp *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// commitment root (i.e app hash)
-	Root               *v12.MerkleRoot `protobuf:"bytes,2,opt,name=root,proto3" json:"root,omitempty"`
+	Root               *v11.MerkleRoot `protobuf:"bytes,2,opt,name=root,proto3" json:"root,omitempty"`
 	NextValidatorsHash []byte          `protobuf:"bytes,3,opt,name=next_validators_hash,json=nextValidatorsHash,proto3" json:"next_validators_hash,omitempty"`
 }
 
@@ -2966,7 +2966,7 @@ func (x *ConsensusState) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *ConsensusState) GetRoot() *v12.MerkleRoot {
+func (x *ConsensusState) GetRoot() *v11.MerkleRoot {
 	if x != nil {
 		return x.Root
 	}
@@ -2999,7 +2999,7 @@ type Header struct {
 
 	SignedHeader      *types.SignedHeader `protobuf:"bytes,1,opt,name=signed_header,json=signedHeader,proto3" json:"signed_header,omitempty"`
 	ValidatorSet      *types.ValidatorSet `protobuf:"bytes,2,opt,name=validator_set,json=validatorSet,proto3" json:"validator_set,omitempty"`
-	TrustedHeight     *v11.Height         `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height,omitempty"`
+	TrustedHeight     *v1.Height          `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height,omitempty"`
 	TrustedValidators *types.ValidatorSet `protobuf:"bytes,4,opt,name=trusted_validators,json=trustedValidators,proto3" json:"trusted_validators,omitempty"`
 }
 
@@ -3037,7 +3037,7 @@ func (x *Header) GetValidatorSet() *types.ValidatorSet {
 	return nil
 }
 
-func (x *Header) GetTrustedHeight() *v11.Height {
+func (x *Header) GetTrustedHeight() *v1.Height {
 	if x != nil {
 		return x.TrustedHeight
 	}
@@ -3198,12 +3198,13 @@ var file_tibc_lightclients_tendermint_v1_tendermint_proto_rawDesc = []byte{
 	0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
 	0x09, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65,
 	0x6e, 0x6f, 0x6d, 0x69, 0x6e, 0x61, 0x74, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52,
-	0x0b, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x69, 0x6e, 0x61, 0x74, 0x6f, 0x72, 0x42, 0x94, 0x02, 0x0a,
+	0x0b, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x69, 0x6e, 0x61, 0x74, 0x6f, 0x72, 0x42, 0xa4, 0x02, 0x0a,
 	0x23, 0x63, 0x6f, 0x6d, 0x2e, 0x74, 0x69, 0x62, 0x63, 0x2e, 0x6c, 0x69, 0x67, 0x68, 0x74, 0x63,
 	0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73, 0x2e, 0x74, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x6d, 0x69, 0x6e,
 	0x74, 0x2e, 0x76, 0x31, 0x42, 0x0f, 0x54, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3d, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73,
-	0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x74, 0x69, 0x62, 0x63, 0x2f, 0x6c,
+	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x4d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
+	0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x69, 0x61, 0x6e, 0x6a, 0x69, 0x65, 0x61, 0x69, 0x2f, 0x74, 0x69,
+	0x62, 0x63, 0x2d, 0x67, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x74, 0x69, 0x62, 0x63, 0x2f, 0x6c,
 	0x69, 0x67, 0x68, 0x74, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x74, 0x65, 0x6e, 0x64,
 	0x65, 0x72, 0x6d, 0x69, 0x6e, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x74, 0x65, 0x6e, 0x64, 0x65, 0x72,
 	0x6d, 0x69, 0x6e, 0x74, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x54, 0x4c, 0x54, 0xaa, 0x02, 0x1f, 0x54,
@@ -3238,11 +3239,11 @@ var file_tibc_lightclients_tendermint_v1_tendermint_proto_goTypes = []interface{
 	(*Header)(nil),                // 2: tibc.lightclients.tendermint.v1.Header
 	(*Fraction)(nil),              // 3: tibc.lightclients.tendermint.v1.Fraction
 	(*durationpb.Duration)(nil),   // 4: google.protobuf.Duration
-	(*v11.Height)(nil),            // 5: tibc.core.client.v1.Height
-	(*v1.ProofSpec)(nil),          // 6: cosmos.ics23.v1.ProofSpec
-	(*v12.MerklePrefix)(nil),      // 7: tibc.core.commitment.v1.MerklePrefix
+	(*v1.Height)(nil),             // 5: tibc.core.client.v1.Height
+	(*_go.ProofSpec)(nil),         // 6: cosmos.ics23.v1.ProofSpec
+	(*v11.MerklePrefix)(nil),      // 7: tibc.core.commitment.v1.MerklePrefix
 	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
-	(*v12.MerkleRoot)(nil),        // 9: tibc.core.commitment.v1.MerkleRoot
+	(*v11.MerkleRoot)(nil),        // 9: tibc.core.commitment.v1.MerkleRoot
 	(*types.SignedHeader)(nil),    // 10: tendermint.types.SignedHeader
 	(*types.ValidatorSet)(nil),    // 11: tendermint.types.ValidatorSet
 }
