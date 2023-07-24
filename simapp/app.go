@@ -417,8 +417,6 @@ func NewSimApp(
 	app.NftKeeper = nftkeeper.NewKeeper(
 		appCodec,
 		keys[nfttypes.StoreKey],
-		app.AccountKeeper,
-		app.BankKeeper,
 	)
 	app.MtKeeper = mtkeeper.NewKeeper(appCodec, keys[mttypes.StoreKey])
 

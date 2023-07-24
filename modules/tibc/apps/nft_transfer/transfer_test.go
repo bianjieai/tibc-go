@@ -59,7 +59,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	)
 	_, _ = suite.chainA.SendMsgs(mintNftMsg)
 
-	dd, _ := suite.chainA.App.NftKeeper.GetDenomInfo(suite.chainA.GetContext(), "mobile")
+	dd, _ := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
 
 	// send nft from A To B
 	msg := types.NewMsgNftTransfer(
@@ -134,7 +134,11 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	// check that voucher exists on chain C
 	// denomID : tibc-{hash(nft/chainA.chainID/chainB.chainID/chainC.chainID/mobile)}
 	classInchainC := "tibc-DE7D2589EFE1DA87BC1FF9B7709D951263F1CCA56176D05B3DA07BF89C74099E"
-	nftInC, _ := suite.chainC.App.NftKeeper.GetNFT(suite.chainC.GetContext(), classInchainC, "xiaomi")
+	nftInC, _ := suite.chainC.App.NftKeeper.GetNFT(
+		suite.chainC.GetContext(),
+		classInchainC,
+		"xiaomi",
+	)
 	suite.Require().Equal("xiaomi", nftInC.GetID())
 
 	// send nft  from chainC back to chainB
@@ -223,8 +227,8 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 
 	*/
 	// query A
-	denomInA, err := suite.chainA.App.NftKeeper.GetDenomInfo(suite.chainA.GetContext(), "mobile")
-	if err != nil {
+	denomInA, found := suite.chainA.App.NftKeeper.GetDenom(suite.chainA.GetContext(), "mobile")
+	if found {
 		fmt.Println("denom found in A:", denomInA.Id)
 	} else {
 		fmt.Println("denom not found in A:", denomInA.Id)
@@ -238,13 +242,17 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query B
-	denomInB, err := suite.chainB.App.NftKeeper.GetDenomInfo(suite.chainB.GetContext(), classInchainB)
-	if err != nil {
+	denomInB, found := suite.chainB.App.NftKeeper.GetDenom(suite.chainB.GetContext(), classInchainB)
+	if found {
 		fmt.Println("denom found in B:", denomInB.Id)
 	} else {
 		fmt.Println("denom not found in B:", denomInB.Id)
 	}
-	nftInB, errB := suite.chainB.App.NftKeeper.GetNFT(suite.chainB.GetContext(), classInchainB, "xiaomi")
+	nftInB, errB := suite.chainB.App.NftKeeper.GetNFT(
+		suite.chainB.GetContext(),
+		classInchainB,
+		"xiaomi",
+	)
 	if errB != nil {
 		fmt.Println("nft not found in B")
 	} else {
@@ -252,13 +260,20 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 	}
 
 	// query C
-	denomInC, err := suite.chainC.App.NftKeeper.GetDenomInfo(suite.chainC.GetContext(), classInchainC)
-	if err != nil {
+	denomInC, found := suite.chainC.App.NftKeeper.GetDenom(
+		suite.chainC.GetContext(),
+		classInchainC,
+	)
+	if found {
 		fmt.Println("denom found in C:", denomInC.Id)
 	} else {
 		fmt.Println("denom not found in C:", denomInC.Id)
 	}
-	nftInC, errC := suite.chainC.App.NftKeeper.GetNFT(suite.chainC.GetContext(), classInchainC, "xiaomi")
+	nftInC, errC := suite.chainC.App.NftKeeper.GetNFT(
+		suite.chainC.GetContext(),
+		classInchainC,
+		"xiaomi",
+	)
 	if errC != nil {
 		fmt.Println("nft not found in C")
 	} else {
