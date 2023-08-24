@@ -12,7 +12,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.4
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ics23/go v0.10.0
-	github.com/irisnet/irismod v1.7.4-0.20230619053811-66caf8c96f89
+	github.com/irisnet/irismod v1.7.4-0.20230824074533-5f40ba1bd410
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529
 )
 
