@@ -37,6 +37,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+* [\#128](https://github.com/bianjieai/tibc-go/pull/128) Bump up irismod version to xxx
+* [\#128](https://github.com/bianjieai/tibc-go/pull/128) Bump up cosmos-sdk version to v0.47.4
+
 ## [v0.4.3]
 
 ### Improvements
