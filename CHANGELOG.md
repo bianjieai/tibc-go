@@ -35,7 +35,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v0.5.0]
+
+* [\#129](https://github.com/bianjieai/tibc-go/pull/129) Bump up irismod version to v1.8.0
+* [\#128](https://github.com/bianjieai/tibc-go/pull/128) Bump up cosmos-sdk version to v0.47.4
+* [\#127](https://github.com/bianjieai/tibc-go/pull/127) Support app wiring.
 
 ## [v0.4.3]
 
