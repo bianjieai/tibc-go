@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	mttypes "github.com/irisnet/irismod/modules/mt/types"
+	mttypes "mods.irisnet.org/modules/mt/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"

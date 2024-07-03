@@ -89,17 +89,16 @@ import (
 	tibcnfttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
 	tibcnfttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 
-	nftkeeper "github.com/irisnet/irismod/modules/nft/keeper"
-	nft "github.com/irisnet/irismod/modules/nft/module"
-	nfttypes "github.com/irisnet/irismod/modules/nft/types"
+	"mods.irisnet.org/modules/mt"
+	mtkeeper "mods.irisnet.org/modules/mt/keeper"
+	mttypes "mods.irisnet.org/modules/mt/types"
+	"mods.irisnet.org/modules/nft"
+	nftkeeper "mods.irisnet.org/modules/nft/keeper"
+	nfttypes "mods.irisnet.org/modules/nft/types"
 
 	tibcmttransfer "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer"
 	tibcmttransferkeeper "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/keeper"
 	tibcmttypes "github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
-
-	mt "github.com/irisnet/irismod/modules/mt"
-	mtkeeper "github.com/irisnet/irismod/modules/mt/keeper"
-	mttypes "github.com/irisnet/irismod/modules/mt/types"
 
 	tibc "github.com/bianjieai/tibc-go/modules/tibc/core"
 	tibchost "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -130,7 +129,7 @@ var (
 		gov.NewAppModuleBasic(
 			[]govclient.ProposalHandler{
 				paramsclient.ProposalHandler,
-				//distrclient.ProposalHandler, TODO
+				// distrclient.ProposalHandler, TODO
 				upgradeclient.LegacyProposalHandler,
 				upgradeclient.LegacyCancelProposalHandler,
 			},
@@ -478,7 +477,7 @@ func NewSimApp(
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
-	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
+	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
