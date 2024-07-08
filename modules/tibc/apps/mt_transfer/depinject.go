@@ -49,6 +49,7 @@ type Outputs struct {
 	Module           appmodule.AppModule
 }
 
+
 // ProvideModule creates and returns the farm module with the specified inputs.
 //
 // It takes Inputs as the parameter, which includes the configuration, codec, key, account keeper, bank keeper, governance keeper, coinswap keeper, and legacy subspace.
