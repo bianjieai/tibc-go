@@ -1,4 +1,4 @@
-package mt_transfer_test
+package mttransfer_test
 
 import (
 	"fmt"

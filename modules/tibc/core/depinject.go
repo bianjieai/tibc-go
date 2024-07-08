@@ -10,7 +10,10 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	modulev1 "github.com/bianjieai/tibc-go/api/tibc/core/module/v1"
+	clientkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/keeper"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
+	packetkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/keeper"
+	routingkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
 
@@ -29,7 +32,8 @@ func (am AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (am AppModule) IsAppModule() {}
 
-type TibcInputs struct {
+// Inputs define the module inputs for the depinject.
+type Inputs struct {
 	depinject.In
 
 	Config *modulev1.Module
@@ -39,14 +43,22 @@ type TibcInputs struct {
 	StakingKeeper clienttypes.StakingKeeper
 }
 
-type TibcOutputs struct {
+// Outputs define the module outputs for the depinject.
+type Outputs struct {
 	depinject.Out
 
-	TibcKeeper *keeper.Keeper
-	Module     appmodule.AppModule
+	TibcKeeper    *keeper.Keeper
+	Module        appmodule.AppModule
+	ClientKeeper  clientkeeper.Keeper
+	PacketKeeper  packetkeeper.Keeper
+	RoutingKeeper routingkeeper.Keeper
 }
 
-func ProvideModule(in TibcInputs) TibcOutputs {
+// ProvideModule defines a function that provides the TIBC module with necessary inputs and returns the outputs.
+//
+// Inputs: Inputs struct containing configuration, codec, store key, and staking keeper.
+// Outputs: Outputs struct with TIBC keeper, module, client keeper, packet keeper, and routing keeper.
+func ProvideModule(in Inputs) Outputs {
 	// default to governance authority if not provided
 	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
 	if in.Config.Authority != "" {
@@ -61,5 +73,11 @@ func ProvideModule(in TibcInputs) TibcOutputs {
 	)
 	m := NewAppModule(keeper)
 
-	return TibcOutputs{TibcKeeper: keeper, Module: m}
+	return Outputs{
+		TibcKeeper:    keeper,
+		Module:        m,
+		ClientKeeper:  keeper.ClientKeeper,
+		PacketKeeper:  keeper.PacketKeeper,
+		RoutingKeeper: keeper.RoutingKeeper,
+	}
 }

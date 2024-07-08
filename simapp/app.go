@@ -440,14 +440,14 @@ func NewSimApp(
 	)
 	// Create Transfer Keepers
 	app.NftTransferKeeper = tibcnfttransferkeeper.NewKeeper(
-		appCodec, keys[tibcnfttypes.StoreKey], app.GetSubspace(tibcnfttypes.ModuleName),
+		appCodec, keys[tibcnfttypes.StoreKey],
 		app.AccountKeeper, nftkeeper.NewLegacyKeeper(app.NftKeeper),
 		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
 	)
 
 	// Create Transfer Keepers
 	app.MtTransferKeeper = tibcmttransferkeeper.NewKeeper(
-		appCodec, keys[tibcnfttypes.StoreKey], app.GetSubspace(tibcnfttypes.ModuleName),
+		appCodec, keys[tibcnfttypes.StoreKey],
 		app.AccountKeeper, app.MtKeeper,
 		app.TIBCKeeper.PacketKeeper, app.TIBCKeeper.ClientKeeper,
 	)

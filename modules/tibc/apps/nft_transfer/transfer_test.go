@@ -1,4 +1,4 @@
-package nft_transfer_test
+package nfttransfer_test
 
 import (
 	"fmt"
