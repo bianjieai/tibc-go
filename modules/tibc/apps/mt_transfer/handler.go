@@ -1,4 +1,4 @@
-package mt_transfer
+package mttransfer
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

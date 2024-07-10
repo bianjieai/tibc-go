@@ -3,8 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	nftexported "github.com/irisnet/irismod/modules/nft/exported"
-	"github.com/irisnet/irismod/modules/nft/types"
+	nftexported "mods.irisnet.org/modules/nft/exported"
+	"mods.irisnet.org/modules/nft/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )

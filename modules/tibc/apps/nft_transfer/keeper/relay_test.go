@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
-	nfttypes "github.com/irisnet/irismod/modules/nft/types"
+	nfttypes "mods.irisnet.org/modules/nft/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"

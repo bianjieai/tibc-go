@@ -3,8 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	mtexported "github.com/irisnet/irismod/modules/mt/exported"
-	"github.com/irisnet/irismod/modules/mt/types"
+	mtexported "mods.irisnet.org/modules/mt/exported"
+	"mods.irisnet.org/modules/mt/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
