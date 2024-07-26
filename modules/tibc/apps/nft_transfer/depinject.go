@@ -35,10 +35,10 @@ type Inputs struct {
 	Cdc    codec.Codec
 	Key    *store.KVStoreKey
 
-	ak         types.AccountKeeper
-	mk         types.NftKeeper
-	pk         types.PacketKeeper
-	ck         types.ClientKeeper
+	AccountKeeper types.AccountKeeper
+	NftKeeper     types.NftKeeper
+	PacketKeeper  types.PacketKeeper
+	ClientKeeper  types.ClientKeeper
 }
 
 // Outputs define the module outputs for the depinject.
@@ -46,9 +46,8 @@ type Outputs struct {
 	depinject.Out
 
 	NftTransferKeeper keeper.Keeper
-	Module           appmodule.AppModule
+	Module            appmodule.AppModule
 }
-
 
 // ProvideModule creates and returns the module outputs for the depinject.
 //
@@ -58,13 +57,13 @@ func ProvideModule(in Inputs) Outputs {
 	keeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
-		in.ak,
-		in.mk,
-		in.pk,
-		in.ck,
+		in.AccountKeeper,
+		in.NftKeeper,
+		in.PacketKeeper,
+		in.ClientKeeper,
 	)
 	return Outputs{
 		NftTransferKeeper: keeper,
-		Module:           NewAppModule(keeper),
+		Module:            NewAppModule(keeper),
 	}
 }
