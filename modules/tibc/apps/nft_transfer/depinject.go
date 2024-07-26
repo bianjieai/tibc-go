@@ -9,6 +9,7 @@ import (
 	modulev1 "github.com/bianjieai/tibc-go/api/tibc/apps/nft_transfer/module/v1"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // App Wiring Setup
@@ -46,6 +47,7 @@ type Outputs struct {
 	depinject.Out
 
 	NftTransferKeeper keeper.Keeper
+	Route             routingtypes.Route
 	Module            appmodule.AppModule
 }
 
@@ -62,8 +64,14 @@ func ProvideModule(in Inputs) Outputs {
 		in.PacketKeeper,
 		in.ClientKeeper,
 	)
+	m := NewAppModule(keeper)
+	route := routingtypes.Route{
+		Port:   string(routingtypes.NFT),
+		Module: m,
+	}
 	return Outputs{
 		NftTransferKeeper: keeper,
-		Module:            NewAppModule(keeper),
+		Route:             route,
+		Module:            m,
 	}
 }
