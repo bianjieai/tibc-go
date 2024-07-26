@@ -4,13 +4,23 @@ import (
 	"fmt"
 )
 
-// The router is a map from module name to the TIBCModule
+// Route is a TIBCModule and a Port
+type Route struct {
+	Module TIBCModule
+	Port   string
+}
+
+// IsManyPerContainerType implements the depinject.ManyPerContainerType interface.
+func (Route) IsManyPerContainerType() {}
+
+// Router is a map from module name to the TIBCModule
 // which contains all the module-defined callbacks required by TICS-26
 type Router struct {
 	routes map[string]TIBCModule
 	sealed bool
 }
 
+// NewRouter creates a new TIBC Router
 func NewRouter() *Router {
 	return &Router{
 		routes: make(map[string]TIBCModule),
@@ -42,6 +52,20 @@ func (rtr *Router) AddRoute(port Port, cbs TIBCModule) *Router {
 	}
 
 	rtr.routes[string(port)] = cbs
+	return rtr
+}
+
+// Add adds TIBCModule for a given module name. It returns the Router
+// so Add calls can be linked. It will panic if the Router is sealed.
+func (rtr *Router) Add(r Route) *Router {
+	if rtr.sealed {
+		panic(fmt.Sprintf("router sealed; cannot register %s route callbacks", r.Port))
+	}
+	if rtr.HasRoute(Port(r.Port)) {
+		panic(fmt.Sprintf("route %s has already been registered", r.Port))
+	}
+
+	rtr.routes[r.Port] = r.Module
 	return rtr
 }
 

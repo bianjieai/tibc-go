@@ -9,6 +9,7 @@ import (
 	modulev1 "github.com/bianjieai/tibc-go/api/tibc/apps/mt_transfer/module/v1"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/keeper"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
 
 // App Wiring Setup
@@ -46,6 +47,7 @@ type Outputs struct {
 	depinject.Out
 
 	MtTransferKeeper keeper.Keeper
+	Route            routingtypes.Route
 	Module           appmodule.AppModule
 }
 
@@ -62,8 +64,14 @@ func ProvideModule(in Inputs) Outputs {
 		in.PacketKeeper,
 		in.ClientKeeper,
 	)
+	m := NewAppModule(keeper)
+	route := routingtypes.Route{
+		Port:   string(routingtypes.MT),
+		Module: m,
+	}
 	return Outputs{
 		MtTransferKeeper: keeper,
-		Module:           NewAppModule(keeper),
+		Route:            route,
+		Module:           m,
 	}
 }

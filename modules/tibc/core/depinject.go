@@ -1,6 +1,8 @@
 package tibc
 
 import (
+	"slices"
+
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 
@@ -14,6 +16,7 @@ import (
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packetkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/keeper"
 	routingkeeper "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/keeper"
+	routingtypes "github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
 
@@ -21,6 +24,7 @@ import (
 func init() {
 	appmodule.Register(&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
+		appmodule.Invoke(InvokeAddRoutes),
 	)
 }
 
@@ -80,4 +84,26 @@ func ProvideModule(in Inputs) Outputs {
 		PacketKeeper:  keeper.PacketKeeper,
 		RoutingKeeper: keeper.RoutingKeeper,
 	}
+}
+
+// InvokeAddRoutes adds routes to the TIBC router
+func InvokeAddRoutes(keeper *keeper.Keeper, routes []routingtypes.Route) {
+	if keeper == nil || routes == nil {
+		return
+	}
+
+	// Default route order is a lexical sort by RouteKey.
+	// Explicit ordering can be added to the module config if required.
+	slices.SortFunc(routes, func(a, b routingtypes.Route) int {
+		if a.Port < b.Port {
+			return -1
+		}
+		return 1
+	})
+
+	router := routingtypes.NewRouter()
+	for _, r := range routes {
+		router.Add(r)
+	}
+	keeper.SetRouter(router)
 }
