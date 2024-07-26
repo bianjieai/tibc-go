@@ -35,10 +35,10 @@ type Inputs struct {
 	Cdc    codec.Codec
 	Key    *store.KVStoreKey
 
-	ak         types.AccountKeeper
-	mk         types.MtKeeper
-	pk         types.PacketKeeper
-	ck         types.ClientKeeper
+	AccountKeeper types.AccountKeeper
+	MtKeeper      types.MtKeeper
+	PacketKeeper  types.PacketKeeper
+	ClientKeeper  types.ClientKeeper
 }
 
 // Outputs define the module outputs for the depinject.
@@ -49,7 +49,6 @@ type Outputs struct {
 	Module           appmodule.AppModule
 }
 
-
 // ProvideModule creates and returns the farm module with the specified inputs.
 //
 // It takes Inputs as the parameter, which includes the configuration, codec, key, account keeper, bank keeper, governance keeper, coinswap keeper, and legacy subspace.
@@ -58,10 +57,10 @@ func ProvideModule(in Inputs) Outputs {
 	keeper := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
-		in.ak,
-		in.mk,
-		in.pk,
-		in.ck,
+		in.AccountKeeper,
+		in.MtKeeper,
+		in.PacketKeeper,
+		in.ClientKeeper,
 	)
 	return Outputs{
 		MtTransferKeeper: keeper,
