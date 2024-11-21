@@ -7,8 +7,8 @@ import (
 
 	proto "github.com/cosmos/gogoproto/proto"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -95,11 +95,11 @@ func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker codectypes.AnyUnp
 // client identifier when used with '0' or the maximum uint64 as the sequence.
 func ValidateClientType(clientType string) error {
 	if strings.TrimSpace(clientType) == "" {
-		return sdkerrors.Wrap(ErrInvalidClientType, "client type cannot be blank")
+		return errorsmod.Wrap(ErrInvalidClientType, "client type cannot be blank")
 	}
 
 	if err := host.ClientIdentifierValidator(clientType); err != nil {
-		return sdkerrors.Wrap(err, "client type being invalid")
+		return errorsmod.Wrap(err, "client type being invalid")
 	}
 	return nil
 }

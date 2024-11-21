@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/hashicorp/go-metrics"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/mt_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
@@ -24,6 +24,16 @@ const (
 	DELIMITER = "/"
 )
 
+// SendMtTransfer is a wrapper function for sending a mt transfer packet.
+//
+// The function determines whether the mt is sent from the source chain or sent back to the source chain from other chains.
+// If awayFromOrigin is true, the mt is sent from the source chain to other chains.
+// If awayFromOrigin is false, the mt is sent from other chains to the source chain.
+//
+// The function will lock the mt and send a packet if awayFromOrigin is true.
+// If awayFromOrigin is false, the function will burn the mt.
+//
+// The function will return an error if the mt class is invalid, the mt is invalid, the sender is invalid, or the packet fails to send.
 func (k Keeper) SendMtTransfer(
 	ctx sdk.Context,
 	class, id string,
@@ -36,17 +46,17 @@ func (k Keeper) SendMtTransfer(
 ) error {
 	_, found := k.mk.GetDenom(ctx, class)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
 	}
 
 	mt, err := k.mk.GetMT(ctx, class, id)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrUnknownNFT, "invalid mt %s from class %s", id, class)
+		return errorsmod.Wrapf(types.ErrUnknownNFT, "invalid mt %s from class %s", id, class)
 	}
 
 	sourceChain := k.ck.GetChainName(ctx)
 	if sourceChain == destChain {
-		return sdkerrors.Wrapf(types.ErrScChainEqualToDestChain, "invalid destChain %s equals to scChain %s", destChain, sourceChain)
+		return errorsmod.Wrapf(types.ErrScChainEqualToDestChain, "invalid destChain %s equals to scChain %s", destChain, sourceChain)
 	}
 
 	fullClassPath := class
@@ -179,7 +189,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
 		if !strings.HasPrefix(data.Class, CLASSPATHPREFIX) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
+			return errorsmod.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 
 		newClassPath = k.getBackNewClassPath(data.Class)
@@ -337,12 +347,12 @@ func (k Keeper) ClassPathFromHash(ctx sdk.Context, class string) (string, error)
 
 	hash, err := types.ParseHexHash(hexHash)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidDenom, err.Error())
+		return "", errorsmod.Wrap(types.ErrInvalidDenom, err.Error())
 	}
 
 	denomTrace, found := k.GetClassTrace(ctx, hash)
 	if !found {
-		return "", sdkerrors.Wrap(types.ErrTraceNotFound, hexHash)
+		return "", errorsmod.Wrap(types.ErrTraceNotFound, hexHash)
 	}
 
 	fullDenomPath := denomTrace.GetFullClassPath()

@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -40,24 +40,24 @@ func (h Header) ValidateBasic() error {
 
 	// Check that the extra-data contains the vanity, validators and signature.
 	if len(h.Extra) < extraVanity {
-		return sdkerrors.Wrap(ErrMissingVanity, "header Extra")
+		return errorsmod.Wrap(ErrMissingVanity, "header Extra")
 	}
 	if len(h.Extra) < extraVanity+extraSeal {
-		return sdkerrors.Wrap(ErrMissingSignature, "header Extra")
+		return errorsmod.Wrap(ErrMissingSignature, "header Extra")
 	}
 
 	// Ensure that the mix digest is zero as we don't have fork protection currently
 	if common.BytesToHash(h.MixDigest) != (common.Hash{}) {
-		return sdkerrors.Wrap(ErrInvalidMixDigest, "header MixDigest")
+		return errorsmod.Wrap(ErrInvalidMixDigest, "header MixDigest")
 	}
 	// Ensure that the block doesn't contain any uncles which are meaningless in PoA
 	if common.BytesToHash(h.UncleHash) != uncleHash {
-		return sdkerrors.Wrap(ErrInvalidUncleHash, "header UncleHash")
+		return errorsmod.Wrap(ErrInvalidUncleHash, "header UncleHash")
 	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 {
 		if h.Difficulty == 0 {
-			return sdkerrors.Wrap(ErrInvalidDifficulty, "header Difficulty")
+			return errorsmod.Wrap(ErrInvalidDifficulty, "header Difficulty")
 		}
 	}
 	return nil
@@ -85,7 +85,7 @@ func (h Header) ToBscHeader() BscHeader {
 
 func verifyHeader(
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header Header,
 ) error {
@@ -99,11 +99,11 @@ func verifyHeader(
 	// Ensure that the extra-data contains a signer list on checkpoint, but none otherwise
 	signersBytes := len(header.Extra) - extraVanity - extraSeal
 	if !isEpoch && signersBytes != 0 {
-		return sdkerrors.Wrap(ErrExtraValidators, "header.Extra")
+		return errorsmod.Wrap(ErrExtraValidators, "header.Extra")
 	}
 
 	if isEpoch && signersBytes%addressLength != 0 {
-		return sdkerrors.Wrap(ErrInvalidSpanValidators, "header.Extra")
+		return errorsmod.Wrap(ErrInvalidSpanValidators, "header.Extra")
 	}
 
 	// All basic checks passed, verify cascading fields
@@ -116,7 +116,7 @@ func verifyHeader(
 // database. This is useful for concurrently verifying a batch of new headers.
 func verifyCascadingFields(
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header Header,
 ) error {
@@ -124,7 +124,7 @@ func verifyCascadingFields(
 
 	parent := clientState.Header
 	if parent.Height.RevisionHeight != height-1 || parent.Hash() != common.BytesToHash(header.ParentHash) {
-		return sdkerrors.Wrap(ErrUnknownAncestor, "")
+		return errorsmod.Wrap(ErrUnknownAncestor, "")
 	}
 
 	// Verify that the gas limit is <= 2^63-1
@@ -154,7 +154,7 @@ func verifyCascadingFields(
 
 func verifySeal(
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header Header,
 ) error {
@@ -167,7 +167,7 @@ func verifySeal(
 	}
 
 	if signer != common.BytesToAddress(header.Coinbase) {
-		return sdkerrors.Wrap(ErrCoinBaseMisMatch, "header.Coinbase")
+		return errorsmod.Wrap(ErrCoinBaseMisMatch, "header.Coinbase")
 	}
 
 	// Retrieve the snapshot needed to verify this header and cache it
@@ -177,14 +177,14 @@ func verifySeal(
 	}
 
 	if _, ok := snap.Validators[signer]; !ok {
-		return sdkerrors.Wrap(ErrUnauthorizedValidator, signer.Hex())
+		return errorsmod.Wrap(ErrUnauthorizedValidator, signer.Hex())
 	}
 
 	for seen, recent := range snap.Recents {
 		if recent == signer {
 			// Signer is among recents, only fail if the current block doesn't shift it out
 			if limit := uint64(len(snap.Validators)/2 + 1); seen > number-limit {
-				return sdkerrors.Wrap(ErrRecentlySigned, signer.Hex())
+				return errorsmod.Wrap(ErrRecentlySigned, signer.Hex())
 			}
 		}
 	}
@@ -198,10 +198,10 @@ func verifySeal(
 	inturn := snap.inturn(signer)
 	diff := big.NewInt(int64(header.Difficulty))
 	if inturn && diff.Cmp(diffInTurn) != 0 {
-		return sdkerrors.Wrap(ErrWrongDifficulty, "header.Difficulty")
+		return errorsmod.Wrap(ErrWrongDifficulty, "header.Difficulty")
 	}
 	if !inturn && diff.Cmp(diffNoTurn) != 0 {
-		return sdkerrors.Wrap(ErrWrongDifficulty, "header.Difficulty")
+		return errorsmod.Wrap(ErrWrongDifficulty, "header.Difficulty")
 	}
 	return nil
 }
@@ -210,7 +210,7 @@ func verifySeal(
 func ecrecover(header Header, chainId *big.Int) (common.Address, error) {
 	// Retrieve the signature from the header extra-data
 	if len(header.Extra) < extraSeal {
-		return common.Address{}, sdkerrors.Wrap(ErrMissingSignature, "header.Extra")
+		return common.Address{}, errorsmod.Wrap(ErrMissingSignature, "header.Extra")
 	}
 	signature := header.Extra[len(header.Extra)-extraSeal:]
 

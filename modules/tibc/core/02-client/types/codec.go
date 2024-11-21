@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/cosmos/gogoproto/proto"
 
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -54,12 +55,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 func PackClientState(clientState exported.ClientState) (*codectypes.Any, error) {
 	msg, ok := clientState.(proto.Message)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", clientState)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", clientState)
 	}
 
 	anyClientState, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
 	return anyClientState, nil
@@ -69,12 +70,12 @@ func PackClientState(clientState exported.ClientState) (*codectypes.Any, error) 
 // client state can't be unpacked into a ClientState.
 func UnpackClientState(any *codectypes.Any) (exported.ClientState, error) {
 	if any == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
 	clientState, ok := any.GetCachedValue().(exported.ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrUnpackAny,
 			"cannot unpack Any into ClientState %T",
 			any,
@@ -90,12 +91,12 @@ func UnpackClientState(any *codectypes.Any) (exported.ClientState, error) {
 func PackConsensusState(consensusState exported.ConsensusState) (*codectypes.Any, error) {
 	msg, ok := consensusState.(proto.Message)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", consensusState)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", consensusState)
 	}
 
 	anyConsensusState, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
 	return anyConsensusState, nil
@@ -115,12 +116,12 @@ func MustPackConsensusState(consensusState exported.ConsensusState) *codectypes.
 // consensus state can't be unpacked into a ConsensusState.
 func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) {
 	if any == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
 	consensusState, ok := any.GetCachedValue().(exported.ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrUnpackAny,
 			"cannot unpack Any into ConsensusState %T",
 			any,
@@ -136,12 +137,12 @@ func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) 
 func PackHeader(header exported.Header) (*codectypes.Any, error) {
 	msg, ok := header.(proto.Message)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", header)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", header)
 	}
 
 	anyHeader, err := codectypes.NewAnyWithValue(msg)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrPackAny, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrPackAny, err.Error())
 	}
 
 	return anyHeader, nil
@@ -151,12 +152,12 @@ func PackHeader(header exported.Header) (*codectypes.Any, error) {
 // consensus state can't be unpacked into a Header.
 func UnpackHeader(any *codectypes.Any) (exported.Header, error) {
 	if any == nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
 	header, ok := any.GetCachedValue().(exported.Header)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Header %T", any)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into Header %T", any)
 	}
 
 	return header, nil

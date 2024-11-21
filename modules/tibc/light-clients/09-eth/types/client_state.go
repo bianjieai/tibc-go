@@ -12,6 +12,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -50,13 +52,13 @@ func (m ClientState) GetPrefix() exported.Prefix {
 func (m ClientState) Initialize(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	state exported.ConsensusState,
 ) error {
 	header := m.Header
 	headerBytes, err := cdc.MarshalInterface(&header)
 	if err != nil {
-		return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
+		return errorsmod.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
 	SetEthHeaderIndex(store, header, headerBytes)
 	SetEthConsensusRoot(store, header.Height.RevisionHeight, header.ToEthHeader().Root, header.Hash())
@@ -65,7 +67,7 @@ func (m ClientState) Initialize(
 
 func (m ClientState) Status(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
 	onsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
@@ -78,7 +80,7 @@ func (m ClientState) Status(
 	return exported.Active
 }
 
-func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadata {
+func (m ClientState) ExportMetadata(store storetypes.KVStore) []exported.GenesisMetadata {
 	gm := make([]exported.GenesisMetadata, 0)
 	callback := func(key, val []byte) bool {
 		gm = append(gm, clienttypes.NewGenesisMetadata(key, val))
@@ -96,7 +98,7 @@ func (m ClientState) ExportMetadata(store sdk.KVStore) []exported.GenesisMetadat
 
 func (m ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -112,7 +114,7 @@ func (m ClientState) VerifyPacketCommitment(
 	// check delay period has passed
 	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
 	if delayBlock < m.GetDelayBlock() {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"delay block (%d) < client state delay block (%d)",
 			delayBlock, m.GetDelayBlock(),
@@ -125,7 +127,7 @@ func (m ClientState) VerifyPacketCommitment(
 
 func (m ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -140,7 +142,7 @@ func (m ClientState) VerifyPacketAcknowledgement(
 
 	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
 	if delayBlock < m.GetDelayBlock() {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"delay block (%d) < client state delay block (%d)",
 			delayBlock, m.GetDelayBlock(),
@@ -152,7 +154,7 @@ func (m ClientState) VerifyPacketAcknowledgement(
 
 func (m ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -166,7 +168,7 @@ func (m ClientState) VerifyPacketCleanCommitment(
 
 	delayBlock := m.Header.Height.RevisionHeight - height.GetRevisionHeight()
 	if delayBlock < m.GetDelayBlock() {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"delay block (%d) < client state delay block (%d)",
 			delayBlock, m.GetDelayBlock(),
@@ -180,7 +182,7 @@ func (m ClientState) VerifyPacketCleanCommitment(
 // shared between the verification functions and returns the unmarshal
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	cs ClientState,
 	height exported.Height,
@@ -191,7 +193,7 @@ func produceVerificationArgs(
 	err error,
 ) {
 	if cs.GetLatestHeight().LT(height) {
-		return Proof{}, nil, sdkerrors.Wrapf(
+		return Proof{}, nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d)",
 			cs.GetLatestHeight(), height,
@@ -199,11 +201,11 @@ func produceVerificationArgs(
 	}
 
 	if proof == nil {
-		return Proof{}, nil, sdkerrors.Wrap(ErrInvalidProof, "proof cannot be empty")
+		return Proof{}, nil, errorsmod.Wrap(ErrInvalidProof, "proof cannot be empty")
 	}
 
 	if err = json.Unmarshal(proof, &merkleProof); err != nil {
-		return Proof{}, nil, sdkerrors.Wrap(ErrInvalidProof, "failed to unmarshal proof into proof")
+		return Proof{}, nil, errorsmod.Wrap(ErrInvalidProof, "failed to unmarshal proof into proof")
 	}
 
 	consensusState, err = GetConsensusState(store, cdc, height)

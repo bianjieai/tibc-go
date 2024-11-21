@@ -20,9 +20,9 @@ type BSCTestSuite struct {
 }
 
 func (suite *BSCTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T())
 
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = app.BaseApp.NewContextLegacy(false, tmproto.Header{})
 	suite.app = app
 }
 

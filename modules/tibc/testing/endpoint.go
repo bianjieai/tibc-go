@@ -5,8 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	storetypes "cosmossdk.io/store/types"
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -216,7 +215,7 @@ func (endpoint *Endpoint) RecvCleanPacket(cleanPacket packettypes.CleanPacket) e
 	return endpoint.Chain.sendMsgs(recvCleanMsg)
 }
 
-func (endpoint *Endpoint) ClientStore() sdk.KVStore {
+func (endpoint *Endpoint) ClientStore() storetypes.KVStore {
 	return endpoint.Chain.App.TIBCKeeper.ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.Counterparty.Chain.ChainName)
 }
 

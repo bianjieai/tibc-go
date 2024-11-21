@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cometbft/cometbft/light"
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -39,13 +40,13 @@ import (
 // Tendermint client validity checking uses the bisection algorithm described
 // in the [Tendermint spec](https://github.com/tendermint/spec/blob/master/spec/consensus/light-client.md).
 func (cs ClientState) CheckHeaderAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore sdk.KVStore, header exported.Header,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, header exported.Header,
 ) (
 	exported.ClientState, exported.ConsensusState, error,
 ) {
 	tmHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"expected type %T, got %T",
 			&Header{},
@@ -56,7 +57,7 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 	// get consensus state from clientStore
 	tmConsState, err := GetConsensusState(clientStore, cdc, tmHeader.TrustedHeight)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			err,
 			"could not get consensus state from clientstore at TrustedHeight: %s",
 			tmHeader.TrustedHeight,
@@ -103,14 +104,14 @@ func (cs ClientState) CheckHeaderAndUpdateState(
 func checkTrustedHeader(header *Header, consState *ConsensusState) error {
 	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
+		return errorsmod.Wrap(err, "trusted validator set in not tendermint validator set type")
 	}
 
 	// assert that trustedVals is NextValidators of last trusted header
 	// to do this, we check that trustedVals.Hash() == consState.NextValidatorsHash
 	tvalHash := tmTrustedValidators.Hash()
 	if !bytes.Equal(consState.NextValidatorsHash, tvalHash) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrInvalidValidatorSet,
 			"trusted validators %s, does not hash to latest trusted validators. Expected: %X, got: %X",
 			header.TrustedValidators,
@@ -133,7 +134,7 @@ func checkValidity(
 	// UpdateClient only accepts updates with a header at the same revision
 	// as the trusted consensus state
 	if header.GetHeight().GetRevisionNumber() != header.TrustedHeight.RevisionNumber {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrInvalidHeaderHeight,
 			"header height revision %d does not match trusted header revision %d",
 			header.GetHeight().GetRevisionNumber(), header.TrustedHeight.RevisionNumber,
@@ -142,22 +143,22 @@ func checkValidity(
 
 	tmTrustedValidators, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
-		return sdkerrors.Wrap(err, "trusted validator set in not tendermint validator set type")
+		return errorsmod.Wrap(err, "trusted validator set in not tendermint validator set type")
 	}
 
 	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(header.SignedHeader)
 	if err != nil {
-		return sdkerrors.Wrap(err, "signed header in not tendermint signed header type")
+		return errorsmod.Wrap(err, "signed header in not tendermint signed header type")
 	}
 
 	tmValidatorSet, err := tmtypes.ValidatorSetFromProto(header.ValidatorSet)
 	if err != nil {
-		return sdkerrors.Wrap(err, "validator set in not tendermint validator set type")
+		return errorsmod.Wrap(err, "validator set in not tendermint validator set type")
 	}
 
 	// assert header height is newer than consensus state
 	if header.GetHeight().LTE(header.TrustedHeight) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"header height ≤ consensus state height (%s ≤ %s)",
 			header.GetHeight(), header.TrustedHeight,
@@ -197,7 +198,7 @@ func checkValidity(
 		clientState.TrustingPeriod, currentTimestamp, clientState.MaxClockDrift,
 		clientState.TrustLevel.ToTendermint(),
 	); err != nil {
-		return sdkerrors.Wrap(err, "failed to verify header")
+		return errorsmod.Wrap(err, "failed to verify header")
 	}
 	return nil
 }
@@ -205,7 +206,7 @@ func checkValidity(
 // update the consensus state from a new header and set processed time metadata
 func update(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	clientState *ClientState,
 	header *Header,
 ) (*ClientState, *ConsensusState) {

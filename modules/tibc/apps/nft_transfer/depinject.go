@@ -3,8 +3,8 @@ package nfttransfer
 import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
+	store "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 
 	modulev1 "github.com/bianjieai/tibc-go/api/tibc/apps/nft_transfer/module/v1"
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/keeper"

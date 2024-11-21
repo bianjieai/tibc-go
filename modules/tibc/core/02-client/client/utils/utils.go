@@ -5,9 +5,9 @@ import (
 
 	tmtypes "github.com/cometbft/cometbft/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	commitmenttypes "github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -47,7 +47,7 @@ func QueryClientStateABCI(
 
 	// check if client exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrClientNotFound, chainName)
+		return nil, errorsmod.Wrap(types.ErrClientNotFound, chainName)
 	}
 
 	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
@@ -113,7 +113,7 @@ func QueryConsensusStateABCI(
 
 	// check if consensus state exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrap(types.ErrConsensusStateNotFound, chainName)
+		return nil, errorsmod.Wrap(types.ErrConsensusStateNotFound, chainName)
 	}
 
 	cs, err := types.UnmarshalConsensusState(cdc, value)

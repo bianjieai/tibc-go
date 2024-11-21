@@ -31,12 +31,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, clientGenesis, &clientGenesisState, simState.Rand,
+		clientGenesis, &clientGenesisState, simState.Rand,
 		func(r *rand.Rand) { clientGenesisState = clientsims.GenClientGenesis(r, simState.Accounts) },
 	)
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, packetGenesis, &packetGenesisState, simState.Rand,
+		packetGenesis, &packetGenesisState, simState.Rand,
 		func(r *rand.Rand) { packetGenesisState = packetsims.GenpacketGenesis(r, simState.Accounts) },
 	)
 

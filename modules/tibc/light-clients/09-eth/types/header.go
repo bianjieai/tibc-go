@@ -8,13 +8,14 @@ import (
 	"os"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -63,7 +64,7 @@ func (h Header) ValidateBasic() error {
 	number := h.Height.RevisionHeight
 	if number > 0 {
 		if h.ToEthHeader().Difficulty.Uint64() == 0 {
-			return sdkerrors.Wrap(ErrInvalidDifficulty, "header Difficulty")
+			return errorsmod.Wrap(ErrInvalidDifficulty, "header Difficulty")
 		}
 	}
 	return nil
@@ -134,31 +135,31 @@ func (h Header) ToVerifyHeader() *types.Header {
 func verifyHeader(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header Header,
 ) error {
 	found := store.Get(EthHeaderIndexKey(header.Hash(), header.Height.RevisionHeight))
 	if found != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"header already exist for hash %s", header.Hash(),
 		)
 	}
 	parentHeaderBytes := GetParentHeaderFromIndex(store, header)
 	if parentHeaderBytes == nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"header does not exist for hash %s", header.ToEthHeader().ParentHash,
 		)
 	}
 	var parentHeaderInterface exported.Header
 	if err := cdc.UnmarshalInterface(parentHeaderBytes, &parentHeaderInterface); err != nil {
-		return sdkerrors.Wrap(ErrUnmarshalInterface, err.Error())
+		return errorsmod.Wrap(ErrUnmarshalInterface, err.Error())
 	}
 	parentHeader, ok := parentHeaderInterface.(*Header)
 	if !ok {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"parent header can not marshal Invalid header hash %s", header.ToEthHeader().ParentHash,
 		)
@@ -166,7 +167,7 @@ func verifyHeader(
 	//verify whether parent hash validity
 	ethHeader := parentHeader.ToEthHeader()
 	if !bytes.Equal(ethHeader.Hash().Bytes(), header.ToEthHeader().ParentHash.Bytes()) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader,
 			"parent hash  not equal, header.parent: %s ,parent : %s",
 			header.ToEthHeader().ParentHash,
@@ -183,12 +184,12 @@ func verifyHeader(
 	}
 	err := VerifyEip1559Header(parentHeader, &header)
 	if err != nil {
-		return sdkerrors.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
+		return errorsmod.Wrap(ErrHeader, fmt.Errorf("SyncBlockHeader, err:%v", err).Error())
 	}
 	//verify difficulty
 	expected := makeDifficultyCalculator(big.NewInt(DifficultyCalculatorParams))(header.Time, parentHeader)
 	if expected.Cmp(header.ToEthHeader().Difficulty) != 0 {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			ErrWrongDifficulty,
 			fmt.Errorf(
 				"SyncBlockHeader, invalid difficulty: have %v, want %v, header: %s",

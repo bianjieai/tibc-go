@@ -3,9 +3,10 @@ package types
 import (
 	"github.com/ethereum/go-ethereum/common"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -14,7 +15,7 @@ import (
 func (m ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	header exported.Header,
 ) (
 	exported.ClientState,
@@ -23,7 +24,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 ) {
 	bscHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header,
 		)
 	}
@@ -31,7 +32,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 	// get consensus state from clientStore
 	bscConsState, err := GetConsensusState(store, cdc, m.GetLatestHeight())
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			err, "could not get consensus state from clientstore at TrustedHeight: %s", m.GetLatestHeight(),
 		)
 	}
@@ -49,7 +50,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 // checkValidity checks if the bsc header is valid.
 func checkValidity(
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	consState *ConsensusState,
 	header Header,
@@ -64,7 +65,7 @@ func checkValidity(
 // update the RecentSingers and the ConsensusState.
 func update(
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header *Header,
 ) (

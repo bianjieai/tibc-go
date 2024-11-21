@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -40,9 +41,7 @@ const (
 	maxClockDrift  time.Duration = time.Second * 10
 )
 
-var (
-	testClientHeight = types.NewHeight(0, 5)
-)
+var testClientHeight = types.NewHeight(0, 5)
 
 type KeeperTestSuite struct {
 	suite.Suite
@@ -77,10 +76,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	suite.past = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	now2 := suite.now.Add(time.Hour)
-	app := simapp.Setup(isCheckTx)
+	app := simapp.Setup(suite.T())
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(
+	suite.ctx = app.BaseApp.NewContextLegacy(
 		isCheckTx,
 		tmproto.Header{Height: height, ChainID: testChainName, Time: now2},
 	)
@@ -115,7 +114,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.valSetHash,
 	)
 
-	var validators stakingtypes.Validators
+	var validators []stakingtypes.Validator
 	for i := 1; i < 11; i++ {
 		privVal := ibctestingmock.NewPV()
 		tmPk, err := privVal.GetPubKey()
@@ -123,23 +122,27 @@ func (suite *KeeperTestSuite) SetupTest() {
 		pk, err := cryptocodec.FromTmPubKeyInterface(tmPk)
 		suite.Require().NoError(err)
 		val, err := stakingtypes.NewValidator(
-			sdk.ValAddress(pk.Address()),
+			sdk.ValAddress(pk.Address()).String(),
 			pk,
 			stakingtypes.Description{},
 		)
 		suite.Require().NoError(err)
 
 		val.Status = stakingtypes.Bonded
-		val.Tokens = sdk.NewInt(rand.Int63())
+		val.Tokens = math.NewInt(rand.Int63())
 		validators = append(validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(
-			suite.ctx.BlockHeader(),
-			validators,
-			sdk.DefaultPowerReduction,
-		)
-		app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
 	}
+	hi := stakingtypes.NewHistoricalInfo(
+		suite.ctx.BlockHeader(),
+		stakingtypes.Validators{
+			Validators:     validators,
+			ValidatorCodec: app.StakingKeeper.ValidatorAddressCodec(),
+		},
+		sdk.DefaultPowerReduction,
+	)
+	err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, suite.ctx.BlockHeader().Height, &hi)
+	suite.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.TIBCKeeper.ClientKeeper)

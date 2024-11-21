@@ -3,14 +3,12 @@ package mttransfer
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -34,23 +32,12 @@ var (
 // AppModuleBasic is the TIBC mt Transfer AppModuleBasic
 type AppModuleBasic struct{}
 
-func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return nil
-}
-
-func (a AppModuleBasic) ValidateGenesis(
-	jsonCodec codec.JSONCodec,
-	config client.TxEncodingConfig,
-	message json.RawMessage,
-) error {
-	return nil
-}
-
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the tibc-mt-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	_ = types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
+// GetTxCmd returns the root tx command for the tibc-mt-transfer module.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
@@ -60,6 +47,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
+// Name returns the name of the module.
 func (a AppModuleBasic) Name() string {
 	return types.ModuleName
 }
@@ -87,20 +75,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	}
 }
 
-func (a AppModule) InitGenesis(
-	ctx sdk.Context,
-	cdc codec.JSONCodec,
-	data json.RawMessage,
-) []abci.ValidatorUpdate {
-	return nil
-}
-
-func (a AppModule) ExportGenesis(context sdk.Context, jsonCodec codec.JSONCodec) json.RawMessage {
-	return nil
-}
-
-func (a AppModule) RegisterInvariants(registry sdk.InvariantRegistry) {}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
@@ -110,22 +84,19 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 { return 1 }
 
-// BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {}
 
-// EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
-
-func (a AppModule) OnRecvPacket(
+// OnRecvPacket implements the TIBCModule interface.
+// It processes the incoming packet from counterparty chain using the Keeper.OnRecvPacket method.
+// It emits an event with the packet data and acknowledgement status.
+// It returns the acknowledgement bytes and error.
+func (am AppModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet packettypes.Packet,
 ) (*sdk.Result, []byte, error) {
 
 	var data types.MultiTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			sdkerrors.ErrUnknownRequest,
 			"cannot unmarshal TICS-30 nft-transfer packet data: %s",
 			err.Error(),
@@ -134,7 +105,7 @@ func (a AppModule) OnRecvPacket(
 
 	acknowledgement := packettypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	err := a.keeper.OnRecvPacket(ctx, packet, data)
+	err := am.keeper.OnRecvPacket(ctx, packet, data)
 	if err != nil {
 		acknowledgement = packettypes.NewErrorAcknowledgement(err.Error())
 	}
@@ -158,14 +129,16 @@ func (a AppModule) OnRecvPacket(
 	}, acknowledgement.GetBytes(), nil
 }
 
-func (a AppModule) OnAcknowledgementPacket(
+// OnAcknowledgementPacket implements the TIBCModule interface.
+// It processes the acknowledgement that the counterparty chain sends back in response to a packet that was sent by this chain.
+func (am AppModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet packettypes.Packet,
 	acknowledgement []byte,
 ) (*sdk.Result, error) {
 	var ack packettypes.Acknowledgement
 	if err := ack.Unmarshal(acknowledgement); err != nil {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrUnknownRequest,
 			"cannot unmarshal TICS-30 transfer packet acknowledgement: %v",
 			err,
@@ -173,14 +146,14 @@ func (a AppModule) OnAcknowledgementPacket(
 	}
 	var data types.MultiTokenPacketData
 	if err := data.Unmarshal(packet.GetData()); err != nil {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrUnknownRequest,
 			"cannot unmarshal TICS-30 transfer packet data: %s",
 			err.Error(),
 		)
 	}
 
-	if err := a.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {
+	if err := am.keeper.OnAcknowledgementPacket(ctx, data, ack); err != nil {
 		return nil, err
 	}
 

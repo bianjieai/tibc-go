@@ -20,9 +20,9 @@ type ETHTestSuite struct {
 }
 
 func (suite *ETHTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T())
 
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{Time: time.Now()})
+	suite.ctx = app.BaseApp.NewContextLegacy(false, tmproto.Header{Time: time.Now()})
 	suite.app = app
 }
 

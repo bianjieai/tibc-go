@@ -205,11 +205,11 @@ func (suite *TIBCTestSuite) TestInitGenesis() {
 	}}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		app := simapp.Setup(suite.T())
 
 		suite.NotPanics(func() {
 			tibc.InitGenesis(
-				app.BaseApp.NewContext(false, tmproto.Header{Height: 1}),
+				app.BaseApp.NewContextLegacy(false, tmproto.Header{Height: 1}),
 				*app.TIBCKeeper,
 				true,
 				tc.genState,

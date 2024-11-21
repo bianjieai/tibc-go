@@ -1,6 +1,7 @@
 package types
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -10,7 +11,7 @@ import (
 type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, chainName string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, chainName string, height exported.Height) (exported.ConsensusState, bool)
-	ClientStore(ctx sdk.Context, chainName string) sdk.KVStore
+	ClientStore(ctx sdk.Context, chainName string) storetypes.KVStore
 	GetChainName(ctx sdk.Context) string
 }
 

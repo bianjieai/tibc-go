@@ -3,9 +3,9 @@ package types
 import (
 	"crypto/sha256"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
 )
@@ -66,10 +66,10 @@ func (p Packet) GetData() []byte { return p.Data }
 // ValidateBasic implements PacketI interface
 func (p Packet) ValidateBasic() error {
 	if p.Sequence == 0 {
-		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+		return errorsmod.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
 	}
 	if len(p.Data) == 0 {
-		return sdkerrors.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
+		return errorsmod.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
 	return nil
 }
@@ -103,7 +103,7 @@ func (p CleanPacket) GetRelayChain() string { return p.RelayChain }
 // ValidateBasic implements PacketI interface
 func (p CleanPacket) ValidateBasic() error {
 	if p.Sequence == 0 {
-		return sdkerrors.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+		return errorsmod.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
 	}
 	return nil
 }

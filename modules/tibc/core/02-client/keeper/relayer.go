@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -40,7 +41,7 @@ func (k Keeper) GetRelayers(ctx sdk.Context, chainName string) (relayers []strin
 // GetAllRelayers returns all registered relayer addresses
 func (k Keeper) GetAllRelayers(ctx sdk.Context) (relayers []types.IdentifiedRelayers) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyRelayers))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.KeyRelayers))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

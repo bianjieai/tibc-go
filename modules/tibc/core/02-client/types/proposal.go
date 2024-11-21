@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -201,7 +202,7 @@ func (rrp *RegisterRelayerProposal) ValidateBasic() error {
 
 	for _, relayer := range rrp.Relayers {
 		if _, err := sdk.AccAddressFromBech32(relayer); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
 	}
 	return nil

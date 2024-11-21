@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	db "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -254,7 +254,7 @@ func (k Keeper) IteratePacketSequence(
 // GetAllPacketSendSeqs returns all stored next send sequences.
 func (k Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
 	k.IteratePacketSequence(
 		ctx,
 		iterator,
@@ -270,7 +270,7 @@ func (k Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequen
 // GetAllPacketRecvSeqs returns all stored next recv sequences.
 func (k Keeper) GetAllPacketRecvSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqRecvPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqRecvPrefix))
 	k.IteratePacketSequence(
 		ctx,
 		iterator,
@@ -286,7 +286,7 @@ func (k Keeper) GetAllPacketRecvSeqs(ctx sdk.Context) (seqs []types.PacketSequen
 // GetAllPacketAckSeqs returns all stored next acknowledgements sequences.
 func (k Keeper) GetAllPacketAckSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyNextSeqAckPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqAckPrefix))
 	k.IteratePacketSequence(
 		ctx,
 		iterator,
@@ -307,7 +307,7 @@ func (k Keeper) IteratePacketCommitment(
 	cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketCommitmentPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketCommitmentPrefix))
 	k.iterateHashes(ctx, iterator, cb)
 }
 
@@ -333,7 +333,7 @@ func (k Keeper) IteratePacketCommitmentAtChannel(
 	cb func(_, _ string, sequence uint64, hash []byte) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(
+	iterator := storetypes.KVStorePrefixIterator(
 		store,
 		[]byte(host.PacketCommitmentPrefixPath(sourceChain, destChain)),
 	)
@@ -367,7 +367,7 @@ func (k Keeper) IteratePacketReceipt(
 	cb func(sourceChain, destChain string, sequence uint64, receipt []byte) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketReceiptPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketReceiptPrefix))
 	k.iterateHashes(ctx, iterator, cb)
 }
 
@@ -392,7 +392,7 @@ func (k Keeper) IteratePacketAcknowledgement(
 	cb func(sourceChain, destChain string, sequence uint64, hash []byte) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte(host.KeyPacketAckPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketAckPrefix))
 	k.iterateHashes(ctx, iterator, cb)
 }
 
@@ -441,13 +441,13 @@ func (k Keeper) ValidatePacket(ctx sdk.Context, packet exported.PacketI) error {
 	chainName := k.clientKeeper.GetChainName(ctx)
 	if packet.GetRelayChain() != chainName && packet.GetDestChain() != chainName &&
 		packet.GetSourceChain() != chainName {
-		return sdkerrors.Wrap(types.ErrInvalidPacket, "packet/ack illegal!")
+		return errorsmod.Wrap(types.ErrInvalidPacket, "packet/ack illegal!")
 	}
 	currentCleanSeq := sdk.BigEndianToUint64(
 		k.GetCleanPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain()),
 	)
 	if packet.GetSequence() <= currentCleanSeq {
-		return sdkerrors.Wrap(types.ErrInvalidPacket, "sequence illegal!")
+		return errorsmod.Wrap(types.ErrInvalidPacket, "sequence illegal!")
 	}
 	return nil
 }
@@ -462,11 +462,11 @@ func (k Keeper) ValidateCleanPacket(ctx sdk.Context, cleanPacket exported.CleanP
 	)
 	currentMaxAckSeq := k.GetMaxAckSequence(ctx, sourceChain, destChain)
 	if packetSeq <= currentCleanSeq || packetSeq > currentMaxAckSeq {
-		return sdkerrors.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
+		return errorsmod.Wrap(types.ErrInvalidCleanPacket, "sequence illegal!")
 	}
 	for seq := currentCleanSeq; seq <= packetSeq; seq++ {
 		if k.HasPacketCommitment(ctx, sourceChain, destChain, seq) {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrInvalidCleanPacket,
 				"packet with sequence %d has not been ack",
 				seq,

@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -26,10 +27,10 @@ func NewNonFungibleTokenPacketData(
 // formats defined by their corresponding chains that are not known to TIBC.
 func (nftpd NonFungibleTokenPacketData) ValidateBasic() error {
 	if strings.TrimSpace(nftpd.Sender) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be blank")
 	}
 	if strings.TrimSpace(nftpd.Receiver) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
 	return nil
 }

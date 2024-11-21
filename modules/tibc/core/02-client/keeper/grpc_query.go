@@ -9,9 +9,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
@@ -36,7 +36,7 @@ func (q Keeper) ClientState(c context.Context, req *types.QueryClientStateReques
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrClientNotFound, req.ChainName).Error(),
+			errorsmod.Wrap(types.ErrClientNotFound, req.ChainName).Error(),
 		)
 	}
 
@@ -127,7 +127,7 @@ func (q Keeper) ConsensusState(c context.Context, req *types.QueryConsensusState
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrapf(types.ErrConsensusStateNotFound, "chain-name: %s, height: %s", req.ChainName, height).Error(),
+			errorsmod.Wrapf(types.ErrConsensusStateNotFound, "chain-name: %s, height: %s", req.ChainName, height).Error(),
 		)
 	}
 

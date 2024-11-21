@@ -3,8 +3,8 @@ package utils
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -44,7 +44,7 @@ func queryPacketCommitmentABCI(
 
 	// check if packet commitment exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			types.ErrPacketCommitmentNotFound,
 			"source chain name  (%s), dest chain name (%s), sequence (%d)",
 			sourceChain, destChain, sequence,
@@ -123,7 +123,7 @@ func queryPacketAcknowledgementABCI(
 	}
 
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			types.ErrInvalidAcknowledgement,
 			"source chain name  (%s), dest chain name (%s), sequence (%d)",
 			sourceChain, destChain, sequence,
@@ -168,7 +168,7 @@ func queryCleanPacketCommitmentABCI(
 
 	// check if packet commitment exists
 	if len(value) == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrPacketCommitmentNotFound, "source chain name  (%s), dest chain name (%s)", sourceChain, destChain)
+		return nil, errorsmod.Wrapf(types.ErrPacketCommitmentNotFound, "source chain name  (%s), dest chain name (%s)", sourceChain, destChain)
 	}
 
 	return types.NewQueryCleanPacketCommitmentResponse(value, proofBz, proofHeight), nil

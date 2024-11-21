@@ -5,11 +5,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cometbft/cometbft/libs/log"
-
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
@@ -48,12 +47,12 @@ func (k Keeper) SetRoutingRules(ctx sdk.Context, rules []string) error {
 	for _, rule := range rules {
 		valid, _ := regexp.MatchString(types.RulePattern, rule)
 		if !valid {
-			return sdkerrors.Wrap(types.ErrInvalidRule, "invalid rule")
+			return errorsmod.Wrap(types.ErrInvalidRule, "invalid rule")
 		}
 	}
 	routingBz, err := json.Marshal(rules)
 	if err != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrFailMarshalRules,
 			"failed to marshal rules: %s",
 			err.Error(),
