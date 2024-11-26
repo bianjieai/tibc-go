@@ -16,7 +16,7 @@ deps:
   - remote: buf.build
     owner: cosmos
     repository: ics23
-    commit: 55085f7c710a45f58fa09947208eb70b
+    commit: dc427cb4519143d8996361c045a29ad7
   - remote: buf.build
     owner: googleapis
     repository: googleapis

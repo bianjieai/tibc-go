@@ -61,8 +61,8 @@ var (
 
 	// Default params variables used to create a TM client
 	DefaultTrustLevel ibccmttypes.Fraction = ibccmttypes.DefaultTrustLevel
-	TestHash                              = tmhash.Sum([]byte("TESTING HASH"))
-	TestCoin                              = sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100))
+	TestHash                               = tmhash.Sum([]byte("TESTING HASH"))
+	TestCoin                               = sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(100))
 
 	MockAcknowledgement = mock.MockAcknowledgement
 	MockCommitment      = mock.MockCommitment
@@ -87,7 +87,7 @@ type TestChain struct {
 	App                *simapp.SimApp
 	ChainID, ChainName string
 	LastHeader         *ibccmttypes.Header // header for last block height committed
-	CurrentHeader      cmtproto.Header     // header for current block height
+	ProposedHeader     cmtproto.Header     // header for current block height
 	QueryServer        types.QueryServer
 	TxConfig           client.TxConfig
 	Codec              codec.BinaryCodec
@@ -177,8 +177,6 @@ func NewTestChainWithValSet(
 		Time:    coord.CurrentTime.UTC(),
 	}
 
-	txConfig := simapp.MakeTestEncodingConfig().TxConfig
-
 	// create an account to send transactions from
 	chain := &TestChain{
 		T:              t,
@@ -186,9 +184,9 @@ func NewTestChainWithValSet(
 		ChainID:        chainID,
 		ChainName:      chainID,
 		App:            app,
-		CurrentHeader:  header,
+		ProposedHeader: header,
 		QueryServer:    app.TIBCKeeper,
-		TxConfig:       txConfig,
+		TxConfig:       app.GetTxConfig(),
 		Codec:          app.AppCodec(),
 		Vals:           valSet,
 		NextVals:       valSet,
@@ -198,7 +196,8 @@ func NewTestChainWithValSet(
 		SenderAccounts: senderAccs,
 	}
 
-	coord.CommitBlock(chain)
+	// commit genesis block
+	chain.NextBlock()
 
 	return chain
 }
@@ -231,7 +230,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.BaseApp.NewContextLegacy(false, chain.CurrentHeader)
+	return chain.App.BaseApp.NewUncachedContext(false, chain.ProposedHeader)
 }
 
 // QueryProof performs an abci query with the given key and returns the proto encoded merkle proof
@@ -268,7 +267,7 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 // QueryUpgradeProof performs an abci query with the given key and returns the proto encoded merkle proof
 // for the query and the height at which the proof will succeed on a tendermint verifier.
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
-	res,err := chain.App.Query(context.Background(),&abci.RequestQuery{
+	res, err := chain.App.Query(context.Background(), &abci.RequestQuery{
 		Path:   "store/upgrade/key",
 		Height: int64(height - 1),
 		Data:   key,
@@ -324,8 +323,8 @@ func (chain *TestChain) QueryConsensusStateProof(chainName string) ([]byte, clie
 // CONTRACT: this function must only be called after app.Commit() occurs
 func (chain *TestChain) NextBlock() {
 	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             chain.CurrentHeader.Height,
-		Time:               chain.CurrentHeader.GetTime(),
+		Height:             chain.ProposedHeader.Height,
+		Time:               chain.ProposedHeader.GetTime(),
 		NextValidatorsHash: chain.NextVals.Hash(),
 	})
 	require.NoError(chain.T, err)
@@ -341,34 +340,47 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 // SendMsgs delivers a transaction through the application. It updates the senders sequence
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
-func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*sdk.Result, error) {
+func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
-	_, r, err := simapp.SignAndDeliver(
+	// increment acc sequence regardless of success or failure tx execution
+	defer func() {
+		err := chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	resp, err := simapp.SignAndDeliver(
 		chain.T,
 		chain.TxConfig,
 		chain.App.BaseApp,
-		chain.GetContext().BlockHeader(),
 		msgs,
 		chain.ChainID,
 		[]uint64{chain.SenderAccount.GetAccountNumber()},
 		[]uint64{chain.SenderAccount.GetSequence()},
-		true, true, chain.SenderPrivKey,
+		true,
+		chain.ProposedHeader.GetTime(),
+		chain.NextVals.Hash(),
+		chain.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	// NextBlock calls app.Commit()
-	chain.NextBlock()
+	chain.commitBlock(resp)
 
-	// increment sequence for successful transaction execution
-	chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+	require.Len(chain.T, resp.TxResults, 1)
+	txResult := resp.TxResults[0]
+
+	if txResult.Code != 0 {
+		return txResult, fmt.Errorf("%s/%d: %q", txResult.Codespace, txResult.Code, txResult.Log)
+	}
 
 	chain.Coordinator.IncrementTime()
 
-	return r, nil
+	return txResult, nil
 }
 
 // GetClientState retrieves the client state for the provided chainName. The client is
@@ -559,9 +571,9 @@ func (chain *TestChain) ExpireClient(amount time.Duration) {
 func (chain *TestChain) CurrentTMClientHeader() *ibccmttypes.Header {
 	return chain.CreateTMClientHeader(
 		chain.ChainID,
-		chain.CurrentHeader.Height,
+		chain.ProposedHeader.Height,
 		clienttypes.Height{},
-		chain.CurrentHeader.Time,
+		chain.ProposedHeader.Time,
 		chain.Vals,
 		chain.NextVals,
 		nil,
@@ -605,7 +617,7 @@ func (chain *TestChain) CreateTMClientHeader(
 		ValidatorsHash:     vsetHash,
 		NextValidatorsHash: nextValHash,
 		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
-		AppHash:            chain.CurrentHeader.AppHash,
+		AppHash:            chain.ProposedHeader.AppHash,
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
@@ -673,16 +685,16 @@ func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	chain.NextVals = ApplyValSetChanges(chain.T, chain.Vals, res.ValidatorUpdates)
 
 	// increment the current header
-	chain.CurrentHeader = cmtproto.Header{
+	chain.ProposedHeader = cmtproto.Header{
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
 		// NOTE: the time is increased by the coordinator to maintain time synchrony amongst
 		// chains.
-		Time:               chain.CurrentHeader.Time,
+		Time:               chain.ProposedHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
 		NextValidatorsHash: chain.NextVals.Hash(),
-		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
+		ProposerAddress:    chain.ProposedHeader.ProposerAddress,
 	}
 }
 

@@ -63,7 +63,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 // NOTE: a solo machine client will be created with an empty diversifier.
 func (endpoint *Endpoint) CreateClient() error {
 	// ensure counterparty has committed state
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+	endpoint.Counterparty.Chain.NextBlock()
 
 	// ensure the chain has the latest time
 	endpoint.Chain.Coordinator.UpdateTimeForChain(endpoint.Chain)
@@ -107,7 +107,6 @@ func (endpoint *Endpoint) CreateClient() error {
 	endpoint.Chain.NextBlock()
 	// increment sequence for successful transaction execution
 	endpoint.Chain.Coordinator.IncrementTime()
-
 	return nil
 }
 

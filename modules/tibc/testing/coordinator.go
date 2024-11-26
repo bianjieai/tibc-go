@@ -67,7 +67,7 @@ func (coord *Coordinator) UpdateTime() {
 
 // UpdateTimeForChain updates the clock for a specific chain.
 func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
-	chain.CurrentHeader.Time = coord.CurrentTime.UTC()
+	chain.ProposedHeader.Time = coord.CurrentTime.UTC()
 }
 
 // SetupClients is a helper function to create clients on both chains. It assumes the

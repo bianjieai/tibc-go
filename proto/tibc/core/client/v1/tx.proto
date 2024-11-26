@@ -10,6 +10,8 @@ import "cosmos_proto/cosmos.proto";
 
 // Msg defines the tibc/client Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+  
   // CreateClient defines a rpc handler method for MsgCreateClient.
   rpc CreateClient(MsgCreateClient) returns (MsgCreateClientResponse);
 

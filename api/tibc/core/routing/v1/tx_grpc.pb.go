@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: tibc/apps/nft_transfer/v1/tx.proto
+// source: tibc/core/routing/v1/tx.proto
 
-package nft_transferv1
+package routingv1
 
 import (
 	context "context"
@@ -19,17 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Msg_NftTransfer_FullMethodName = "/tibc.apps.nft_transfer.v1.Msg/NftTransfer"
+	Msg_SetRoutingRules_FullMethodName = "/tibc.core.routing.v1.Msg/SetRoutingRules"
 )
 
 // MsgClient is the client API for Msg service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Msg defines the tibc/nftTransfer Msg service.
+// Msg defines the tibc/routing Msg service.
 type MsgClient interface {
-	// NftTransfer defines a rpc handler method for MsgNftTransfer.
-	NftTransfer(ctx context.Context, in *MsgNftTransfer, opts ...grpc.CallOption) (*MsgNftTransferResponse, error)
+	// SetRoutingRules defines a rpc handler method for MsgSetRoutingRules.
+	SetRoutingRules(ctx context.Context, in *MsgSetRoutingRules, opts ...grpc.CallOption) (*MsgSetRoutingRulesResponse, error)
 }
 
 type msgClient struct {
@@ -40,10 +40,10 @@ func NewMsgClient(cc grpc.ClientConnInterface) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) NftTransfer(ctx context.Context, in *MsgNftTransfer, opts ...grpc.CallOption) (*MsgNftTransferResponse, error) {
+func (c *msgClient) SetRoutingRules(ctx context.Context, in *MsgSetRoutingRules, opts ...grpc.CallOption) (*MsgSetRoutingRulesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MsgNftTransferResponse)
-	err := c.cc.Invoke(ctx, Msg_NftTransfer_FullMethodName, in, out, cOpts...)
+	out := new(MsgSetRoutingRulesResponse)
+	err := c.cc.Invoke(ctx, Msg_SetRoutingRules_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +54,10 @@ func (c *msgClient) NftTransfer(ctx context.Context, in *MsgNftTransfer, opts ..
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility.
 //
-// Msg defines the tibc/nftTransfer Msg service.
+// Msg defines the tibc/routing Msg service.
 type MsgServer interface {
-	// NftTransfer defines a rpc handler method for MsgNftTransfer.
-	NftTransfer(context.Context, *MsgNftTransfer) (*MsgNftTransferResponse, error)
+	// SetRoutingRules defines a rpc handler method for MsgSetRoutingRules.
+	SetRoutingRules(context.Context, *MsgSetRoutingRules) (*MsgSetRoutingRulesResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -68,8 +68,8 @@ type MsgServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMsgServer struct{}
 
-func (UnimplementedMsgServer) NftTransfer(context.Context, *MsgNftTransfer) (*MsgNftTransferResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method NftTransfer not implemented")
+func (UnimplementedMsgServer) SetRoutingRules(context.Context, *MsgSetRoutingRules) (*MsgSetRoutingRulesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetRoutingRules not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 func (UnimplementedMsgServer) testEmbeddedByValue()             {}
@@ -92,20 +92,20 @@ func RegisterMsgServer(s grpc.ServiceRegistrar, srv MsgServer) {
 	s.RegisterService(&Msg_ServiceDesc, srv)
 }
 
-func _Msg_NftTransfer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgNftTransfer)
+func _Msg_SetRoutingRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetRoutingRules)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).NftTransfer(ctx, in)
+		return srv.(MsgServer).SetRoutingRules(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_NftTransfer_FullMethodName,
+		FullMethod: Msg_SetRoutingRules_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).NftTransfer(ctx, req.(*MsgNftTransfer))
+		return srv.(MsgServer).SetRoutingRules(ctx, req.(*MsgSetRoutingRules))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -114,14 +114,14 @@ func _Msg_NftTransfer_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Msg_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "tibc.apps.nft_transfer.v1.Msg",
+	ServiceName: "tibc.core.routing.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "NftTransfer",
-			Handler:    _Msg_NftTransfer_Handler,
+			MethodName: "SetRoutingRules",
+			Handler:    _Msg_SetRoutingRules_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "tibc/apps/nft_transfer/v1/tx.proto",
+	Metadata: "tibc/core/routing/v1/tx.proto",
 }

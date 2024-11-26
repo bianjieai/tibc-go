@@ -27,9 +27,12 @@ import (
 
 var DefaultTestingAppInit func(chainID string) (*simapp.SimApp, map[string]json.RawMessage) = SetupTestingApp
 
+// SetupTestingApp returns a new SimApp with a memory DB and a logger that does
+// not output to the console. It also returns the genesis state as a map of
+// json.RawMessage. The app is configured with the given chainID and the
+// default options for the simapp.
 func SetupTestingApp(chainID string) (*simapp.SimApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	encCdc := simapp.MakeTestEncodingConfig()
 	app := simapp.NewSimApp(
 		log.NewNopLogger(),
 		db,
@@ -38,7 +41,7 @@ func SetupTestingApp(chainID string) (*simapp.SimApp, map[string]json.RawMessage
 		simapp.EmptyAppOptions{},
 		baseapp.SetChainID(chainID),
 	)
-	return app, simapp.NewDefaultGenesisState(encCdc.Codec)
+	return app, simapp.NewDefaultGenesisState(app.AppCodec())
 }
 
 // SetupWithGenesisValSet initializes a new SimApp with a validator set and genesis accounts
@@ -54,6 +57,9 @@ func SetupWithGenesisValSet(
 	balances ...banktypes.Balance,
 ) *simapp.SimApp {
 	app, genesisState := DefaultTestingAppInit(chainID)
+
+	// ensure baseapp has a chain-id set before running InitChain
+	baseapp.SetChainID(chainID)(app.BaseApp)
 
 	// set genesis accounts
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
@@ -137,7 +143,7 @@ func SetupWithGenesisValSet(
 	require.NoError(t, err)
 
 	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Height:             app.LastBlockHeight(),
+		Height:             1,
 		Hash:               app.LastCommitID().Hash,
 		NextValidatorsHash: valSet.Hash(),
 	})

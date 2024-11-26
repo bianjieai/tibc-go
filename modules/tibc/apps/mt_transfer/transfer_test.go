@@ -55,7 +55,9 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		"mobile-name", "",
 		suite.chainA.SenderAccount.GetAddress().String(),
 	)
-	_, _ = suite.chainA.SendMsgs(issueDenomMsg)
+	res, err := suite.chainA.SendMsgs(issueDenomMsg)
+	suite.Require().NoError(err, "issue denom failed")
+	suite.Require().EqualValues(0, res.Code, "issue denom failed")
 
 	// mint mt
 	mintMtMsg := mttypes.NewMsgMintMT(
@@ -63,7 +65,9 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 	)
-	_, _ = suite.chainA.SendMsgs(mintMtMsg)
+	res, err = suite.chainA.SendMsgs(mintMtMsg)
+	suite.Require().NoError(err, "mint mt failed")
+	suite.Require().EqualValues(0, res.Code, "mint mt failed")
 
 	dd, has := suite.chainA.App.MtKeeper.GetDenom(suite.chainA.GetContext(), ClassID)
 	suite.Require().Truef(has, "denom %s not found", ClassID)
@@ -76,7 +80,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 		suite.chainB.ChainName, "", "0xabcsda", 1,
 	)
 
-	_, err := suite.chainA.SendMsgs(msg)
+	_, err = suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	//// relay send
 	multiTokenPacketData := types.NewMultiTokenPacketData(

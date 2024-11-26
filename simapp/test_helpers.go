@@ -32,7 +32,7 @@ import (
 var DefaultConsensusParams = &tmproto.ConsensusParams{
 	Block: &tmproto.BlockParams{
 		MaxBytes: 200000,
-		MaxGas:   2000000,
+		MaxGas:   -1, // no limit
 	},
 	Evidence: &tmproto.EvidenceParams{
 		MaxAgeNumBlocks: 302400,
@@ -132,13 +132,14 @@ func SignAndDeliver(
 	t *testing.T,
 	txCfg client.TxConfig,
 	app *bam.BaseApp,
-	_ tmproto.Header,
 	msgs []sdk.Msg,
 	chainID string,
 	accNums, accSeqs []uint64,
-	_, expPass bool,
+	expPass bool,
+	blockTime time.Time, 
+	nextValHash []byte,
 	priv ...cryptotypes.PrivKey,
-) (sdk.GasInfo, *sdk.Result, error) {
+) (*abci.ResponseFinalizeBlock, error) {
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txCfg,
@@ -152,18 +153,15 @@ func SignAndDeliver(
 	)
 	require.NoError(t, err)
 
-	// Simulate a sending a transaction
-	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
+	txBytes, err := txCfg.TxEncoder()(tx)
+	require.NoError(t, err)
 
-	if expPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
-	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
-	}
-
-	return gInfo, res, err
+	return app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             app.LastBlockHeight() + 1,
+		Time:               blockTime,
+		NextValidatorsHash: nextValHash,
+		Txs:                [][]byte{txBytes},
+	})
 }
 
 // EmptyAppOptions is a stub implementing AppOptions

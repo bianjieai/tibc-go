@@ -101,6 +101,30 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	return context.ValidateBasic()
 }
 
+// NewMsgCreateClient creates a new MsgCreateClient instance
+func NewMsgCreateClient(
+	chainName string,
+	clientState exported.ClientState, 
+	consensusState exported.ConsensusState, 
+	authority string,
+) (*MsgCreateClient, error) {
+	anyClientState, err := PackClientState(clientState)
+	if err != nil {
+		return nil, err
+	}
+
+	anyConsensusState, err := PackConsensusState(consensusState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgCreateClient{
+		ClientState:    anyClientState,
+		ConsensusState: anyConsensusState,
+		Authority:      authority,
+	}, nil
+}
+
 // GetSigners implements sdk.Msg
 func (msg MsgCreateClient) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.Authority)

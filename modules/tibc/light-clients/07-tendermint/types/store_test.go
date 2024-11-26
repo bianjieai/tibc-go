@@ -72,8 +72,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before creating client
-	expectedTime := suite.chainA.CurrentHeader.Time.Add(tibctesting.TimeIncrement)
-
+	expectedTime := suite.chainA.ProposedHeader.Time
 	// Verify ProcessedTime on CreateClient
 	err := path.EndpointA.CreateClient()
 	suite.Require().NoError(err)
@@ -88,7 +87,7 @@ func (suite *TendermintTestSuite) TestGetProcessedTime() {
 
 	suite.coordinator.UpdateTime()
 	// coordinator increments time before updating client
-	expectedTime = suite.chainA.CurrentHeader.Time.Add(tibctesting.TimeIncrement)
+	expectedTime = suite.chainA.ProposedHeader.Time.Add(tibctesting.TimeIncrement)
 
 	// Verify ProcessedTime on UpdateClient
 	err = path.EndpointA.UpdateClient()
