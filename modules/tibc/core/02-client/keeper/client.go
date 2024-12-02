@@ -3,11 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	"github.com/bianjieai/tibc-go/modules/tibc/core/exported"
@@ -44,19 +44,19 @@ func (k Keeper) CreateClient(
 func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.Header) error {
 	clientState, found := k.GetClientState(ctx, chainName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client %s", chainName)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client %s", chainName)
 	}
 
 	clientStore := k.ClientStore(ctx, chainName)
 	if status := clientState.Status(ctx, clientStore, k.cdc); status != exported.Active {
-		return sdkerrors.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", chainName, status)
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot update client (%s) with status %s", chainName, status)
 	}
 
 	// Any writes made in CheckHeaderAndUpdateState are persisted on both valid updates
 	// Light client implementations are responsible for writing the correct metadata (if any) in either case.
 	newClientState, newConsensusState, err := clientState.CheckHeaderAndUpdateState(ctx, k.cdc, k.ClientStore(ctx, chainName), header)
 	if err != nil {
-		return sdkerrors.Wrapf(err, "cannot update client %s", chainName)
+		return errorsmod.Wrapf(err, "cannot update client %s", chainName)
 	}
 
 	// set new client state regardless of if update is valid update
@@ -105,11 +105,11 @@ func (k Keeper) UpdateClient(ctx sdk.Context, chainName string, header exported.
 func (k Keeper) UpgradeClient(ctx sdk.Context, chainName string, upgradedClientState exported.ClientState, upgradedConsState exported.ConsensusState) error {
 	clientState, found := k.GetClientState(ctx, chainName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client %s", chainName)
+		return errorsmod.Wrapf(types.ErrClientNotFound, "cannot update client %s", chainName)
 	}
 
 	if clientState.ClientType() != upgradedClientState.ClientType() {
-		return sdkerrors.Wrapf(types.ErrInvalidClientType, "cannot update client %s, client-type not match", chainName)
+		return errorsmod.Wrapf(types.ErrInvalidClientType, "cannot update client %s, client-type not match", chainName)
 	}
 
 	k.SetClientState(ctx, chainName, upgradedClientState)

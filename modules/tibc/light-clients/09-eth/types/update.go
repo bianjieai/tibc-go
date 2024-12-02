@@ -3,11 +3,12 @@ package types
 import (
 	"bytes"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -17,7 +18,7 @@ import (
 func (m ClientState) CheckHeaderAndUpdateState(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	header exported.Header,
 ) (
 	exported.ClientState,
@@ -26,13 +27,13 @@ func (m ClientState) CheckHeaderAndUpdateState(
 ) {
 	ethHeader, ok := header.(*Header)
 	if !ok {
-		return nil, nil, sdkerrors.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
+		return nil, nil, errorsmod.Wrapf(clienttypes.ErrInvalidHeader, "expected type %T, got %T", &Header{}, header)
 	}
 	height := m.GetLatestHeight()
 	// get consensus state from clientStore
 	ethConsState, err := GetConsensusState(store, cdc, height)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrapf(
+		return nil, nil, errorsmod.Wrapf(
 			err, "could not get consensus state from clientStore at TrustedHeight: %s,please upgrade", m.GetLatestHeight(),
 		)
 	}
@@ -91,7 +92,7 @@ func (m ClientState) CheckHeaderAndUpdateState(
 func checkValidity(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	consState *ConsensusState,
 	header Header,
@@ -106,7 +107,7 @@ func checkValidity(
 func update(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	clientState *ClientState,
 	header *Header,
 ) (
@@ -121,14 +122,14 @@ func update(
 	}
 	headerInterface, err := cdc.MarshalInterface(header)
 	if err != nil {
-		return nil, nil, sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
+		return nil, nil, errorsmod.Wrap(ErrInvalidGenesisBlock, "marshal consensus to interface failed")
 	}
 	SetEthHeaderIndex(store, *header, headerInterface)
 	SetEthConsensusRoot(store, header.GetHeight().GetRevisionHeight(), header.ToEthHeader().Root, header.Hash())
 	return clientState, cs, nil
 }
 
-func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new Header) error {
+func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store storetypes.KVStore, new Header) error {
 	si, ti := m.Header.Height, new.Height
 	var err error
 	current := m.Header
@@ -136,34 +137,34 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 	if si.RevisionHeight > ti.RevisionHeight {
 		ConsensusTmp := store.Get(host.ConsensusStateKey(ti))
 		if ConsensusTmp == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestrictChain", ti)
 		}
 		var tiConsensus exported.ConsensusState
 		if err = cdc.UnmarshalInterface(ConsensusTmp, &tiConsensus); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 
 		}
 		tmpConsensus, ok := tiConsensus.(*ConsensusState)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestrictChain", ti)
 		}
 		root := tmpConsensus.Root
 		headerIndexKey := GetHeaderIndexKeyByEthConsensusRoot(store, common.BytesToHash(root), ti.GetRevisionHeight())
 		currentBytes := store.Get(headerIndexKey)
 		if currentBytes == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find Header for height %s in RestrictChain", ti)
 		}
 		var currentHeaderInterface exported.Header
 		if err = cdc.UnmarshalInterface(currentBytes, &currentHeaderInterface); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 
 		}
 		currentTmp, ok := currentHeaderInterface.(*Header)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestrictChain", ti)
 		}
 		current = *currentTmp
@@ -175,17 +176,17 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 		newHashes = append(newHashes, new.Hash())
 		newTmp := GetParentHeaderFromIndex(store, new)
 		if newTmp == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain in RestrictChain", new.ToEthHeader().ParentHash,
 			)
 		}
 		var currently exported.Header
 		if err := cdc.UnmarshalInterface(newTmp, &currently); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 		}
 		tmpConsensus, ok := currently.(*Header)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain", new.ToEthHeader().ParentHash)
 		}
 		new = *tmpConsensus
@@ -196,16 +197,16 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 		newHashes = append(newHashes, new.Hash())
 		newTmp := GetParentHeaderFromIndex(store, new)
 		if newTmp == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain", new.ToEthHeader().ParentHash)
 		}
 		var currently exported.Header
 		if err = cdc.UnmarshalInterface(newTmp, &currently); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 		}
 		tmpConsensus, ok := currently.(*Header)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain", new.ToEthHeader().ParentHash)
 		}
 		new = *tmpConsensus
@@ -213,15 +214,15 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 		si.RevisionHeight--
 		currentTmp := GetParentHeaderFromIndex(store, current)
 		if currentTmp == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for height %s in RestrictChain", si)
 		}
 		if err = cdc.UnmarshalInterface(currentTmp, &currently); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 		}
 		tmpConsensus = currently.(*Header)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not  consensus state for height %s in RestrictChain", si)
 		}
 		current = *tmpConsensus
@@ -229,17 +230,17 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 	for i := len(newHashes) - 1; i >= 0; i-- {
 		newTmp := store.Get(EthHeaderIndexKey(newHashes[i], ti.GetRevisionHeight()))
 		if newTmp == nil {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain", newHashes[i])
 
 		}
 		var currently exported.Header
 		if err := cdc.UnmarshalInterface(newTmp, &currently); err != nil {
-			return sdkerrors.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
+			return errorsmod.Wrapf(ErrUnmarshalInterface, "can not unmarshal ConsensusState interface in RestrictChain ")
 		}
 		tmpHeader, ok := currently.(*Header)
 		if !ok {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				clienttypes.ErrInvalidConsensus, "can not find consensus state for hash %s in RestrictChain", new.ToEthHeader().ParentHash)
 		}
 		consensusState := &ConsensusState{
@@ -249,7 +250,7 @@ func (m ClientState) RestrictChain(cdc codec.BinaryCodec, store sdk.KVStore, new
 		}
 		consensusStateBytes, err := cdc.MarshalInterface(consensusState)
 		if err != nil {
-			return sdkerrors.Wrap(ErrInvalidGenesisBlock, "marshal consensus to byte failed")
+			return errorsmod.Wrap(ErrInvalidGenesisBlock, "marshal consensus to byte failed")
 		}
 		// set main_chain
 		store.Set(host.ConsensusStateKey(ti), consensusStateBytes)

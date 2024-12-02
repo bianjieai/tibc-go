@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -135,15 +136,15 @@ func MustParseHeight(heightStr string) Height {
 func ParseHeight(heightStr string) (Height, error) {
 	splitStr := strings.Split(heightStr, "-")
 	if len(splitStr) != 2 {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "expected height string format: {revision}-{height}. Got: %s", heightStr)
+		return Height{}, errorsmod.Wrapf(sdkerrors.ErrInvalidHeight, "expected height string format: {revision}-{height}. Got: %s", heightStr)
 	}
 	revisionNumber, err := strconv.ParseUint(splitStr[0], 10, 64)
 	if err != nil {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision number. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision number. parse err: %s", err)
 	}
 	revisionHeight, err := strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
-		return Height{}, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision height. parse err: %s", err)
+		return Height{}, errorsmod.Wrapf(sdkerrors.ErrInvalidHeight, "invalid revision height. parse err: %s", err)
 	}
 	return NewHeight(revisionNumber, revisionHeight), nil
 }
@@ -152,7 +153,7 @@ func ParseHeight(heightStr string) (Height, error) {
 // in the chainID with the given revision number.
 func SetRevisionNumber(chainID string, revision uint64) (string, error) {
 	if !IsRevisionFormat(chainID) {
-		return "", sdkerrors.Wrapf(
+		return "", errorsmod.Wrapf(
 			sdkerrors.ErrInvalidChainID, "chainID is not in revision format: %s", chainID,
 		)
 	}

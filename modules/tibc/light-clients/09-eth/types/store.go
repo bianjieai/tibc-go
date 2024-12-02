@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/store/types"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -38,17 +39,17 @@ func EthRootMainKey(root common.Hash, height uint64) []byte {
 }
 
 func SetEthHeaderIndex(
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	header Header,
 	headerBytes []byte,
 ) {
 	clientStore.Set(EthHeaderIndexKey(header.Hash(), header.Height.RevisionHeight), headerBytes)
 }
-func GetIterator(store sdk.KVStore, keyType string) types.Iterator {
-	iterator := sdk.KVStorePrefixIterator(store, []byte(keyType))
+func GetIterator(store storetypes.KVStore, keyType string) types.Iterator {
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(keyType))
 	return iterator
 }
-func IteratorEthMetaDataByPrefix(store sdk.KVStore, keyType string, cb func(key, val []byte) bool) {
+func IteratorEthMetaDataByPrefix(store storetypes.KVStore, keyType string, cb func(key, val []byte) bool) {
 	iterator := GetIterator(store, keyType)
 	defer iterator.Close()
 
@@ -60,7 +61,7 @@ func IteratorEthMetaDataByPrefix(store sdk.KVStore, keyType string, cb func(key,
 }
 
 func GetParentHeaderFromIndex(
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	header Header,
 ) []byte {
 	get := clientStore.Get(EthHeaderIndexKey(header.ToEthHeader().ParentHash, header.Height.RevisionHeight-1))
@@ -69,22 +70,22 @@ func GetParentHeaderFromIndex(
 
 // SetEthConsensusRoot sets the consensus metadata with the provided values
 func SetEthConsensusRoot(
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	height uint64,
 	root, headerHash common.Hash,
 ) {
 	clientStore.Set(EthRootMainKey(root, height), EthHeaderIndexKey(headerHash, height))
 }
-func GetHeaderIndexKeyByEthConsensusRoot(clientStore sdk.KVStore, root common.Hash, height uint64) []byte {
+func GetHeaderIndexKeyByEthConsensusRoot(clientStore storetypes.KVStore, root common.Hash, height uint64) []byte {
 	return clientStore.Get(EthRootMainKey(root, height))
 }
 
 // GetConsensusState retrieves the consensus state from the client prefixed
 // store. An error is returned if the consensus state does not exist.
-func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
+func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, error) {
 	bz := store.Get(host.ConsensusStateKey(height))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for height %s",
 			height,
@@ -93,12 +94,12 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 
 	consensusStateI, err := clienttypes.UnmarshalConsensusState(cdc, bz)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "unmarshal error: %v", err)
 	}
 
 	consensusState, ok := consensusStateI.(*ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			clienttypes.ErrInvalidConsensus,
 			"invalid consensus type %T, expected %T",
 			consensusState, &ConsensusState{},
@@ -110,9 +111,9 @@ func GetConsensusState(store sdk.KVStore, cdc codec.BinaryCodec, height exported
 
 // IterateConsensusStateAscending iterates through the consensus states in ascending order. It calls the provided
 // callback on each height, until stop=true is returned.
-func IterateConsensusStateAscending(clientStore sdk.KVStore,
+func IterateConsensusStateAscending(clientStore storetypes.KVStore,
 	cb func(height exported.Height) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
+	iterator := storetypes.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -139,16 +140,16 @@ func GetHeightFromIterationKey(iterKey []byte) exported.Height {
 	height := sdk.BigEndianToUint64(heightBytes)
 	return clienttypes.NewHeight(revision, height)
 }
-func deleteRootMain(clientStore sdk.KVStore, root common.Hash, height exported.Height) {
+func deleteRootMain(clientStore storetypes.KVStore, root common.Hash, height exported.Height) {
 	clientStore.Delete(EthRootMainKey(root, height.GetRevisionHeight()))
 }
 
 // deleteConsensusStateAndIndexHeader deletes the consensus state at the given height
-func deleteConsensusStateAndIndexHeader(cdc codec.BinaryCodec, clientStore sdk.KVStore, height exported.Height) error {
+func deleteConsensusStateAndIndexHeader(cdc codec.BinaryCodec, clientStore storetypes.KVStore, height exported.Height) error {
 	key := host.ConsensusStateKey(height)
 	consensusState := clientStore.Get(key)
 	if consensusState == nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrConsensusStateNotFound,
 			"consensus state does not exist for height %s", height,
 		)
@@ -164,7 +165,7 @@ func deleteConsensusStateAndIndexHeader(cdc codec.BinaryCodec, clientStore sdk.K
 	root := tmpConsensus.Root
 	headerIndexKey := GetHeaderIndexKeyByEthConsensusRoot(clientStore, common.BytesToHash(root), height.GetRevisionHeight())
 	if headerIndexKey == nil {
-		return sdkerrors.Wrapf(ErrHeader,
+		return errorsmod.Wrapf(ErrHeader,
 			"Header index not found in height %s", height,
 		)
 	}

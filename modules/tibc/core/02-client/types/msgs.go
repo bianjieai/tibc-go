@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -49,7 +50,7 @@ func NewMsgUpdateClient(
 func (msg MsgUpdateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidAddress,
 			"string could not be parsed as address: %v",
 			err,
@@ -84,7 +85,7 @@ func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 func (msg MsgCreateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidAddress,
 			"string could not be parsed as address: %v",
 			err,
@@ -98,6 +99,30 @@ func (msg MsgCreateClient) ValidateBasic() error {
 		ConsensusState: msg.ConsensusState,
 	}
 	return context.ValidateBasic()
+}
+
+// NewMsgCreateClient creates a new MsgCreateClient instance
+func NewMsgCreateClient(
+	chainName string,
+	clientState exported.ClientState, 
+	consensusState exported.ConsensusState, 
+	authority string,
+) (*MsgCreateClient, error) {
+	anyClientState, err := PackClientState(clientState)
+	if err != nil {
+		return nil, err
+	}
+
+	anyConsensusState, err := PackConsensusState(consensusState)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgCreateClient{
+		ClientState:    anyClientState,
+		ConsensusState: anyConsensusState,
+		Authority:      authority,
+	}, nil
 }
 
 // GetSigners implements sdk.Msg
@@ -125,7 +150,7 @@ func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) err
 func (msg MsgUpgradeClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidAddress,
 			"string could not be parsed as address: %v",
 			err,
@@ -166,7 +191,7 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 func (msg MsgRegisterRelayer) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidAddress,
 			"string could not be parsed as address: %v",
 			err,

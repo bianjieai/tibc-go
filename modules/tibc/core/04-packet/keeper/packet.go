@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -16,10 +17,10 @@ import (
 // by the calling module to the corresponding module on the counterparty chain.
 func (k Keeper) SendPacket(ctx sdk.Context, packet exported.PacketI) error {
 	if err := packet.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
+		return errorsmod.Wrap(err, "packet failed basic validation")
 	}
 	if packet.GetSourceChain() != k.clientKeeper.GetChainName(ctx) {
-		return sdkerrors.Wrap(types.ErrInvalidPacket, "source chain of packet is not this chain")
+		return errorsmod.Wrap(types.ErrInvalidPacket, "source chain of packet is not this chain")
 	}
 
 	targetChain := packet.GetDestChain()
@@ -35,7 +36,7 @@ func (k Keeper) SendPacket(ctx sdk.Context, packet exported.PacketI) error {
 	nextSequenceSend := k.GetNextSequenceSend(ctx, packet.GetSourceChain(), packet.GetDestChain())
 
 	if packet.GetSequence() != nextSequenceSend {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet sequence ≠ next send sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceSend,
 		)
@@ -80,12 +81,12 @@ func (k Keeper) RecvPacket(
 	proofHeight exported.Height,
 ) error {
 	if err := k.ValidatePacket(ctx, packet); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
+		return errorsmod.Wrap(err, "packet failed basic validation")
 	}
 	// check if the packet receipt has been received already for unordered channels
 	_, found := k.GetPacketReceipt(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 	if found {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet sequence (%d) already has been received", packet.GetSequence(),
 		)
@@ -98,7 +99,7 @@ func (k Keeper) RecvPacket(
 
 	targetClient, found := k.clientKeeper.GetClientState(ctx, fromChain)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -108,7 +109,7 @@ func (k Keeper) RecvPacket(
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), commitment,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
 	}
 
 	// All verification complete, update state
@@ -143,7 +144,7 @@ func (k Keeper) RecvPacket(
 		}
 
 		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetDestChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+			return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 
 		k.SetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence(), commitment)
@@ -188,7 +189,7 @@ func (k Keeper) WriteAcknowledgement(
 	acknowledgement []byte,
 ) error {
 	if len(acknowledgement) == 0 {
-		return sdkerrors.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
+		return errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
 	}
 
 	// NOTE: TIBC app modules might have written the acknowledgement synchronously on
@@ -252,7 +253,7 @@ func (k Keeper) AcknowledgePacket(
 	proofHeight exported.Height,
 ) error {
 	if err := k.ValidatePacket(ctx, packet); err != nil {
-		return sdkerrors.Wrap(err, "AcknowledgePacket failed basic validation")
+		return errorsmod.Wrap(err, "AcknowledgePacket failed basic validation")
 	}
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourceChain(), packet.GetDestChain(), packet.GetSequence())
 
@@ -260,7 +261,7 @@ func (k Keeper) AcknowledgePacket(
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return sdkerrors.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
 	chainName := k.clientKeeper.GetChainName(ctx)
@@ -271,7 +272,7 @@ func (k Keeper) AcknowledgePacket(
 
 	clientState, found := k.clientKeeper.GetClientState(ctx, fromChain)
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	ackCommitment := types.CommitAcknowledgement(acknowledgement)
@@ -280,7 +281,7 @@ func (k Keeper) AcknowledgePacket(
 		proof, packet.GetSourceChain(), packet.GetDestChain(),
 		packet.GetSequence(), ackCommitment,
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet acknowledgement verification for client (%s)", fromChain)
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", fromChain)
 	}
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
@@ -310,7 +311,7 @@ func (k Keeper) AcknowledgePacket(
 
 	if packet.GetRelayChain() == chainName {
 		if _, found = k.clientKeeper.GetClientState(ctx, packet.GetSourceChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+			return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 		// set the acknowledgement so that it can be verified on the other side
 		k.SetPacketAcknowledgement(
@@ -343,7 +344,7 @@ func (k Keeper) AcknowledgePacket(
 func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) error {
 	sourceChain := k.clientKeeper.GetChainName(ctx)
 	if err := cleanPacket.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
+		return errorsmod.Wrap(err, "packet failed basic validation")
 	}
 	if err := k.ValidateCleanPacket(ctx, types.CleanPacket{
 		Sequence:         cleanPacket.GetSequence(),
@@ -351,7 +352,7 @@ func (k Keeper) CleanPacket(ctx sdk.Context, cleanPacket exported.CleanPacketI) 
 		DestinationChain: cleanPacket.GetDestChain(),
 		RelayChain:       cleanPacket.GetRelayChain(),
 	}); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
+		return errorsmod.Wrap(err, "packet failed basic validation")
 	}
 
 	targetChain := cleanPacket.GetDestChain()
@@ -397,7 +398,7 @@ func (k Keeper) RecvCleanPacket(
 	proofHeight exported.Height,
 ) error {
 	if err := k.ValidateCleanPacket(ctx, cleanPacket); err != nil {
-		return sdkerrors.Wrap(err, "packet failed basic validation")
+		return errorsmod.Wrap(err, "packet failed basic validation")
 	}
 	chainName := k.clientKeeper.GetChainName(ctx)
 	fromChain := cleanPacket.GetSourceChain()
@@ -407,7 +408,7 @@ func (k Keeper) RecvCleanPacket(
 	targetClient, found := k.clientKeeper.GetClientState(ctx, fromChain)
 
 	if !found {
-		return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 	}
 
 	if err := targetClient.VerifyPacketCleanCommitment(ctx,
@@ -415,7 +416,7 @@ func (k Keeper) RecvCleanPacket(
 		proof, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(),
 		cleanPacket.GetSequence(),
 	); err != nil {
-		return sdkerrors.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", fromChain)
 	}
 
 	k.cleanAcknowledgementBySeq(ctx, cleanPacket.GetSourceChain(), cleanPacket.GetDestChain(), cleanPacket.GetSequence())
@@ -439,7 +440,7 @@ func (k Keeper) RecvCleanPacket(
 
 	if cleanPacket.GetRelayChain() == chainName {
 		if _, found = k.clientKeeper.GetClientState(ctx, cleanPacket.GetDestChain()); !found {
-			return sdkerrors.Wrap(clienttypes.ErrClientNotFound, fromChain)
+			return errorsmod.Wrap(clienttypes.ErrClientNotFound, fromChain)
 		}
 		// Emit Event with Packet data along with other packet information for relayer to pick up
 		// and relay to other chain

@@ -4,10 +4,10 @@ import (
 	fmt "fmt"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
@@ -135,7 +135,7 @@ type ProofAccount struct {
 func ParseValidators(extra []byte) ([][]byte, error) {
 	validatorBytes := extra[extraVanity : len(extra)-extraSeal]
 	if len(validatorBytes)%addressLength != 0 {
-		return nil, sdkerrors.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) should bz zero")
+		return nil, errorsmod.Wrap(ErrInvalidValidatorBytes, "(validatorsBytes % AddressLength) should bz zero")
 	}
 	n := len(validatorBytes) / addressLength
 	result := make([][]byte, n)

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
@@ -13,6 +14,7 @@ import (
 	"github.com/bianjieai/tibc-go/modules/tibc/core/keeper"
 )
 
+// GovHandlers defines the client manager proposal handlers
 var GovHandlers = []govclient.ProposalHandler{
 	govclient.NewProposalHandler(clientcli.NewCreateClientProposalCmd),
 	govclient.NewProposalHandler(clientcli.NewUpgradeClientProposalCmd),
@@ -33,7 +35,7 @@ func NewProposalHandler(k *keeper.Keeper) govv1beta1.Handler {
 		case *routingtypes.SetRoutingRulesProposal:
 			return k.RoutingKeeper.HandleSetRoutingRulesProposal(ctx, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized tibc proposal content type: %T", c)
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized tibc proposal content type: %T", c)
 		}
 	}
 }

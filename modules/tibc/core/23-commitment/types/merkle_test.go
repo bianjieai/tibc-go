@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/stretchr/testify/require"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
 )
@@ -15,7 +14,7 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := suite.store.Commit()
 
-	res := suite.store.Query(abci.RequestQuery{
+	res,err := suite.store.Query(&storetypes.RequestQuery{
 		Path: fmt.Sprintf(
 			"/%s/key",
 			suite.storeKey.Name(),
@@ -23,7 +22,9 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 		Data:  []byte("MYKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
+	
 
 	proof, err := types.ConvertProofs(res.ProofOps)
 	require.NoError(suite.T(), err)
@@ -161,7 +162,7 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 	cid := suite.store.Commit()
 
 	// Get Proof
-	res := suite.store.Query(abci.RequestQuery{
+	res,err := suite.store.Query(&storetypes.RequestQuery{
 		Path: fmt.Sprintf(
 			"/%s/key",
 			suite.storeKey.Name(),
@@ -169,6 +170,7 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 		Data:  []byte("MYABSENTKEY"),
 		Prove: true,
 	})
+	require.NoError(suite.T(), err)
 	require.NotNil(suite.T(), res.ProofOps)
 
 	proof, err := types.ConvertProofs(res.ProofOps)

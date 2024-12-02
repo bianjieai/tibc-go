@@ -3,9 +3,9 @@ package types_test
 import (
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	crypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/23-commitment/types"
@@ -29,7 +29,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}{{
 		"success for ExistenceProof",
 		func() {
-			res := suite.store.Query(abci.RequestQuery{
+			res, err := suite.store.Query(&storetypes.RequestQuery{
 				Path: fmt.Sprintf(
 					"/%s/key",
 					suite.storeKey.Name(),
@@ -37,6 +37,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 				Data:  []byte("MYKEY"),
 				Prove: true,
 			})
+			suite.Require().NoError(err, "failed to query store")
 			require.NotNil(suite.T(), res.ProofOps)
 
 			proofOps = res.ProofOps
@@ -45,7 +46,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}, {
 		"success for NonexistenceProof",
 		func() {
-			res := suite.store.Query(abci.RequestQuery{
+			res, err := suite.store.Query(&storetypes.RequestQuery{
 				Path: fmt.Sprintf(
 					"/%s/key",
 					suite.storeKey.Name(),
@@ -53,6 +54,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 				Data:  []byte("NOTMYKEY"),
 				Prove: true,
 			})
+			suite.Require().NoError(err, "failed to query store")
 			require.NotNil(suite.T(), res.ProofOps)
 
 			proofOps = res.ProofOps
@@ -67,7 +69,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}, {
 		"proof op data is nil",
 		func() {
-			res := suite.store.Query(abci.RequestQuery{
+			res, err := suite.store.Query(&storetypes.RequestQuery{
 				Path: fmt.Sprintf(
 					"/%s/key",
 					suite.storeKey.Name(),
@@ -75,6 +77,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 				Data:  []byte("MYKEY"),
 				Prove: true,
 			})
+			suite.Require().NoError(err, "failed to query store")
 			require.NotNil(suite.T(), res.ProofOps)
 
 			proofOps = res.ProofOps

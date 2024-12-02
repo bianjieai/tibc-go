@@ -64,7 +64,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
-	app := simapp.Setup(checkTx)
+	app := simapp.Setup(suite.T())
 
 	suite.cdc = app.AppCodec()
 
@@ -99,7 +99,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 		suite.valSet,
 		suite.signers,
 	)
-	suite.ctx = app.BaseApp.NewContext(checkTx, tmproto.Header{Height: 1, Time: suite.now})
+	suite.ctx = app.BaseApp.NewContextLegacy(checkTx, tmproto.Header{Height: 1, Time: suite.now})
 }
 
 func getAltSigners(

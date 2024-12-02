@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cometbft/cometbft/libs/log"
-
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 	host "github.com/bianjieai/tibc-go/modules/tibc/core/24-host"
@@ -115,7 +114,7 @@ func (k Keeper) IterateConsensusStates(
 	cb func(chainName string, cs types.ConsensusStateWithHeight) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -175,7 +174,7 @@ func (k Keeper) GetAllClientMetadata(
 		for i, metadata := range gms {
 			cmd, ok := metadata.(types.GenesisMetadata)
 			if !ok {
-				return nil, sdkerrors.Wrapf(
+				return nil, errorsmod.Wrapf(
 					types.ErrInvalidClientMetadata,
 					"expected metadata type: %T, got: %T",
 					types.GenesisMetadata{},
@@ -266,7 +265,7 @@ func (k Keeper) IterateClients(
 	cb func(chainName string, cs exported.ClientState) bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, host.KeyClientStorePrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -295,13 +294,13 @@ func (k Keeper) GetAllClients(ctx sdk.Context) (states []exported.ClientState) {
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
-func (k Keeper) ClientStore(ctx sdk.Context, chainName string) sdk.KVStore {
+func (k Keeper) ClientStore(ctx sdk.Context, chainName string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, chainName))
 	return prefix.NewStore(ctx.KVStore(k.storeKey), clientPrefix)
 }
 
 // RelayerStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other relayer's data
-func (k Keeper) RelayerStore(ctx sdk.Context) sdk.KVStore {
+func (k Keeper) RelayerStore(ctx sdk.Context) storetypes.KVStore {
 	return prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.KeyRelayers))
 }

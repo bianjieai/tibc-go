@@ -49,9 +49,9 @@ func TestIBCTestSuite(t *testing.T) {
 
 func (suite *TIBCTestSuite) TestValidateGenesis() {
 	header := suite.chainA.CreateTMClientHeader(
-		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
-		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals,
+		suite.chainA.ChainID, suite.chainA.ProposedHeader.Height,
+		clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)),
+		suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Signers,
 	)
 
@@ -149,9 +149,9 @@ func (suite *TIBCTestSuite) TestValidateGenesis() {
 
 func (suite *TIBCTestSuite) TestInitGenesis() {
 	header := suite.chainA.CreateTMClientHeader(
-		suite.chainA.ChainID, suite.chainA.CurrentHeader.Height,
-		clienttypes.NewHeight(0, uint64(suite.chainA.CurrentHeader.Height-1)),
-		suite.chainA.CurrentHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
+		suite.chainA.ChainID, suite.chainA.ProposedHeader.Height,
+		clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)),
+		suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals,
 		suite.chainA.Vals, suite.chainA.Signers,
 	)
 
@@ -205,11 +205,11 @@ func (suite *TIBCTestSuite) TestInitGenesis() {
 	}}
 
 	for _, tc := range testCases {
-		app := simapp.Setup(false)
+		app := simapp.Setup(suite.T())
 
 		suite.NotPanics(func() {
 			tibc.InitGenesis(
-				app.BaseApp.NewContext(false, tmproto.Header{Height: 1}),
+				app.BaseApp.NewContextLegacy(false, tmproto.Header{Height: 1}),
 				*app.TIBCKeeper,
 				true,
 				tc.genState,

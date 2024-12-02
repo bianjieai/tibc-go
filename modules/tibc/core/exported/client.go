@@ -3,6 +3,7 @@ package exported
 import (
 	proto "github.com/cosmos/gogoproto/proto"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -50,20 +51,20 @@ type ClientState interface {
 	// Initialize function
 	// Clients must validate the initial consensus state, and may store any client-specific metadata
 	// necessary for correct light client operation
-	Initialize(sdk.Context, codec.BinaryCodec, sdk.KVStore, ConsensusState) error
+	Initialize(sdk.Context, codec.BinaryCodec, storetypes.KVStore, ConsensusState) error
 
 	// Status function
 	// Clients must return their status. Only Active clients are allowed to process packets.
-	Status(ctx sdk.Context, clientStore sdk.KVStore, cdc codec.BinaryCodec) Status
+	Status(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec) Status
 
 	// ExportMetadata function
-	ExportMetadata(sdk.KVStore) []GenesisMetadata
+	ExportMetadata(storetypes.KVStore) []GenesisMetadata
 
 	// Update and Misbehaviour functions
 	CheckHeaderAndUpdateState(
 		sdk.Context,
 		codec.BinaryCodec,
-		sdk.KVStore,
+		storetypes.KVStore,
 		Header,
 	) (ClientState, ConsensusState, error)
 
@@ -71,7 +72,7 @@ type ClientState interface {
 	// Verify the commitment of the cross-chain data package
 	VerifyPacketCommitment(
 		ctx sdk.Context,
-		store sdk.KVStore,
+		store storetypes.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,
@@ -84,7 +85,7 @@ type ClientState interface {
 	// Verify the Acknowledgement of the cross-chain data package
 	VerifyPacketAcknowledgement(
 		ctx sdk.Context,
-		store sdk.KVStore,
+		store storetypes.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,
@@ -97,7 +98,7 @@ type ClientState interface {
 	// Verify the CleanCommitment of the cross-chain data package
 	VerifyPacketCleanCommitment(
 		ctx sdk.Context,
-		store sdk.KVStore,
+		store storetypes.KVStore,
 		cdc codec.BinaryCodec,
 		height Height,
 		proof []byte,

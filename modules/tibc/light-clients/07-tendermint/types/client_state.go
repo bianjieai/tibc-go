@@ -8,6 +8,8 @@ import (
 
 	"github.com/cometbft/cometbft/light"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -85,25 +87,25 @@ func (cs ClientState) IsExpired(latestTimestamp, now time.Time) bool {
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if strings.TrimSpace(cs.ChainId) == "" {
-		return sdkerrors.Wrap(ErrInvalidChainID, "chain id cannot be empty string")
+		return errorsmod.Wrap(ErrInvalidChainID, "chain id cannot be empty string")
 	}
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
 		return err
 	}
 	if cs.TrustingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
+		return errorsmod.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
 	}
 	if cs.UnbondingPeriod == 0 {
-		return sdkerrors.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
+		return errorsmod.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
 	}
 	if cs.MaxClockDrift == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
+		return errorsmod.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
 	}
 	if cs.LatestHeight.RevisionHeight == 0 {
-		return sdkerrors.Wrapf(ErrInvalidHeaderHeight, "tendermint revision height cannot be zero")
+		return errorsmod.Wrapf(ErrInvalidHeaderHeight, "tendermint revision height cannot be zero")
 	}
 	if cs.TrustingPeriod >= cs.UnbondingPeriod {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrInvalidTrustingPeriod,
 			"trusting period (%s) should be < unbonding period (%s)",
 			cs.TrustingPeriod, cs.UnbondingPeriod,
@@ -111,11 +113,11 @@ func (cs ClientState) Validate() error {
 	}
 
 	if cs.ProofSpecs == nil {
-		return sdkerrors.Wrap(ErrInvalidProofSpecs, "proof specs cannot be nil for tm client")
+		return errorsmod.Wrap(ErrInvalidProofSpecs, "proof specs cannot be nil for tm client")
 	}
 	for i, spec := range cs.ProofSpecs {
 		if spec == nil {
-			return sdkerrors.Wrapf(ErrInvalidProofSpecs, "proof spec cannot be nil at index: %d", i)
+			return errorsmod.Wrapf(ErrInvalidProofSpecs, "proof spec cannot be nil at index: %d", i)
 		}
 	}
 	return nil
@@ -132,11 +134,11 @@ func (cs ClientState) GetProofSpecs() []*ics23.ProofSpec {
 func (cs ClientState) Initialize(
 	ctx sdk.Context,
 	_ codec.BinaryCodec,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	consState exported.ConsensusState,
 ) error {
 	if _, ok := consState.(*ConsensusState); !ok {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			clienttypes.ErrInvalidConsensus,
 			"invalid initial consensus state. expected type: %T, got: %T",
 			&ConsensusState{}, consState,
@@ -151,7 +153,7 @@ func (cs ClientState) Initialize(
 // Clients must return their status. Only Active clients are allowed to process packets.
 func (cs ClientState) Status(
 	ctx sdk.Context,
-	clientStore sdk.KVStore,
+	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
 	// get latest consensus state from clientStore to check for expiry
@@ -171,7 +173,7 @@ func (cs ClientState) Status(
 // the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketCommitment(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -216,7 +218,7 @@ func (cs ClientState) VerifyPacketCommitment(
 // acknowledgement at the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketAcknowledgement(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -261,7 +263,7 @@ func (cs ClientState) VerifyPacketAcknowledgement(
 // acknowledgement at the specified sourceChain, specified destChain, and specified sequence.
 func (cs ClientState) VerifyPacketCleanCommitment(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
 	proof []byte,
@@ -305,14 +307,14 @@ func (cs ClientState) VerifyPacketCleanCommitment(
 // before allowing verification to continue.
 func verifyDelayPeriodPassed(
 	ctx sdk.Context,
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	proofHeight exported.Height,
 	delayPeriod uint64,
 ) error {
 	// check that executing chain's timestamp has passed consensusState's processed time + delay period
 	processedTime, ok := GetProcessedTime(store, proofHeight)
 	if !ok {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrProcessedTimeNotFound,
 			"processed time not found for height: %s",
 			proofHeight,
@@ -322,7 +324,7 @@ func verifyDelayPeriodPassed(
 	validTime := processedTime + delayPeriod
 	// NOTE: delay period is inclusive, so if currentTimestamp is validTime, then we return no error
 	if validTime > currentTimestamp {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			ErrDelayPeriodNotPassed,
 			"cannot verify packet until time: %d, current time: %d",
 			validTime, currentTimestamp,
@@ -335,7 +337,7 @@ func verifyDelayPeriodPassed(
 // shared between the verification functions and returns the unmarshal
 // merkle proof, the consensus state and an error if one occurred.
 func produceVerificationArgs(
-	store sdk.KVStore,
+	store storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	cs ClientState,
 	height exported.Height,
@@ -343,7 +345,7 @@ func produceVerificationArgs(
 	proof []byte,
 ) (merkleProof commitmenttypes.MerkleProof, consensusState *ConsensusState, err error) {
 	if cs.GetLatestHeight().LT(height) {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(
+		return commitmenttypes.MerkleProof{}, nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d)",
 			cs.GetLatestHeight(), height,
@@ -351,7 +353,7 @@ func produceVerificationArgs(
 	}
 
 	if prefix == nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+		return commitmenttypes.MerkleProof{}, nil, errorsmod.Wrap(
 			commitmenttypes.ErrInvalidPrefix,
 			"prefix cannot be empty",
 		)
@@ -359,7 +361,7 @@ func produceVerificationArgs(
 
 	_, ok := prefix.(*commitmenttypes.MerklePrefix)
 	if !ok {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrapf(
+		return commitmenttypes.MerkleProof{}, nil, errorsmod.Wrapf(
 			commitmenttypes.ErrInvalidPrefix,
 			"invalid prefix type %T, expected *MerklePrefix",
 			prefix,
@@ -367,14 +369,14 @@ func produceVerificationArgs(
 	}
 
 	if proof == nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+		return commitmenttypes.MerkleProof{}, nil, errorsmod.Wrap(
 			commitmenttypes.ErrInvalidProof,
 			"proof cannot be empty",
 		)
 	}
 
 	if err = cdc.Unmarshal(proof, &merkleProof); err != nil {
-		return commitmenttypes.MerkleProof{}, nil, sdkerrors.Wrap(
+		return commitmenttypes.MerkleProof{}, nil, errorsmod.Wrap(
 			commitmenttypes.ErrInvalidProof,
 			"failed to unmarshal proof into commitment merkle proof",
 		)

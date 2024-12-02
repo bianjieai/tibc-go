@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 )
@@ -14,7 +14,7 @@ import (
 func (k Keeper) HandleCreateClientProposal(ctx sdk.Context, p *types.CreateClientProposal) error {
 	_, has := k.GetClientState(ctx, p.ChainName)
 	if has {
-		return sdkerrors.Wrapf(types.ErrClientExists, "chain-name: %s", p.ChainName)
+		return errorsmod.Wrapf(types.ErrClientExists, "chain-name: %s", p.ChainName)
 	}
 
 	clientState, err := types.UnpackClientState(p.ClientState)

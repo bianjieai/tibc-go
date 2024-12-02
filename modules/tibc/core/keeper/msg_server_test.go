@@ -6,7 +6,7 @@ package keeper_test
 // 	"github.com/stretchr/testify/suite"
 
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+// 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 // 	clienttypes "github.com/bianjieai/tibc-go/modules/tibc/core/02-client/types"
 // 	packettypes "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"

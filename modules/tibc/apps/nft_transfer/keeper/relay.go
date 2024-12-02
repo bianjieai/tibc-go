@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
+	"github.com/hashicorp/go-metrics"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/apps/nft_transfer/types"
 	packetType "github.com/bianjieai/tibc-go/modules/tibc/core/04-packet/types"
@@ -38,17 +38,17 @@ func (k Keeper) SendNftTransfer(
 ) error {
 	_, found := k.nk.GetDenom(ctx, class)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
+		return errorsmod.Wrapf(types.ErrInvalidDenom, "class %s not existed ", class)
 	}
 
 	nft, err := k.nk.GetNFT(ctx, class, id)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrUnknownNFT, "invalid NFT %s from collection %s", id, class)
+		return errorsmod.Wrapf(types.ErrUnknownNFT, "invalid NFT %s from collection %s", id, class)
 	}
 
 	sourceChain := k.ck.GetChainName(ctx)
 	if sourceChain == destChain {
-		return sdkerrors.Wrapf(types.ErrScChainEqualToDestChain, "invalid destChain %s equals to scChain %s", destChain, sourceChain)
+		return errorsmod.Wrapf(types.ErrScChainEqualToDestChain, "invalid destChain %s equals to scChain %s", destChain, sourceChain)
 	}
 
 	fullClassPath := class
@@ -184,7 +184,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, "false"))
 
 		if !strings.HasPrefix(data.Class, CLASSPATHPREFIX) {
-			return sdkerrors.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
+			return errorsmod.Wrapf(types.ErrInvalidDenom, "class has no prefix: %s", data.Class)
 		}
 
 		newClassPath = k.getBackNewClassPath(data.Class)
@@ -213,6 +213,9 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet packetType.Packet, data typ
 	return nil
 }
 
+// OnAcknowledgementPacket implements the TIBCModule interface.
+// It processes the acknowledgement that the counterparty chain sends back in response to a packet that was sent by this chain.
+// If the acknowledgement is an error, it refunds the packet token to the sender.
 func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, data types.NonFungibleTokenPacketData, ack packetType.Acknowledgement) error {
 	switch ack.Response.(type) {
 	case *packetType.Acknowledgement_Error:
@@ -346,12 +349,12 @@ func (k Keeper) ClassPathFromHash(ctx sdk.Context, class string) (string, error)
 
 	hash, err := types.ParseHexHash(hexHash)
 	if err != nil {
-		return "", sdkerrors.Wrap(types.ErrInvalidDenom, err.Error())
+		return "", errorsmod.Wrap(types.ErrInvalidDenom, err.Error())
 	}
 
 	denomTrace, found := k.GetClassTrace(ctx, hash)
 	if !found {
-		return "", sdkerrors.Wrap(types.ErrTraceNotFound, hexHash)
+		return "", errorsmod.Wrap(types.ErrTraceNotFound, hexHash)
 	}
 
 	fullDenomPath := denomTrace.GetFullClassPath()

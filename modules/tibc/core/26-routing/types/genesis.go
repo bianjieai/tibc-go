@@ -3,7 +3,7 @@ package types
 import (
 	"regexp"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 func DefaultGenesisState() GenesisState {
@@ -21,7 +21,7 @@ func (gs GenesisState) Validate() error {
 	for _, rule := range gs.Rules {
 		valid, _ := regexp.MatchString(RulePattern, rule)
 		if !valid {
-			return sdkerrors.Wrap(ErrInvalidRule, "invalid rule")
+			return errorsmod.Wrap(ErrInvalidRule, "invalid rule")
 		}
 	}
 	return nil

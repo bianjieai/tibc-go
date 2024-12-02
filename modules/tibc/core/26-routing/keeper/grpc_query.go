@@ -6,8 +6,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bianjieai/tibc-go/modules/tibc/core/26-routing/types"
 )
@@ -24,7 +24,7 @@ func (q Keeper) RoutingRules(c context.Context, req *types.QueryRoutingRulesRequ
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			sdkerrors.Wrap(types.ErrRoutingRulesNotFound, "routing rules not found").Error(),
+			errorsmod.Wrap(types.ErrRoutingRulesNotFound, "routing rules not found").Error(),
 		)
 	}
 

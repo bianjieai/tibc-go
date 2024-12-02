@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"sort"
 
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -18,7 +18,7 @@ func (s validatorsAscending) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type snapshot struct {
 	cdc   codec.BinaryCodec
-	store sdk.KVStore
+	store storetypes.KVStore
 	// Block number where the snapshot was created
 	Number uint64
 	// Set of authorized validators at this moment
@@ -26,7 +26,7 @@ type snapshot struct {
 	Recents    map[uint64]common.Address
 }
 
-func (m ClientState) snapshot(cdc codec.BinaryCodec, store sdk.KVStore) (*snapshot, error) {
+func (m ClientState) snapshot(cdc codec.BinaryCodec, store storetypes.KVStore) (*snapshot, error) {
 
 	recentSingers, err := GetRecentSigners(store)
 	if err != nil {
