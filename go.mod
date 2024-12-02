@@ -22,8 +22,8 @@ require (
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/hashicorp/go-metrics v0.5.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237
-	mods.irisnet.org/modules/mt v0.0.0-20241125093946-bfbef28eaa7e
-	mods.irisnet.org/modules/nft v0.0.0-20241125093946-bfbef28eaa7e
+	mods.irisnet.org/modules/mt v0.0.0-20241202072418-ae2ffd0c842e
+	mods.irisnet.org/modules/nft v0.0.0-20241202072418-ae2ffd0c842e
 )
 
 require (

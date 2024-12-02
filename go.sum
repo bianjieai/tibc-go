@@ -1931,10 +1931,10 @@ honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9
 honnef.co/go/tools v0.1.3/go.mod h1:NgwopIslSNH47DimFoV78dnkksY2EFtX0ajyb3K/las=
 mods.irisnet.org/api v0.0.0-20241118093307-345265846e1d h1:O9WkEH5ydPGg32YL+fVQr5MFOuYqjZFdIekTpiWU7bg=
 mods.irisnet.org/api v0.0.0-20241118093307-345265846e1d/go.mod h1:TpMaRRYSpqsXdeX4gDVFRj9ggedQ60Zcjs4iE2DIhsc=
-mods.irisnet.org/modules/mt v0.0.0-20241125093946-bfbef28eaa7e h1:Ocy/LhBWlwN1B5TwUIEsMN+iym+rk/I0zu9VmmC1Ez4=
-mods.irisnet.org/modules/mt v0.0.0-20241125093946-bfbef28eaa7e/go.mod h1:Dw1zm350HiRuNjrnwZnV4XGB8PNf1SXmjGJA5Xslg0Q=
-mods.irisnet.org/modules/nft v0.0.0-20241125093946-bfbef28eaa7e h1:J1uchAYz/dy2fXdPcWuK7HArj6IFlfbaKHQwcxxWFxg=
-mods.irisnet.org/modules/nft v0.0.0-20241125093946-bfbef28eaa7e/go.mod h1:VjySqJfECBW8cApFB8W66Yk6tMR2oJEc7FTDaHfeg8I=
+mods.irisnet.org/modules/mt v0.0.0-20241202072418-ae2ffd0c842e h1:+kL2d61TIA6hvX30ZDOSYaOKl+xbHMmItOtXUFH8igQ=
+mods.irisnet.org/modules/mt v0.0.0-20241202072418-ae2ffd0c842e/go.mod h1:Dw1zm350HiRuNjrnwZnV4XGB8PNf1SXmjGJA5Xslg0Q=
+mods.irisnet.org/modules/nft v0.0.0-20241202072418-ae2ffd0c842e h1:XjtU54H7iHopFpI2pGqp7ZK1UUCjNgq5Tsyiq0mob6E=
+mods.irisnet.org/modules/nft v0.0.0-20241202072418-ae2ffd0c842e/go.mod h1:VjySqJfECBW8cApFB8W66Yk6tMR2oJEc7FTDaHfeg8I=
 mods.irisnet.org/simapp v0.0.0-20241118093307-345265846e1d h1:rZjX7uXO6xGZgZIj3xnMkiGik1VXZRFqceR11rZb5pw=
 mods.irisnet.org/simapp v0.0.0-20241118093307-345265846e1d/go.mod h1:t7FSQJkJOgXq1/LdhpBeOu7TS8hLQkAMMx9fL5w53PY=
 nhooyr.io/websocket v1.8.6 h1:s+C3xAMLwGmlI31Nyn/eAehUlZPwfYZu2JXM621Q5/k=
