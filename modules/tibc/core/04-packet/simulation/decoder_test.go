@@ -28,6 +28,12 @@ func TestDecodeStore(t *testing.T) {
 			Key:   host.NextSequenceSendKey(portID, channelID),
 			Value: sdk.Uint64ToBigEndian(1),
 		}, {
+			Key:   []byte(host.KeyNextSeqRecvPrefix),
+			Value: sdk.Uint64ToBigEndian(1),
+		}, {
+			Key:   []byte(host.KeyNextSeqAckPrefix),
+			Value: sdk.Uint64ToBigEndian(1),
+		}, {
 			Key:   host.PacketCommitmentKey(portID, channelID, 1),
 			Value: bz,
 		}, {
